@@ -39,7 +39,7 @@ export default function ArticlePage({ article }) {
           <img
             src={article.image}
             alt={article.title}
-            className="mb-4 w-full h-auto object-cover"
+            className="mb-4 w-full max-h-96 object-cover rounded"
           />
         )}
         <p className="whitespace-pre-wrap">{article.content}</p>
@@ -50,7 +50,7 @@ export default function ArticlePage({ article }) {
                 key={idx}
                 src={img}
                 alt={`${article.title}-${idx}`}
-                className="w-full h-auto object-cover rounded"
+                className="w-full h-48 object-cover rounded"
               />
             ))}
           </div>

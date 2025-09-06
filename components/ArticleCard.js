@@ -25,16 +25,18 @@ export default function ArticleCard({ article = {}, isLarge = false }) {
 
     return (
         <Link href={`/articles/${id}`}>
-            <div className={`rounded overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-200 ${isLarge ? 'md:flex' : ''} cursor-pointer`}>
+            <div
+                className={`bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-200 cursor-pointer hover:scale-[1.02] ${isLarge ? 'md:flex' : ''}`}
+            >
                 <img
                     src={imageSrc}
                     alt={title}
-                    className={`${isLarge ? 'w-full md:w-1/3 h-48 object-cover' : 'w-full h-48 object-cover'}`}
+                    className={`${isLarge ? 'md:w-1/3 md:h-full' : ''} w-full h-40 object-cover`}
                 />
-                <div className="p-4">
+                <div className={`p-4 flex flex-col justify-between ${isLarge ? 'md:w-2/3' : ''}`}>
                     <h3 className="text-xl font-bold mb-2">{title}</h3>
                     <p className="text-gray-700 mb-4">{excerpt}</p>
-                    <div className="flex items-center">
+                    <div className="flex items-center mt-auto">
                         <img
                             src={authorImage}
                             alt={authorName}
