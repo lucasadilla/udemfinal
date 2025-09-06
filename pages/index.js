@@ -3,8 +3,6 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
-import { useArticles } from '../context/ArticlesContext';
-import { useContent } from '../context/ContentContext';
 import SponsorsBar from "../components/Sponsors";
 import AdminLoginForm from '../components/AdminLoginForm';
 import Head from 'next/head';
@@ -17,7 +15,7 @@ export default function Home() {
     const [isAdmin, setIsAdmin] = useState(false);
     
     // Get dynamic content with fallbacks
-    const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMME & DROIT');
+    const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
     const heroSubtitle = getTextContent('home', 'hero', 'hero_subtitle', 'Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal');
     const heroBanner = getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
     const recentArticlesTitle = getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
