@@ -37,8 +37,8 @@ export default function Navbar() {
                     </Link>
                 </li>
                 <li>
-                    <Link href="/venir">
-                        <span className={`nav-link text-black ${isActive('/venir') ? 'underline font-bold' : ''}`}>Événements</span>
+                    <Link href="/evenements">
+                        <span className={`nav-link text-black ${isActive('/evenements') ? 'underline font-bold' : ''}`}>Événements</span>
                     </Link>
                 </li>
                 <li>
