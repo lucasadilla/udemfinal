@@ -2,7 +2,7 @@
 import Navbar from "../components/Navbar";
 import Footer from '../components/Footer';
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SponsorsBar from "../components/Sponsors";
 import useUsers from "../hooks/useUsers";
 
@@ -12,10 +12,24 @@ export default function NotreComite() {
     const [name, setName] = useState("");
     const [title, setTitle] = useState("");
     const [profilePicture, setProfilePicture] = useState("");
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         setIsAdmin(document.cookie.includes('admin-auth=true'));
     }, []);
+
+    const handleProfilePictureChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            setProfilePicture("");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setProfilePicture(reader.result.toString());
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleAddUser = async (e) => {
         e.preventDefault();
@@ -23,6 +37,9 @@ export default function NotreComite() {
         setName("");
         setTitle("");
         setProfilePicture("");
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     };
 
     return (
@@ -74,11 +91,11 @@ export default function NotreComite() {
                                 onChange={(e) => setTitle(e.target.value)}
                             />
                             <input
+                                ref={fileInputRef}
                                 className="border p-2"
-                                type="text"
-                                placeholder="URL de l'image"
-                                value={profilePicture}
-                                onChange={(e) => setProfilePicture(e.target.value)}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleProfilePictureChange}
                             />
                             <button className="bg-blue-500 text-white p-2" type="submit">
                                 Ajouter
