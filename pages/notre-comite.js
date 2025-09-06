@@ -2,11 +2,29 @@
 import Navbar from "../components/Navbar";
 import Footer from '../components/Footer';
 import Head from "next/head";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SponsorsBar from "../components/Sponsors";
-import { users } from "../lib/userDatabase";
+import useUsers from "../hooks/useUsers";
 
 export default function NotreComite() {
+    const { users, loading, addUser, deleteUser } = useUsers();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [name, setName] = useState("");
+    const [title, setTitle] = useState("");
+    const [profilePicture, setProfilePicture] = useState("");
+
+    useEffect(() => {
+        setIsAdmin(document.cookie.includes('admin-auth=true'));
+    }, []);
+
+    const handleAddUser = async (e) => {
+        e.preventDefault();
+        await addUser({ name, title, profilePicture });
+        setName("");
+        setTitle("");
+        setProfilePicture("");
+    };
+
     return (
         <div>
             <Head>
@@ -18,30 +36,56 @@ export default function NotreComite() {
             <main className="p-8">
                 <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
-                {/* Grid layout for all members except the last one (Lina Tourabi) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {users.slice(0, users.length - 1).map((member, index) => (
-                        <div key={index} className="flex flex-col items-center text-center">
-                            <img src={member.profilePicture} alt={member.name} className="rounded-full w-64 h-32 sm:w-64 sm:h-80 lg:w-96 lg:h-96 mb-4 object-cover border-image" />
-                            <h2 className="text-xl font-semibold">{member.name}</h2>
-                            <p className="text-gray-600">{member.title}</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Centered row for the last member */}
-                <div className="flex justify-center mt-8">
-                    {(() => {
-                        const member = users[users.length - 1];
-                        return (
-                            <div className="flex flex-col items-center text-center">
+                {loading ? (
+                    <p>Loading...</p>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {users.map((member) => (
+                            <div key={member.id} className="flex flex-col items-center text-center">
                                 <img src={member.profilePicture} alt={member.name} className="rounded-full w-64 h-32 sm:w-64 sm:h-80 lg:w-96 lg:h-96 mb-4 object-cover border-image" />
                                 <h2 className="text-xl font-semibold">{member.name}</h2>
                                 <p className="text-gray-600">{member.title}</p>
+                                {isAdmin && (
+                                    <button onClick={() => deleteUser(member.id)} className="mt-2 text-red-600">
+                                        Supprimer
+                                    </button>
+                                )}
                             </div>
-                        );
-                    })()}
-                </div>
+                        ))}
+                    </div>
+                )}
+
+                {isAdmin && (
+                    <div className="mt-12">
+                        <h2 className="text-xl font-semibold text-center mb-4">Ajouter un membre</h2>
+                        <form onSubmit={handleAddUser} className="flex flex-col space-y-2 max-w-md mx-auto">
+                            <input
+                                className="border p-2"
+                                type="text"
+                                placeholder="Nom"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                            <input
+                                className="border p-2"
+                                type="text"
+                                placeholder="Titre"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                            />
+                            <input
+                                className="border p-2"
+                                type="text"
+                                placeholder="URL de l'image"
+                                value={profilePicture}
+                                onChange={(e) => setProfilePicture(e.target.value)}
+                            />
+                            <button className="bg-blue-500 text-white p-2" type="submit">
+                                Ajouter
+                            </button>
+                        </form>
+                    </div>
+                )}
                 <SponsorsBar />
             </main>
             <Footer />
