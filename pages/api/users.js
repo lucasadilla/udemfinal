@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 let cachedClient = null;
 
@@ -30,6 +30,15 @@ export default async function handler(req, res) {
       }
       const result = await collection.insertOne({ title, name, profilePicture });
       return res.status(201).json({ id: result.insertedId.toString() });
+    }
+
+    if (req.method === 'DELETE') {
+      const { id } = req.query;
+      if (!id) {
+        return res.status(400).json({ error: 'id is required' });
+      }
+      await collection.deleteOne({ _id: new ObjectId(id) });
+      return res.status(200).json({ ok: true });
     }
 
     const docs = await collection.find({}).toArray();
