@@ -49,7 +49,27 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // GET request
+    if (req.method === 'GET' && req.query.id) {
+      const { id } = req.query;
+      const doc = await collection.findOne({ _id: new ObjectId(id) });
+      if (!doc) {
+        return res.status(404).json({ error: 'Article not found' });
+      }
+      const article = {
+        id: doc._id.toString(),
+        title: doc.title,
+        content: doc.content,
+        authorName: doc.authorName,
+        authorImage: doc.authorImage,
+        authorId: doc.authorId,
+        image: doc.image,
+        images: doc.images || [],
+        date: doc.date,
+      };
+      return res.status(200).json(article);
+    }
+
+    // GET request - all articles
     const docs = await collection.find({}).sort({ date: -1 }).toArray();
     const articles = docs.map(doc => ({
       id: doc._id?.toString(),
