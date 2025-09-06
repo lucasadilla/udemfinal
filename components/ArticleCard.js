@@ -27,7 +27,7 @@ export default function ArticleCard({ article = {} }) {
     return (
         <Link href={`/articles/${id}`}>
             <div className="max-w-sm mx-auto bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-transform duration-200 cursor-pointer hover:scale-[1.02]">
-                <img src={imageSrc} alt={title} className="w-full h-40 object-cover" />
+                <img src={imageSrc} alt={title} className="w-full h-24 object-cover" />
                 <div className="p-4">
                     <h3 className="text-lg font-semibold mb-2">{title}</h3>
                     <p className="text-gray-700 text-sm mb-4">{excerpt}</p>
