@@ -64,12 +64,12 @@ export async function getServerSideProps({ params }) {
   }
   const article = {
     id: doc._id.toString(),
-    title: doc.title,
-    content: doc.content,
-    author: doc.author,
-    authorImage: doc.authorImage,
-    image: doc.image,
-    date: doc.date,
+    title: doc.title ?? '',
+    content: doc.content ?? '',
+    author: doc.author ?? null,
+    authorImage: doc.authorImage ?? null,
+    image: doc.image ?? null,
+    date: doc.date ?? null,
   };
   return { props: { article } };
 }
