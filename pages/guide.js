@@ -10,7 +10,6 @@ export default function GuidePage() {
     const [selectedSponsor, setSelectedSponsor] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [name, setName] = useState('');
     const [image, setImage] = useState('');
 
     useEffect(() => {
@@ -41,11 +40,20 @@ export default function GuidePage() {
         setCurrentIndex(prevIndex);
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            setImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleAdd = async (e) => {
         e.preventDefault();
-        if (!name || !image) return;
-        await addSponsor({ name, image });
-        setName('');
+        if (!image) return;
+        await addSponsor({ image });
         setImage('');
     };
 
@@ -68,16 +76,10 @@ export default function GuidePage() {
                 {isAdmin && (
                     <form onSubmit={handleAdd} className="mb-8 space-y-2">
                         <input
+                            type="file"
+                            accept="image/*"
                             className="border p-2 w-full"
-                            placeholder="Nom"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
-                        <input
-                            className="border p-2 w-full"
-                            placeholder="URL de l'image"
-                            value={image}
-                            onChange={(e) => setImage(e.target.value)}
+                            onChange={handleFileChange}
                         />
                         <button
                             type="submit"
@@ -95,7 +97,7 @@ export default function GuidePage() {
                             <div key={sponsor.id} className="relative inline-block">
                                 <img
                                     src={sponsor.image}
-                                    alt={sponsor.name}
+                                    alt="Sponsor"
                                     className="sponsor-image rounded-lg cursor-pointer hover:shadow-lg"
                                     onClick={() => openModal(index)}
                                 />
@@ -122,7 +124,7 @@ export default function GuidePage() {
                         <div className="modal-content">
                             <img
                                 src={selectedSponsor.image}
-                                alt={selectedSponsor.name}
+                                alt="Sponsor"
                                 className="modal-image"
                             />
                             <button className="close" onClick={closeModal}>

@@ -4,7 +4,8 @@ let cachedClient = null;
 
 /**
  * Retrieve sponsors from the `sponsors` collection.
- * Each document should contain `{ name: string, image: string }`.
+ * Each document should contain `{ image: string }` where the image is a
+ * base64-encoded data URL.
  *
  * This API route expects an environment variable `MONGODB_URI` to be
  * defined with the connection string to the database.
@@ -25,11 +26,11 @@ export default async function handler(req, res) {
         const collection = db.collection('sponsors');
 
         if (req.method === 'POST') {
-            const { name, image } = req.body || {};
-            if (!name || !image) {
-                return res.status(400).json({ error: 'name and image are required' });
+            const { image } = req.body || {};
+            if (!image) {
+                return res.status(400).json({ error: 'image is required' });
             }
-            const result = await collection.insertOne({ name, image });
+            const result = await collection.insertOne({ image });
             return res.status(201).json({ id: result.insertedId.toString() });
         }
 
@@ -45,7 +46,6 @@ export default async function handler(req, res) {
         const sponsorDocs = await collection.find({}).toArray();
         const sponsors = sponsorDocs.map(doc => ({
             id: doc._id?.toString() || doc.id,
-            name: doc.name,
             image: doc.image,
         }));
 

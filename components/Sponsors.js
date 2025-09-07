@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 
 /**
  * Displays a horizontally scrolling list of sponsor logos.
- * Sponsor data is loaded from the `/api/sponsors` endpoint which is expected
- * to return an array of objects with the following shape:
- * `{ id: string, name: string, image: string }` where `image` is a URL.
+ * Sponsor data is loaded from the `/api/sponsors` endpoint which returns an
+ * array of objects shaped like `{ id: string, image: string }` where `image`
+ * is a base64-encoded data URL.
  */
 export default function SponsorsBar() {
     const [sponsors, setSponsors] = useState([]);
@@ -59,7 +59,7 @@ export default function SponsorsBar() {
                     <img
                         key={sponsor.id}
                         src={sponsor.image}
-                        alt={sponsor.name}
+                        alt="Sponsor"
                         className="scroller-item"
                     />
                 ))}
