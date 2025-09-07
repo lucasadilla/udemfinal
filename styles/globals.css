@@ -511,10 +511,16 @@ button[type="submit"]:hover {
 }
 
 .footer-content {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 30rem;
+    width: 100%;
+}
+
+.admin-login {
+    position: absolute;
+    right: 0;
 }
 
 .instagram-icon {
@@ -800,8 +806,7 @@ button[type="submit"]:hover {
     }
 
     .footer-content {
-        flex-direction: column;
-        gap: 1rem;
+        flex-direction: row;
     }
 
     nav {
