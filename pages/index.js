@@ -7,7 +7,6 @@ import SponsorsBar from "../components/Sponsors";
 import AdminLoginForm from '../components/AdminLoginForm';
 import Head from 'next/head';
 import React, { useEffect, useState } from "react";
-import Link from 'next/link';
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 
@@ -22,11 +21,6 @@ export default function Home() {
     const heroBanner = getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
     const recentArticlesTitle = getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
     
-    // Admin panel content
-    const adminPanelTitle = getTextContent('home', 'admin', 'admin_panel_title', 'Admin Panel');
-    const adminPanelSubtitle = getTextContent('home', 'admin', 'admin_panel_subtitle', 'You\'re logged in as an administrator');
-    const manageHomeContentButton = getTextContent('home', 'admin', 'manage_home_content_button', 'Manage Home Content');
-    const fullDashboardButton = getTextContent('home', 'admin', 'full_dashboard_button', 'Full Dashboard');
     const adminAccessTitle = getTextContent('home', 'admin', 'admin_access_title', 'Admin Access');
     const adminAccessDescription = getTextContent('home', 'admin', 'admin_access_description', 'Administrators can edit and manage the home page content from here.');
     
@@ -63,34 +57,6 @@ export default function Home() {
                 <meta name="keywords" content={pageKeywords}/>
             </Head>
             <Navbar/>
-            
-            {/* Admin Section */}
-            {isAdmin && (
-                <div className="bg-blue-50 border-b border-blue-200 py-4">
-                    <div className="max-w-6xl mx-auto px-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-lg font-semibold text-blue-800">{adminPanelTitle}</h2>
-                                <p className="text-blue-600 text-sm">{adminPanelSubtitle}</p>
-                            </div>
-                            <div className="flex space-x-3">
-                                <Link 
-                                    href="/admin-dashboard?page=home" 
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    {manageHomeContentButton}
-                                </Link>
-                                <Link 
-                                    href="/admin-dashboard" 
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                                >
-                                    {fullDashboardButton}
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
             
             <main className="relative">
                 <div className="banner">
