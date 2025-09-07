@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 let cachedClient = null;
 
@@ -22,7 +22,27 @@ export default async function handler(req, res) {
         }
 
         const db = cachedClient.db();
-        const sponsorDocs = await db.collection('sponsors').find({}).toArray();
+        const collection = db.collection('sponsors');
+
+        if (req.method === 'POST') {
+            const { name, image } = req.body || {};
+            if (!name || !image) {
+                return res.status(400).json({ error: 'name and image are required' });
+            }
+            const result = await collection.insertOne({ name, image });
+            return res.status(201).json({ id: result.insertedId.toString() });
+        }
+
+        if (req.method === 'DELETE') {
+            const { id } = req.query;
+            if (!id) {
+                return res.status(400).json({ error: 'id is required' });
+            }
+            await collection.deleteOne({ _id: new ObjectId(id) });
+            return res.status(200).json({ ok: true });
+        }
+
+        const sponsorDocs = await collection.find({}).toArray();
         const sponsors = sponsorDocs.map(doc => ({
             id: doc._id?.toString() || doc.id,
             name: doc.name,
@@ -35,4 +55,12 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Failed to load sponsors' });
     }
 }
+
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '8mb',
+        },
+    },
+};
 
