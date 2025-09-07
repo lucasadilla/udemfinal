@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
-/**
- * Form to create or edit an article.
- * Requires a list of users to select the author from.
- */
-export default function ArticleForm({ article, onSubmit, onCancel, users = [] }) {
+export default function ArticleForm({ article, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    authorId: '',
+    author: '',
+    authorImage: '',
     image: '',
-    images: [],
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -19,69 +15,33 @@ export default function ArticleForm({ article, onSubmit, onCancel, users = [] })
       setFormData({
         title: article.title || '',
         content: article.content || '',
-        authorId: article.authorId || '',
+        author: article.author || '',
+        authorImage: article.authorImage || '',
         image: article.image || '',
-        images: article.images || [],
-        date: article.date || new Date().toISOString().split('T')[0],
+        date: article.date || new Date().toISOString().split('T')[0]
       });
     }
   }, [article]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
-
-  const handleMainImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({ ...prev, image: reader.result.toString() }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImages = (e) => {
-    const files = Array.from(e.target.files || []);
-    Promise.all(
-      files.map(file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.toString());
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      }))
-    ).then(images => {
-      setFormData(prev => ({ ...prev, images }));
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const author = users.find(u => u.id === formData.authorId);
-    onSubmit({
-      title: formData.title,
-      content: formData.content,
-      authorId: formData.authorId,
-      authorName: author?.name || '',
-      authorImage: author?.profilePicture || '',
-      image: formData.image,
-      images: formData.images,
-      date: formData.date,
-    });
-  };
-
-  const selectedAuthor = users.find(u => u.id === formData.authorId);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h3 className="text-xl font-semibold mb-4">
         {article ? 'Edit Article' : 'Create New Article'}
       </h3>
-
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -98,77 +58,67 @@ export default function ArticleForm({ article, onSubmit, onCancel, users = [] })
               required
             />
           </div>
-
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Author *
+              Author Name *
             </label>
-            <select
-              name="authorId"
-              value={formData.authorId}
+            <input
+              type="text"
+              name="author"
+              value={formData.author}
               onChange={handleChange}
               className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter author name"
               required
-            >
-              <option value="">Select author</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>{user.name}</option>
-              ))}
-            </select>
-            {selectedAuthor && (
-              <div className="flex items-center mt-2">
-                <img
-                  src={selectedAuthor.profilePicture}
-                  alt={selectedAuthor.name}
-                  className="w-8 h-8 rounded-full mr-2 object-cover"
-                />
-                <span className="text-sm text-gray-600">{selectedAuthor.name}</span>
-              </div>
-            )}
+            />
           </div>
         </div>
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Main Image
+              Author Image URL
             </label>
             <input
-              type="file"
-              accept="image/*"
-              onChange={handleMainImage}
+              type="text"
+              name="authorImage"
+              value={formData.authorImage}
+              onChange={handleChange}
               className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="e.g., /images/author.jpg"
+            />
+            {formData.authorImage && (
+              <img 
+                src={formData.authorImage} 
+                alt="Author preview" 
+                className="w-12 h-12 rounded-full object-cover mt-2"
+              />
+            )}
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Article Image URL
+            </label>
+            <input
+              type="text"
+              name="image"
+              value={formData.image}
+              onChange={handleChange}
+              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="e.g., /images/article.jpg"
             />
             {formData.image && (
-              <img
-                src={formData.image}
-                alt="Main"
+              <img 
+                src={formData.image} 
+                alt="Article preview" 
                 className="w-20 h-20 object-cover rounded mt-2"
               />
             )}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Additional Images
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImages}
-              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            {formData.images.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.images.map((img, idx) => (
-                  <img key={idx} src={img} alt={`img-${idx}`} className="w-12 h-12 object-cover rounded" />
-                ))}
-              </div>
-            )}
-          </div>
         </div>
-
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Publication Date *
@@ -182,7 +132,7 @@ export default function ArticleForm({ article, onSubmit, onCancel, users = [] })
             required
           />
         </div>
-
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Article Content *
@@ -199,7 +149,7 @@ export default function ArticleForm({ article, onSubmit, onCancel, users = [] })
             {formData.content.length} characters
           </p>
         </div>
-
+        
         <div className="flex space-x-3 pt-4">
           <button
             type="submit"

@@ -4,7 +4,7 @@ let cachedClient = null;
 
 /**
  * API route to manage blog articles.
- * Each article has { title, content, authorId, authorName, authorImage, image, images, date }.
+ * Each article has { title, content, author, authorImage, image, date }.
  */
 export default async function handler(req, res) {
   try {
@@ -22,18 +22,16 @@ export default async function handler(req, res) {
     const collection = db.collection('articles');
 
     if (req.method === 'POST') {
-      const { title, content, authorId, authorName, authorImage, image, images, date } = req.body;
-      if (!title || !content || !authorId || !authorName || !date) {
+      const { title, content, author, authorImage, image, date } = req.body;
+      if (!title || !content || !author || !date) {
         return res.status(400).json({ error: 'title, content, author and date are required' });
       }
       const article = {
         title,
         content,
-        authorId,
-        authorName,
+        author,
         authorImage: authorImage || '',
         image: image || '',
-        images: images || [],
         date,
       };
       const result = await collection.insertOne(article);
@@ -59,11 +57,9 @@ export default async function handler(req, res) {
         id: doc._id.toString(),
         title: doc.title,
         content: doc.content,
-        authorName: doc.authorName,
+        author: doc.author,
         authorImage: doc.authorImage,
-        authorId: doc.authorId,
         image: doc.image,
-        images: doc.images || [],
         date: doc.date,
       };
       return res.status(200).json(article);
@@ -75,11 +71,9 @@ export default async function handler(req, res) {
       id: doc._id?.toString(),
       title: doc.title,
       content: doc.content,
-      authorName: doc.authorName,
+      author: doc.author,
       authorImage: doc.authorImage,
-      authorId: doc.authorId,
       image: doc.image,
-      images: doc.images || [],
       date: doc.date,
     }));
     res.status(200).json(articles);
