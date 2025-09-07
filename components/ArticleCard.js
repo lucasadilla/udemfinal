@@ -17,11 +17,18 @@ import Link from 'next/link';
  */
 export default function ArticleCard({ article = {} }) {
     const id = article._id || article.id;
-    const imageSrc = article.image || article.imageUrl || article.coverImage || '/images/default-article.jpg';
+    const imageSrc =
+        article.image ||
+        article.imageUrl ||
+        article.coverImage ||
+        'https://placehold.co/600x400';
     const title = article.title || 'Untitled';
     const content = article.content || article.body || '';
     const authorName = (article.author && article.author.name) || article.authorName || 'Unknown';
-    const authorImage = (article.author && article.author.profilePic) || article.authorImage || '/images/default-avatar.png';
+    const authorImage =
+        (article.author && article.author.profilePic) ||
+        article.authorImage ||
+        'https://placehold.co/40';
     const date = article.date || '';
     const category = article.category || article.tag || '';
 
@@ -29,7 +36,7 @@ export default function ArticleCard({ article = {} }) {
 
     return (
         <Link href={`/articles/${id}`}>
-            <article className="bg-white rounded-xl shadow-md overflow-hidden max-w-sm mx-auto cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1">
+            <article className="w-full bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1">
                 <div className="relative">
                     <img src={imageSrc} alt={title} className="w-full h-40 object-cover" />
                     {category && (
