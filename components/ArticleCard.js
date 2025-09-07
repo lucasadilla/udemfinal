@@ -34,18 +34,25 @@ function normalizeArticle(article = {}) {
 // Displays an article preview with flexible layout
 export default function ArticleCard({ article = {}, isLarge = false }) {
   const normalized = normalizeArticle(article);
+  const excerptLength = isLarge ? 160 : 100;
   const excerpt =
-    normalized.body.length > 160
-      ? `${normalized.body.slice(0, 160)}...`
+    normalized.body.length > excerptLength
+      ? `${normalized.body.slice(0, excerptLength)}...`
       : normalized.body;
 
-  const layoutClass = isLarge ? 'md:flex-row md:h-72' : 'flex-col';
-  const imageClass = isLarge ? 'md:w-1/2 h-72' : 'w-full h-44';
+  const containerClass = isLarge
+    ? 'md:flex-row md:h-72'
+    : 'flex-col max-w-sm';
+  const imageClass = isLarge ? 'md:w-1/2 h-72' : 'w-full h-40';
+  const paddingClass = isLarge ? 'p-6' : 'p-4';
+  const titleClass = isLarge ? 'text-xl' : 'text-lg';
+  const excerptClass = `text-gray-600 text-sm mb-4 ${isLarge ? 'flex-1' : ''}`;
+  const authorImageClass = isLarge ? 'w-10 h-10' : 'w-8 h-8';
 
   return (
     <Link href={`/articles/${normalized.id}`}>
       <article
-        className={`flex ${layoutClass} bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1`}
+        className={`flex ${containerClass} bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1`}
       >
         <div className={`relative ${imageClass} flex-shrink-0`}>
           <img
@@ -61,14 +68,14 @@ export default function ArticleCard({ article = {}, isLarge = false }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
 
-        <div className="p-6 flex flex-col flex-1">
-          <h3 className="text-xl font-semibold mb-3">{normalized.title}</h3>
-          <p className="text-gray-600 text-sm mb-4 flex-1">{excerpt}</p>
+        <div className={`${paddingClass} flex flex-col flex-1`}>
+          <h3 className={`${titleClass} font-semibold mb-3`}>{normalized.title}</h3>
+          <p className={excerptClass}>{excerpt}</p>
           <div className="flex items-center mt-auto">
             <img
               src={normalized.authorImage}
               alt={normalized.authorName}
-              className="w-10 h-10 rounded-full mr-3 object-cover"
+              className={`${authorImageClass} rounded-full mr-3 object-cover`}
             />
             <div className="text-sm">
               <p className="text-gray-900 leading-none">{normalized.authorName}</p>
