@@ -36,9 +36,9 @@ export default function ArticleCard({ article = {} }) {
 
     return (
         <Link href={`/articles/${id}`}>
-            <article className="w-full bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1">
-                <div className="relative">
-                    <img src={imageSrc} alt={title} className="w-full h-40 object-cover" />
+            <article className="w-64 bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1">
+                <div className="relative w-full h-40 overflow-hidden">
+                    <img src={imageSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
                     {category && (
                         <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full">
                             {category}
