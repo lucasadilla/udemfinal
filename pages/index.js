@@ -8,7 +8,7 @@ import AdminLoginForm from '../components/AdminLoginForm';
 import Head from 'next/head';
 import React, { useEffect, useState } from "react";
 import Link from 'next/link';
-import useArticles from '../hooks/useArticles';
+import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 
 export default function Home() {
