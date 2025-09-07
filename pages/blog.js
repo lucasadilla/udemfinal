@@ -1,60 +1,62 @@
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from 'react';
+import { useArticles } from '../context/ArticlesContext';
+import ArticleCard from '../components/ArticleCard';
+import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import Head from "next/head";
-import React, { useEffect, useState } from "react";
-import SponsorsBar from "../components/Sponsors";
-import ArticleCard from "../components/ArticleCard";
-import ArticleForm from "../components/ArticleForm";
-import useArticles from "../hooks/useArticles";
+import SponsorsBar from '../components/Sponsors';
+import AdminLoginForm from '../components/AdminLoginForm';
+import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Blog() {
-  const { articles, loading, addArticle, deleteArticle } = useArticles();
-  const [isAdmin, setIsAdmin] = useState(false);
+    const { articles } = useArticles();
+    const [posts, setPosts] = useState([]);
+    const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    setIsAdmin(document.cookie.includes('admin-auth=true'));
-  }, []);
+    useEffect(() => {
+        async function load() {
+            const res = await fetch('/api/posts');
+            if (res.ok) {
+                const data = await res.json();
+                setPosts([...articles, ...data]);
+            } else {
+                setPosts(articles);
+            }
+        }
+        load();
+        setIsAdmin(document.cookie.includes('admin-auth=true'));
+    }, [articles]);
 
-  return (
-    <div>
-      <Head>
-        <title>Blog</title>
-        <meta name="description" content="Articles et nouvelles" />
-      </Head>
-      <Navbar />
-      <main className="p-8">
-        <h1 className="page-title text-center mb-8">BLOG</h1>
+    if (!posts || posts.length === 0) {
+        return <p>No articles found</p>;
+    }
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {articles.map((article) => (
-              <div key={article.id} className="relative">
-                <ArticleCard article={article} />
-                {isAdmin && (
-                  <button
-                    onClick={() => deleteArticle(article.id)}
-                    className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded"
-                  >
-                    Supprimer
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {isAdmin && (
-          <div className="mt-12 max-w-3xl mx-auto">
-            <h2 className="text-xl font-semibold text-center mb-4">Ajouter un article</h2>
-            <ArticleForm onSubmit={addArticle} onCancel={() => {}} />
-          </div>
-        )}
-
-        <SponsorsBar />
-      </main>
-      <Footer />
-    </div>
-  );
+    return (
+        <div>
+            <Head>
+                <title>Blog</title>
+                <meta name="description" content="Lisez des articles sur le féminisme intersectionnel et les événements communautaires à l'Université de Montréal."/>
+                <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
+            </Head>
+            <Navbar/>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((article) => (
+                    <ArticleCard key={article.id || article._id} article={article} isLarge={true}/>
+                ))}
+            </div>
+            {!isAdmin ? (
+                <div className="my-8">
+                    <h2 className="text-xl font-bold mb-2">Admin Login</h2>
+                    <AdminLoginForm />
+                </div>
+            ) : (
+                <div className="my-8 text-center">
+                    <Link href="/admin" className="bg-blue-500 text-white px-4 py-2 rounded">Go to Admin Dashboard</Link>
+                </div>
+            )}
+            <SponsorsBar />
+            <Footer />
+        </div>
+    );
 }
+
