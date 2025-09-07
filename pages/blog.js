@@ -6,11 +6,9 @@ import SponsorsBar from "../components/Sponsors";
 import ArticleCard from "../components/ArticleCard";
 import ArticleForm from "../components/ArticleForm";
 import useArticles from "../hooks/useArticles";
-import useUsers from "../hooks/useUsers";
 
 export default function Blog() {
   const { articles, loading, addArticle, deleteArticle } = useArticles();
-  const { users } = useUsers();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -50,7 +48,7 @@ export default function Blog() {
         {isAdmin && (
           <div className="mt-12 max-w-3xl mx-auto">
             <h2 className="text-xl font-semibold text-center mb-4">Ajouter un article</h2>
-            <ArticleForm onSubmit={addArticle} onCancel={() => {}} users={users} />
+            <ArticleForm onSubmit={addArticle} onCancel={() => {}} />
           </div>
         )}
 

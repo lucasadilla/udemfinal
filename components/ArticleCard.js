@@ -10,7 +10,7 @@ import Link from 'next/link';
  *      title,
  *      content/body,
  *      image/imageUrl/coverImage,
- *      author: { name, profilePic } or authorName/authorImage,
+ *      author or { name, profilePic } or authorName/authorImage,
  *      date,
  *      category/tag
  *    }
@@ -24,10 +24,9 @@ export default function ArticleCard({ article = {} }) {
         'https://placehold.co/600x400';
     const title = article.title || 'Untitled';
     const content = article.content || article.body || '';
-    const authorName = (article.author && article.author.name) || article.authorName || 'Unknown';
+    const authorName = article.author || (article.author && article.author.name) || article.authorName || 'Unknown';
     const authorImage =
-        (article.author && article.author.profilePic) ||
-        article.authorImage ||
+         article.authorImage || (article.author && article.author.profilePic) ||
         'https://placehold.co/40';
     const date = article.date || '';
     const category = article.category || article.tag || '';

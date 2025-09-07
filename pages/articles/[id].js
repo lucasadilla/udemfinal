@@ -28,11 +28,11 @@ export default function ArticlePage({ article }) {
           {article.authorImage && (
             <img
               src={article.authorImage}
-              alt={article.authorName}
+              alt={article.author}
               className="w-10 h-10 rounded-full mr-2 object-cover"
             />
           )}
-          <span className="text-sm text-gray-600">{article.authorName}</span>
+          <span className="text-sm text-gray-600">{article.author}</span>
           <span className="ml-2 text-sm text-gray-500">{article.date}</span>
         </div>
         {article.image && (
@@ -43,18 +43,6 @@ export default function ArticlePage({ article }) {
           />
         )}
         <p className="whitespace-pre-wrap">{article.content}</p>
-        {article.images && article.images.length > 0 && (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {article.images.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                alt={`${article.title}-${idx}`}
-                className="w-full h-48 object-cover rounded"
-              />
-            ))}
-          </div>
-        )}
       </main>
       <Footer />
     </div>
@@ -78,11 +66,9 @@ export async function getServerSideProps({ params }) {
     id: doc._id.toString(),
     title: doc.title,
     content: doc.content,
-    authorName: doc.authorName,
+    author: doc.author,
     authorImage: doc.authorImage,
-    authorId: doc.authorId,
     image: doc.image,
-    images: doc.images || [],
     date: doc.date,
   };
   return { props: { article } };
