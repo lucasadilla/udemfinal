@@ -14,8 +14,9 @@ import Link from 'next/link';
  *      date,
  *      category/tag
  *    }
+ *  - isLarge: renders a larger variant of the card when true
  */
-export default function ArticleCard({ article = {} }) {
+export default function ArticleCard({ article = {}, isLarge = false }) {
     const id = article._id || article.id;
     const imageSrc =
         article.image ||
@@ -33,10 +34,15 @@ export default function ArticleCard({ article = {} }) {
 
     const excerpt = content.length > 120 ? `${content.slice(0, 120)}...` : content;
 
+    const cardWidth = isLarge ? 'w-80' : 'w-64';
+    const imageHeight = isLarge ? 'h-48' : 'h-40';
+
     return (
         <Link href={`/articles/${id}`}>
-            <article className="w-64 bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1">
-                <div className="relative w-full h-40 overflow-hidden">
+            <article
+                className={`${cardWidth} bg-white rounded-xl shadow-md overflow-hidden cursor-pointer transition-transform duration-200 hover:shadow-lg hover:-translate-y-1`}
+            >
+                <div className={`relative w-full ${imageHeight} overflow-hidden rounded-t-xl`}>
                     <img src={imageSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
                     {category && (
                         <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full">
