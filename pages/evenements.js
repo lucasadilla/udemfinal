@@ -3,6 +3,8 @@ import Footer from '../components/Footer';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import useEvents from '../hooks/useEvents';
+import { Calendar } from '@heroui/react';
+import { parseDate } from '@internationalized/date';
 
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();
@@ -24,34 +26,7 @@ export default function Evenements() {
     setDate('');
   };
 
-  const today = new Date();
-  const [month] = useState(today.getMonth());
-  const [year] = useState(today.getFullYear());
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const eventsByDate = events.reduce((acc, ev) => {
-    acc[ev.date] = acc[ev.date] || [];
-    acc[ev.date].push(ev);
-    return acc;
-  }, {});
-
-  const weeks = [];
-  let day = 1 - firstDay;
-  while (day <= daysInMonth) {
-    const week = [];
-    for (let i = 0; i < 7; i++) {
-      if (day > 0 && day <= daysInMonth) {
-        const dateStr = new Date(year, month, day).toISOString().slice(0, 10);
-        week.push({ day, dateStr, events: eventsByDate[dateStr] || [] });
-      } else {
-        week.push(null);
-      }
-      day++;
-    }
-    weeks.push(week);
-  }
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
     <div>
@@ -93,38 +68,24 @@ export default function Evenements() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                    <th key={d} className="border p-2">
-                      {d}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {weeks.map((week, i) => (
-                  <tr key={i}>
-                    {week.map((dayObj, idx) => (
-                      <td key={idx} className="border h-24 align-top p-1">
-                        {dayObj && (
-                          <div>
-                            <div className="font-bold">{dayObj.day}</div>
-                            {dayObj.events.map((ev) => (
-                              <div key={ev.id} className="text-xs mt-1">
-                                {ev.title}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <div className="flex justify-center my-8">
+              <div className="transform scale-150">
+                <Calendar
+                  aria-label="Calendrier des événements"
+                  defaultValue={parseDate(todayStr)}
+                />
+              </div>
+            </div>
+            <div className="mt-8 space-y-4">
+              {events.map((ev) => (
+                <div key={ev.id}>
+                  <div className="font-bold">{ev.title}</div>
+                  <div className="text-sm">{ev.date}</div>
+                  <div className="text-sm">{ev.bio}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
