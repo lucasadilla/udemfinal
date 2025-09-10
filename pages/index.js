@@ -70,7 +70,7 @@ export default function Home() {
                     <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
                     <div className="article-cards-container">
                         {topThreeArticles.map((article) => (
-                            <ArticleCard key={article._id || article.id} article={article} isLarge={false} />
+                            <ArticleCard key={article._id || article.id} article={article} />
                         ))}
                     </div>
                 </section>
