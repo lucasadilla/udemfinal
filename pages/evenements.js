@@ -3,8 +3,6 @@ import Footer from '../components/Footer';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import useEvents from '../hooks/useEvents';
-import { Calendar } from '@heroui/react';
-import { parseDate } from '@internationalized/date';
 
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();
@@ -70,12 +68,12 @@ export default function Evenements() {
         ) : (
           <div>
             <div className="flex justify-center my-8">
-              <div className="transform scale-150">
-                <Calendar
-                  aria-label="Calendrier des événements"
-                  defaultValue={parseDate(todayStr)}
-                />
-              </div>
+              <input
+                type="date"
+                value={todayStr}
+                readOnly
+                className="border p-2"
+              />
             </div>
             <div className="mt-8 space-y-4">
               {events.map((ev) => (
