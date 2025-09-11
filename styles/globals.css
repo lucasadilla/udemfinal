@@ -138,6 +138,18 @@ nav a {
     gap: 2rem;
 }
 
+.grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.gap-8 {
+    gap: 2rem;
+}
+
+.justify-items-center {
+    justify-items: center;
+}
+
 .rounded-full {
     border-radius: 50%;
 }
@@ -851,8 +863,7 @@ button[type="submit"]:hover {
     }
 
     .grid {
-        display: flex;
-        flex-direction: column;
+        display: grid;
         gap: 1rem;
     }
 
