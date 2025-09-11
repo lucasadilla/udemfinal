@@ -20,6 +20,9 @@
     "mongodb": "^5.8.0",
     "nodemailer": "^6.9.11",
     "@tiptap/react": "latest",
-    "@tiptap/starter-kit": "latest"
+    "@tiptap/starter-kit": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   }
 }
