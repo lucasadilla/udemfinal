@@ -32,8 +32,8 @@ export default function useUsers() {
         body: JSON.stringify(user),
       });
       if (res.ok) {
-        const { id } = await res.json();
-        setUsers((prev) => [...prev, { ...user, id }]);
+        setLoading(true);
+        await fetchUsers();
       } else {
         console.warn('Failed to add user:', res.status);
       }
@@ -46,7 +46,8 @@ export default function useUsers() {
     try {
       const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setUsers((prev) => prev.filter((user) => user.id !== id));
+        setLoading(true);
+        await fetchUsers();
       } else {
         console.warn('Failed to delete user:', res.status);
       }
