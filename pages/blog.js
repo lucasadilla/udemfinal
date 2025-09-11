@@ -31,13 +31,14 @@ export default function Blog() {
     }, [articles]);
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Head>
                 <title>Blog</title>
                 <meta name="description" content="Lisez des articles sur le féminisme intersectionnel et les événements communautaires à l'Université de Montréal."/>
                 <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
             </Head>
             <Navbar/>
+            <main className="flex-grow">
             <section className="recent-articles">
                 <div className="article-cards-container">
                     {posts.length === 0 ? (
@@ -71,6 +72,7 @@ export default function Blog() {
             ) :
             null}
             <SponsorsBar />
+            </main>
             <Footer />
         </div>
     );

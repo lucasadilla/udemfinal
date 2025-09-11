@@ -43,14 +43,14 @@ export default function NotreComite() {
     };
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Head>
                 <title>Notre Comité</title>
                 <meta name="description" content="Rencontrez les membres dévoués du comité de Femme & Droit, promoteurs de féminisme et d'égalité." />
                 <meta name="keywords" content="comité, membres, féminisme, Université de Montréal, égalité" />
             </Head>
             <Navbar />
-            <main className="p-8">
+            <main className="flex-grow p-8">
                 <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
                 {loading ? (

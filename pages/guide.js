@@ -57,7 +57,7 @@ export default function GuidePage() {
     };
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Head>
                 <title>Guide des Commanditaires</title>
                 <meta
@@ -70,7 +70,7 @@ export default function GuidePage() {
                 />
             </Head>
             <Navbar />
-            <main className="p-8">
+            <main className="flex-grow p-8">
                 <h1 className="page-title text-center mb-8">Guide des Commanditaires</h1>
                 {isAdmin && (
                     <form onSubmit={handleAdd} className="mb-8 space-y-2">

@@ -52,9 +52,9 @@ export default function Article() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="article-page article-box">
+      <main className="article-page article-box flex-grow">
         <button onClick={handleBack} className="back-button">
           ← Arrière
         </button>

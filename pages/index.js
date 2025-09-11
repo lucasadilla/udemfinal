@@ -48,15 +48,15 @@ export default function Home() {
     }
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDescription}/>
                 <meta name="keywords" content={pageKeywords}/>
             </Head>
             <Navbar/>
-            
-            <main className="relative">
+
+            <main className="relative flex-grow">
                 <div className="banner">
                     <img src={heroBanner} alt="Banner" className="w-full h-auto"/>
                     <div className="banner-text-box">
@@ -80,9 +80,9 @@ export default function Home() {
                 <ContactCard />
                 <SponsorsBar />
             </main>
-            
-              <Footer />
-          </div>
-      );
+
+            <Footer />
+        </div>
+    );
 }
 
