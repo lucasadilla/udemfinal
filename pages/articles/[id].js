@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { useArticles } from '../../context/ArticlesContext';
-import ImageCarouselCard from '../../components/ImageCarouselCard';
 
 export default function Article() {
   const router = useRouter();
@@ -22,19 +21,6 @@ export default function Article() {
         });
     }
   }, [article, id]);
-
-  // Separate image arrays for different articles
-  const imagesForArticle1 = [
-    '/images/blogs/bonnes/1.jpg',
-    '/images/blogs/bonnes/2.jpg',
-    '/images/blogs/bonnes/3.jpg',
-  ];
-
-  const imagesForArticle3 = [
-    '/images/blogs/jour/1.png',
-    '/images/blogs/jour/2.png',
-    '/images/blogs/jour/3.png',
-  ];
 
   const currentArticle = article || post;
 
@@ -93,10 +79,6 @@ export default function Article() {
             __html: currentArticle.content.replace(/\n/g, '<br />'),
           }}
         />
-
-        {currentArticle.id === 1 && <ImageCarouselCard images={imagesForArticle1} />}
-        {currentArticle.id === 3 && <ImageCarouselCard images={imagesForArticle3} />}
-
         <button onClick={handleShare} className="share-button">
           Partagez cet article
         </button>
