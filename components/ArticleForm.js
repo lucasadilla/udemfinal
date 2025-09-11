@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Tiptap from './Tiptap';
 
 export default function ArticleForm({ article, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -137,16 +138,17 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Article Content *
           </label>
-          <textarea
-            name="content"
+          <Tiptap
             value={formData.content}
-            onChange={handleChange}
-            className="border border-gray-300 p-2 rounded w-full h-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Write your article content here..."
-            required
+            onChange={(val) =>
+              setFormData((prev) => ({
+                ...prev,
+                content: val,
+              }))
+            }
           />
           <p className="text-sm text-gray-500 mt-1">
-            {formData.content.length} characters
+            {formData.content.replace(/<[^>]*>/g, '').length} characters
           </p>
         </div>
         

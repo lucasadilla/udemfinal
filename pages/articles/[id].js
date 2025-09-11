@@ -42,7 +42,10 @@ export default function ArticlePage({ article }) {
             className="mb-4 w-full max-h-96 object-cover rounded"
           />
         )}
-        <p className="whitespace-pre-wrap">{article.content}</p>
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
       </main>
       <Footer />
     </div>
