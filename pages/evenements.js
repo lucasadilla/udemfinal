@@ -11,7 +11,8 @@ export default function Evenements() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
-  const [date, setDate] = useState('');
+  // Rename state variable to avoid confusion with Calendar's date parameter
+  const [eventDate, setEventDate] = useState('');
 
   const eventDates = useMemo(
     () => new Set(events.map((ev) => ev.date)),
@@ -24,11 +25,11 @@ export default function Evenements() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !bio || !date) return;
-    await addEvent({ title, bio, date });
+    if (!title || !bio || !eventDate) return;
+    await addEvent({ title, bio, date: eventDate });
     setTitle('');
     setBio('');
-    setDate('');
+    setEventDate('');
   };
 
   return (
@@ -55,8 +56,8 @@ export default function Evenements() {
             />
             <input
               type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
               className="border p-2 w-full"
             />
             <button
@@ -77,9 +78,14 @@ export default function Evenements() {
                 aria-label="Calendrier des événements"
                 className="calendar"
                 size="lg"
-                renderDay={(date) => {
-                  const day = date.getDate();
-                  const dateString = date.toISOString().split('T')[0];
+                renderDay={(currentDate) => {
+                  // Ensure currentDate is a native Date instance
+                  const dateObj =
+                    currentDate instanceof Date
+                      ? currentDate
+                      : new Date(currentDate);
+                  const day = dateObj.getDate();
+                  const dateString = dateObj.toISOString().split('T')[0];
                   const hasEvent = eventDates.has(dateString);
                   return (
                     <Indicator size={6} color="red" disabled={!hasEvent}>
