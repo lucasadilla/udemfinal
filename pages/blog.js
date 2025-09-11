@@ -4,7 +4,6 @@ import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SponsorsBar from '../components/Sponsors';
-import AdminLoginForm from '../components/AdminLoginForm';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 
@@ -47,31 +46,26 @@ export default function Blog() {
                     )}
                 </div>
             </section>
-            {isAdmin ? (
-                <div className="my-8">
-                    {showForm ? (
-                        <ArticleForm
-                            onSubmit={async (data) => {
-                                await addArticle(data);
-                                setShowForm(false);
-                            }}
-                            onCancel={() => setShowForm(false)}
-                        />
-                    ) : (
-                        <button
-                            className="bg-green-500 text-white px-4 py-2 rounded"
-                            onClick={() => setShowForm(true)}
-                        >
-                            Add Article
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="my-8">
-                    <h2 className="text-xl font-bold mb-2">Admin Login</h2>
-                    <AdminLoginForm />
-                </div>
-            )}
+              {isAdmin && (
+                  <div className="my-8">
+                      {showForm ? (
+                          <ArticleForm
+                              onSubmit={async (data) => {
+                                  await addArticle(data);
+                                  setShowForm(false);
+                              }}
+                              onCancel={() => setShowForm(false)}
+                          />
+                      ) : (
+                          <button
+                              className="bg-green-500 text-white px-4 py-2 rounded"
+                              onClick={() => setShowForm(true)}
+                          >
+                              Add Article
+                          </button>
+                      )}
+                  </div>
+              )}
             <SponsorsBar />
             <Footer />
         </div>

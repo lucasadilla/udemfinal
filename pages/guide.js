@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Head from 'next/head';
-import AdminLoginForm from '../components/AdminLoginForm';
 import useSponsors from '../hooks/useSponsors';
 
 export default function GuidePage() {
@@ -113,12 +112,6 @@ export default function GuidePage() {
                         ))
                     )}
                 </div>
-                {!isAdmin && (
-                    <div className="my-8 text-center">
-                        <h2 className="text-xl font-bold mb-2">Admin Login</h2>
-                        <AdminLoginForm />
-                    </div>
-                )}
                 {selectedSponsor && (
                     <div className="modal">
                         <div className="modal-content">

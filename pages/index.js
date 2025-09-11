@@ -4,7 +4,6 @@ import Footer from '../components/Footer';
 import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
 import SponsorsBar from "../components/Sponsors";
-import AdminLoginForm from '../components/AdminLoginForm';
 import Head from 'next/head';
 import React, { useEffect, useState } from "react";
 import { useArticles } from '../context/ArticlesContext';
@@ -22,8 +21,6 @@ export default function Home() {
     const heroBanner = getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
     const recentArticlesTitle = getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
     
-    const adminAccessTitle = getTextContent('home', 'admin', 'admin_access_title', 'Admin Access');
-    const adminAccessDescription = getTextContent('home', 'admin', 'admin_access_description', 'Administrators can edit and manage the home page content from here.');
     
     // Meta information
     const pageTitle = getTextContent('home', 'meta', 'page_title', 'Accueil');
@@ -84,23 +81,8 @@ export default function Home() {
                 <SponsorsBar />
             </main>
             
-            {/* Admin Login for Non-Admins */}
-            {!isAdmin && (
-                <div className="max-w-6xl mx-auto px-4 py-8">
-                    <div className="bg-gray-50 rounded-lg p-6">
-                        <h2 className="text-xl font-bold mb-4 text-center">{adminAccessTitle}</h2>
-                        <p className="text-gray-600 text-center mb-4">
-                            {adminAccessDescription}
-                        </p>
-                        <div className="max-w-md mx-auto">
-                            <AdminLoginForm />
-                        </div>
-                    </div>
-                </div>
-            )}
-            
-            <Footer />
-        </div>
-    );
+              <Footer />
+          </div>
+      );
 }
 
