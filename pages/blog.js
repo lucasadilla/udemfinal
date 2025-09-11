@@ -1,3 +1,5 @@
+// Blog page displaying recent articles. Administrators can add new posts
+// directly via the ArticleForm; no separate admin login component is used.
 import { useEffect, useState } from 'react';
 import { useArticles } from '../context/ArticlesContext';
 import ArticleCard from '../components/ArticleCard';
