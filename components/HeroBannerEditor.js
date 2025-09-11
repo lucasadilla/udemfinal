@@ -20,6 +20,7 @@ export default function HeroBannerEditor({ currentImage, updateContent }) {
     if (!image) return;
     await updateContent('home', 'hero', 'hero_banner', image);
     setImage('');
+    setPreview('');
   };
 
   return (
