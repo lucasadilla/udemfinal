@@ -49,26 +49,27 @@ export default function Blog() {
                     )}
                 </div>
             </section>
-              {isAdmin && (
-                  <div className="my-8">
-                      {showForm ? (
-                          <ArticleForm
-                              onSubmit={async (data) => {
-                                  await addArticle(data);
-                                  setShowForm(false);
-                              }}
-                              onCancel={() => setShowForm(false)}
-                          />
-                      ) : (
-                          <button
-                              className="bg-green-500 text-white px-4 py-2 rounded"
-                              onClick={() => setShowForm(true)}
-                          >
-                              Add Article
-                          </button>
-                      )}
-                  </div>
-              )}
+            {isAdmin ? (
+                <div className="my-8">
+                    {showForm ? (
+                        <ArticleForm
+                            onSubmit={async (data) => {
+                                await addArticle(data);
+                                setShowForm(false);
+                            }}
+                            onCancel={() => setShowForm(false)}
+                        />
+                    ) : (
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 rounded"
+                            onClick={() => setShowForm(true)}
+                        >
+                            Add Article
+                        </button>
+                    )}
+                </div>
+            ) :
+            null}
             <SponsorsBar />
             <Footer />
         </div>
