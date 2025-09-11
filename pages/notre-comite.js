@@ -56,7 +56,7 @@ export default function NotreComite() {
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <div className="grid grid-cols-3 gap-8 justify-items-center">
+                    <div className="grid grid-rows-3 grid-flow-col gap-8 justify-items-center">
                         {users.map((member) => (
                             <div key={member.id} className="flex flex-col items-center text-center">
                                 <img
