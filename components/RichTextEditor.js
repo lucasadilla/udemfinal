@@ -24,7 +24,15 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
     if (!editor) return;
     const reader = new FileReader();
     reader.onload = () => {
-      editor.chain().focus().setImage({ src: reader.result }).run();
+      // Limit image size to prevent oversized images in the editor and saved content
+      editor
+        .chain()
+        .focus()
+        .setImage({
+          src: reader.result,
+          style: 'max-width: 300px; height: auto;'
+        })
+        .run();
     };
     reader.readAsDataURL(file);
   };
