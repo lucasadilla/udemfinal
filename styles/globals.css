@@ -703,8 +703,8 @@ button[type="submit"]:hover {
 }
 
 .committee-avatar {
-    width: 120px;
-    height: 120px;
+    width: 360px;
+    height: 360px;
     object-fit: cover;
     border-radius: 50%;
 }
