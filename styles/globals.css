@@ -787,8 +787,6 @@ button[type="submit"]:hover {
     margin-left: auto;
     margin-right: auto;
     width: fit-content;
-    transform: scale(3);
-    transform-origin: center;
 }
 
 

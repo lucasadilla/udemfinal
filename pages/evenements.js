@@ -33,12 +33,12 @@ export default function Evenements() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Head>
         <title>Événements</title>
       </Head>
       <Navbar />
-      <main className="max-w-4xl mx-auto p-4">
+      <main className="flex-grow max-w-4xl mx-auto p-4">
         <h1 className="text-3xl text-center mb-4">Événements</h1>
         {isAdmin && (
           <form onSubmit={handleSubmit} className="mb-8 space-y-2">
