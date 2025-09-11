@@ -786,7 +786,9 @@ button[type="submit"]:hover {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 80%;
+    width: fit-content;
+    transform: scale(3);
+    transform-origin: center;
 }
 
 
@@ -818,7 +820,7 @@ button[type="submit"]:hover {
     }
 
     .calendar {
-        width: 100%;
+        width: fit-content;
         max-width: none;
     }
 

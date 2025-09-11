@@ -73,7 +73,7 @@ export default function Evenements() {
           <div>Loading...</div>
         ) : (
           <div>
-            <div className="my-4">
+          <div className="my-4 flex justify-center">
               <Calendar
                 aria-label="Calendrier des événements"
                 className="calendar"
