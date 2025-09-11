@@ -3,7 +3,7 @@ import Footer from '../components/Footer';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import useEvents from '../hooks/useEvents';
-import { Calendar } from '@heroui/react';
+import { Calendar } from '@mantine/dates';
 
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();

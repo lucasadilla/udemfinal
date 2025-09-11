@@ -14,8 +14,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@internationalized/date": "latest",
-    "@heroui/react": "latest",
+    "@mantine/core": "latest",
+    "@mantine/hooks": "latest",
+    "@mantine/dates": "latest",
     "mongodb": "^5.8.0",
     "nodemailer": "^6.9.11"
   }
