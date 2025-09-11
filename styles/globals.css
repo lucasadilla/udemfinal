@@ -283,6 +283,12 @@ nav a {
     justify-items: center;
 }
 
+.article-card-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
 .heart-button {
     background: none;
     border: none;
