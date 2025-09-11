@@ -38,7 +38,7 @@ export default function Blog() {
                 <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
             </Head>
             <Navbar/>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-3 gap-8">
                 {posts.map((article) => (
                     <ArticleCard key={article.id || article._id} article={article} />
                 ))}
