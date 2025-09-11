@@ -1,15 +1,13 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect } from 'react'
 
-export default function Tiptap({ value = '', onChange = () => {} }) {
+export function SimpleEditor({ value = '', onChange = () => {} }) {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value,
-    // Don't render immediately on the server to avoid SSR issues
-    immediatelyRender: false,
     onUpdate({ editor }) {
       onChange(editor.getHTML())
     }

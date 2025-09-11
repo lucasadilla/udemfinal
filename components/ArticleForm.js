@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Tiptap from './Tiptap';
+import { SimpleEditor } from '@/components/tiptap-templates/simple/simple-editor';
 
 export default function ArticleForm({ article, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -138,7 +138,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Article Content *
           </label>
-          <Tiptap
+          <SimpleEditor
             value={formData.content}
             onChange={(val) =>
               setFormData((prev) => ({
