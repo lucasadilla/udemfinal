@@ -98,13 +98,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
                 <option key={user.id} value={user.name}>{user.name}</option>
               ))}
             </select>
-            {formData.authorImage && (
-              <img
-                src={formData.authorImage}
-                alt="Author preview"
-                className="w-12 h-12 rounded-full object-cover mt-2"
-              />
-            )}
+            {/* Author preview removed as per new requirements */}
           </div>
         </div>
 
@@ -118,13 +112,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             onChange={handleImageUpload}
             className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
-          {formData.image && (
-            <img
-              src={formData.image}
-              alt="Article preview"
-              className="w-20 h-20 object-cover rounded mt-2"
-            />
-          )}
+          {/* Article preview removed as per new requirements */}
         </div>
         
         <div>
