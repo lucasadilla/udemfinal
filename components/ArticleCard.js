@@ -26,7 +26,8 @@ function formatArticle(raw = {}) {
 // Article preview card
 export default function ArticleCard({ article = {} }) {
   const a = formatArticle(article);
-  const excerpt = a.body.length > 200 ? `${a.body.slice(0, 200)}...` : a.body;
+  const plainBody = a.body ? a.body.replace(/<[^>]+>/g, '') : '';
+  const excerpt = plainBody.length > 200 ? `${plainBody.slice(0, 200)}...` : plainBody;
 
   return (
     <Link href={`/articles/${a.id}`}>

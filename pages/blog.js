@@ -5,12 +5,14 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SponsorsBar from '../components/Sponsors';
 import AdminLoginForm from '../components/AdminLoginForm';
+import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 
 export default function Blog() {
-    const { articles } = useArticles();
+    const { articles, addArticle } = useArticles();
     const [posts, setPosts] = useState([]);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
         async function load() {
@@ -26,10 +28,6 @@ export default function Blog() {
         setIsAdmin(document.cookie.includes('admin-auth=true'));
     }, [articles]);
 
-    if (!posts || posts.length === 0) {
-        return <p>No articles found</p>;
-    }
-
     return (
         <div>
             <Head>
@@ -40,12 +38,35 @@ export default function Blog() {
             <Navbar/>
             <section className="recent-articles">
                 <div className="article-cards-container">
-                    {posts.map((article) => (
-                        <ArticleCard key={article.id || article._id} article={article} />
-                    ))}
+                    {posts.length === 0 ? (
+                        <p>No articles found</p>
+                    ) : (
+                        posts.map((article) => (
+                            <ArticleCard key={article.id || article._id} article={article} />
+                        ))
+                    )}
                 </div>
             </section>
-            {!isAdmin && (
+            {isAdmin ? (
+                <div className="my-8">
+                    {showForm ? (
+                        <ArticleForm
+                            onSubmit={async (data) => {
+                                await addArticle(data);
+                                setShowForm(false);
+                            }}
+                            onCancel={() => setShowForm(false)}
+                        />
+                    ) : (
+                        <button
+                            className="bg-green-500 text-white px-4 py-2 rounded"
+                            onClick={() => setShowForm(true)}
+                        >
+                            Add Article
+                        </button>
+                    )}
+                </div>
+            ) : (
                 <div className="my-8">
                     <h2 className="text-xl font-bold mb-2">Admin Login</h2>
                     <AdminLoginForm />
