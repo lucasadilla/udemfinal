@@ -59,7 +59,11 @@ export default function NotreComite() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
                         {users.map((member) => (
                             <div key={member.id} className="flex flex-col items-center text-center">
-                                <img src={member.profilePicture} alt={member.name} className="rounded-full w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 mb-4 object-cover border-image" />
+                                <img
+                                    src={member.profilePicture}
+                                    alt={member.name}
+                                    className="committee-avatar mb-4 border-image"
+                                />
                                 <h2 className="text-xl font-semibold">{member.name}</h2>
                                 <p className="text-gray-600">{member.title}</p>
                                 {isAdmin && (

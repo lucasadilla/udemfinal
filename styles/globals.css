@@ -702,6 +702,13 @@ button[type="submit"]:hover {
     border-radius: 50%; /* Ensure the border is circular */
 }
 
+.committee-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
 /* Scroller container */
 .scroller {
     overflow: hidden;
