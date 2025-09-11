@@ -69,7 +69,7 @@ export default function Home() {
                 </div>
                 {isAdmin && (
                     <div className="max-w-6xl mx-auto px-4">
-                        <HeroBannerEditor currentImage={heroBanner} updateContent={updateContent} />
+                        <HeroBannerEditor updateContent={updateContent} />
                     </div>
                 )}
                 <section className="recent-articles">

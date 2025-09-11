@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
-export default function HeroBannerEditor({ currentImage, updateContent }) {
+export default function HeroBannerEditor({ updateContent }) {
   const [image, setImage] = useState('');
-  const [preview, setPreview] = useState(currentImage);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -10,7 +9,6 @@ export default function HeroBannerEditor({ currentImage, updateContent }) {
     const reader = new FileReader();
     reader.onload = () => {
       setImage(reader.result);
-      setPreview(reader.result);
     };
     reader.readAsDataURL(file);
   };
@@ -20,14 +18,10 @@ export default function HeroBannerEditor({ currentImage, updateContent }) {
     if (!image) return;
     await updateContent('home', 'hero', 'hero_banner', image);
     setImage('');
-    setPreview('');
   };
 
   return (
     <form onSubmit={handleSubmit} className="mt-4 space-y-2">
-      {preview && (
-        <img src={preview} alt="Banner preview" className="w-full max-w-xl" />
-      )}
       <input type="file" accept="image/*" onChange={handleFileChange} />
       <button
         type="submit"
