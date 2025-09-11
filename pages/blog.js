@@ -38,11 +38,13 @@ export default function Blog() {
                 <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
             </Head>
             <Navbar/>
-            <div className="grid grid-cols-3 gap-8">
-                {posts.map((article) => (
-                    <ArticleCard key={article.id || article._id} article={article} />
-                ))}
-            </div>
+            <section className="recent-articles">
+                <div className="article-cards-container">
+                    {posts.map((article) => (
+                        <ArticleCard key={article.id || article._id} article={article} />
+                    ))}
+                </div>
+            </section>
             {!isAdmin && (
                 <div className="my-8">
                     <h2 className="text-xl font-bold mb-2">Admin Login</h2>
