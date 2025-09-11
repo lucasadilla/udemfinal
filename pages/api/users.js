@@ -25,10 +25,14 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       const { title, name, profilePicture } = req.body;
-      if (!title || !name || !profilePicture) {
-        return res.status(400).json({ error: 'title, name and profilePicture are required' });
+      if (!title || !name) {
+        return res.status(400).json({ error: 'title and name are required' });
       }
-      const result = await collection.insertOne({ title, name, profilePicture });
+      const result = await collection.insertOne({
+        title,
+        name,
+        profilePicture: profilePicture || '',
+      });
       return res.status(201).json({ id: result.insertedId.toString() });
     }
 
@@ -59,7 +63,7 @@ export default async function handler(req, res) {
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '4mb',
+      sizeLimit: '8mb',
     },
   },
 };
