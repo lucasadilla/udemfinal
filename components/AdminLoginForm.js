@@ -16,7 +16,7 @@ export default function AdminLoginForm() {
             body: JSON.stringify({ username, password })
         });
         if (res.ok) {
-            router.push("/admin");
+            router.reload();
         } else {
             setError("Invalid credentials");
         }
