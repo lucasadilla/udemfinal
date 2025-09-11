@@ -45,5 +45,23 @@ export default function useContent() {
     return getNested([section, subsection, key], fallback);
   };
 
-  return { getTextContent, getImageContent, loading, error };
+  const updateContent = async (section, subsection, key, value) => {
+    try {
+      const res = await fetch('/api/content', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section, subsection, key, value }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContent(data);
+      } else {
+        console.warn('Failed to update content:', res.status);
+      }
+    } catch (err) {
+      console.error('Failed to update content', err);
+    }
+  };
+
+  return { getTextContent, getImageContent, loading, error, updateContent };
 }

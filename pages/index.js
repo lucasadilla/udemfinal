@@ -9,10 +9,11 @@ import Head from 'next/head';
 import React, { useEffect, useState } from "react";
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
+import HeroBannerEditor from '../components/HeroBannerEditor';
 
 export default function Home() {
     const { articles, loading: articlesLoading } = useArticles();
-    const { getTextContent, getImageContent, loading: contentLoading, error: contentError } = useContent();
+    const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
     const [isAdmin, setIsAdmin] = useState(false);
     
     // Get dynamic content with fallbacks
@@ -66,6 +67,11 @@ export default function Home() {
                         <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
                     </div>
                 </div>
+                {isAdmin && (
+                    <div className="max-w-6xl mx-auto px-4">
+                        <HeroBannerEditor currentImage={heroBanner} updateContent={updateContent} />
+                    </div>
+                )}
                 <section className="recent-articles">
                     <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
                     <div className="article-cards-container">
