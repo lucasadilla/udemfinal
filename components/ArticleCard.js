@@ -31,7 +31,9 @@ export default function ArticleCard({ article = {} }) {
   return (
     <Link href={`/articles/${a.id}`}>
       <article className="overflow-hidden rounded-lg bg-white shadow transition-shadow duration-200 hover:shadow-lg">
-        <img src={a.image} alt={a.title} className="h-48 w-full object-cover" />
+        <div className="h-48 w-full overflow-hidden">
+          <img src={a.image} alt={a.title} className="h-full w-full object-cover" />
+        </div>
         <div className="p-4">
           <h3 className="mb-2 text-lg font-semibold">{a.title}</h3>
           {a.date && <p className="mb-2 text-sm text-gray-500">{a.date}</p>}
