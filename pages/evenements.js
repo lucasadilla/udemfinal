@@ -10,6 +10,7 @@ export default function Evenements() {
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
   const [date, setDate] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
@@ -24,7 +25,38 @@ export default function Evenements() {
     setDate('');
   };
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0);
+  const startDay = monthStart.getDay();
+  const daysInMonth = monthEnd.getDate();
+
+  const weeks = [];
+  let day = 1 - startDay;
+  while (day <= daysInMonth) {
+    const cells = [];
+    for (let i = 0; i < 7; i++, day++) {
+      if (day > 0 && day <= daysInMonth) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = events.filter((e) => e.date === dateStr);
+        cells.push(
+          <td key={`${dateStr}`} className="border p-2 align-top h-24 w-32">
+            <div className="font-bold text-sm">{day}</div>
+            {dayEvents.map((ev) => (
+              <div key={ev.id} className="text-xs truncate">
+                {ev.title}
+              </div>
+            ))}
+          </td>
+        );
+      } else {
+        cells.push(<td key={`empty-${i}-${day}`} className="border p-2 h-24 w-32" />);
+      }
+    }
+    weeks.push(<tr key={`week-${day}`}>{cells}</tr>);
+  }
 
   return (
     <div>
@@ -67,14 +99,45 @@ export default function Evenements() {
           <div>Loading...</div>
         ) : (
           <div>
-            <div className="flex justify-center my-8">
-              <input
-                type="date"
-                value={todayStr}
-                readOnly
-                className="border p-2"
-              />
+            <div className="flex items-center justify-between my-4">
+              <button
+                onClick={() =>
+                  setCurrentMonth(new Date(year, month - 1, 1))
+                }
+                className="px-2 py-1 border rounded"
+              >
+                Prev
+              </button>
+              <div className="font-semibold">
+                {currentMonth.toLocaleString('default', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
+              <button
+                onClick={() =>
+                  setCurrentMonth(new Date(year, month + 1, 1))
+                }
+                className="px-2 py-1 border rounded"
+              >
+                Next
+              </button>
             </div>
+            <div className="overflow-x-auto">
+              <table className="border-collapse w-full text-center">
+                <thead>
+                  <tr>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                      <th key={d} className="border p-2">
+                        {d}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>{weeks}</tbody>
+              </table>
+            </div>
+
             <div className="mt-8 space-y-4">
               {events.map((ev) => (
                 <div key={ev.id}>
