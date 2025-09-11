@@ -1,9 +1,10 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import { Calendar } from '@mantine/dates';
+import { Indicator } from '@mantine/core';
 
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();
@@ -11,6 +12,11 @@ export default function Evenements() {
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
   const [date, setDate] = useState('');
+
+  const eventDates = useMemo(
+    () => new Set(events.map((ev) => ev.date)),
+    [events]
+  );
 
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
@@ -67,7 +73,21 @@ export default function Evenements() {
         ) : (
           <div>
             <div className="my-4">
-              <Calendar aria-label="Calendrier des événements" />
+              <Calendar
+                aria-label="Calendrier des événements"
+                className="calendar"
+                size="lg"
+                renderDay={(date) => {
+                  const day = date.getDate();
+                  const dateString = date.toISOString().split('T')[0];
+                  const hasEvent = eventDates.has(dateString);
+                  return (
+                    <Indicator size={6} color="red" disabled={!hasEvent}>
+                      <div>{day}</div>
+                    </Indicator>
+                  );
+                }}
+              />
             </div>
             <div className="mt-8 space-y-4">
               {events.map((ev) => (
