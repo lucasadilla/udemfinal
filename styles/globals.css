@@ -12,6 +12,11 @@ html, body {
     flex-direction: column;
     min-height: 100vh;
     justify-content: space-between;
+    flex: 1;
+}
+
+main {
+    flex: 1;
 }
 
 .author-image {
