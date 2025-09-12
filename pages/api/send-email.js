@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     try {
         await transporter.sendMail({
             from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-            to: process.env.EMAIL_TO || process.env.EMAIL_USER,
+            to: 'femmesetdroit.udem@gmail.com',
             subject: `Contact Form: ${objet}`,
             text: `Nom: ${nom}\nEmail: ${email}\n\n${message}`,
             replyTo: email
