@@ -294,8 +294,8 @@ nav a {
 /* Ensure images embedded in articles and the editor aren't oversized */
 .ProseMirror img,
 .prose img,
-.article-box img {
-    max-width: 200px;
+.article-box img:not(.author-image) {
+    max-width: 100%;
     height: auto;
     display: block;
     margin: 0.5rem auto;
@@ -631,9 +631,10 @@ button[type="submit"]:hover {
     border: 1px solid #b8b6b6;
     padding: 3rem;
     border-radius: 0.25rem;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    margin: 2rem auto;
     background-color: #eeede8;
+    max-width: 800px;
+    width: 100%;
 }
 
 .share-button {
