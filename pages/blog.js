@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useArticles } from '../context/ArticlesContext';
 import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
-import SponsorsBar from '../components/Sponsors';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 
@@ -71,7 +70,6 @@ export default function Blog() {
                     </div>
                 ) :
                 null}
-                <SponsorsBar />
                 </main>
             </div>
         </>
