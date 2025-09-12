@@ -108,7 +108,7 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column;
-    background-color: #e8e0e0;
+    background-color: #e6dede;
     min-height: 100vh;
 }
 
@@ -508,7 +508,7 @@ button[type="submit"]:hover {
 }
 
 .modal-content {
-    background-color: #e8e0e0;
+    background-color: #e6dede;
     padding: 1rem;
     border-radius: 0.5rem;
     position: relative;
@@ -650,7 +650,7 @@ button[type="submit"]:hover {
     padding: 3rem;
     border-radius: 0.25rem;
     margin: 2rem auto;
-    background-color: #e8e0e0;
+    background-color: #e6dede;
     max-width: 800px;
     width: 100%;
 }
