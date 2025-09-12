@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Head from 'next/head';
-import useSponsors from '../hooks/useSponsors';
+import useGuideSponsors from '../hooks/useGuideSponsors';
 
 export default function GuidePage() {
-    const { sponsors, loading, addSponsor, deleteSponsor } = useSponsors();
+    const { sponsors, loading, addSponsor, deleteSponsor } = useGuideSponsors();
     const [selectedSponsor, setSelectedSponsor] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
