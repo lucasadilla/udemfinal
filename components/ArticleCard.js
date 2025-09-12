@@ -31,12 +31,12 @@ export default function ArticleCard({ article = {} }) {
 
   return (
     <Link href={`/articles/${a.id}`}>
-      <article className="overflow-hidden rounded-lg bg-white shadow transition-shadow duration-200 hover:shadow-lg">
+      <article className="max-w-md overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
         <img src={a.image} alt={a.title} className="article-card-image" />
-        <div className="p-4">
-          <h3 className="mb-2 text-lg font-semibold">{a.title}</h3>
-          {a.date && <p className="mb-2 text-sm text-gray-500">{a.date}</p>}
-          <p className="text-sm text-gray-700">{excerpt}</p>
+        <div className="p-6">
+          <h3 className="mb-3 text-2xl font-bold text-gray-800">{a.title}</h3>
+          {a.date && <p className="mb-3 text-sm text-gray-500">{a.date}</p>}
+          <p className="text-base text-gray-600">{excerpt}</p>
         </div>
       </article>
     </Link>
