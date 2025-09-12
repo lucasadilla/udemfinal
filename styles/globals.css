@@ -7,10 +7,11 @@ html, body {
     margin: 0;
 }
 
-#__next {
+.flex-wrapper {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    justify-content: space-between;
     flex: 1;
 }
 
@@ -550,7 +551,6 @@ button[type="submit"]:hover {
     cursor: pointer;
 }
 .footer {
-    margin-top: auto;
     background-color: #e8e0e0;
     color: #000000;
     padding: 1rem;

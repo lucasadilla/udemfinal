@@ -1,6 +1,5 @@
 // pages/notre-comite.js
 import Navbar from "../components/Navbar";
-import Footer from '../components/Footer';
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import SponsorsBar from "../components/Sponsors";
@@ -43,15 +42,16 @@ export default function NotreComite() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <>
             <Head>
                 <title>Notre Comité</title>
                 <meta name="description" content="Rencontrez les membres dévoués du comité de Femme & Droit, promoteurs de féminisme et d'égalité." />
                 <meta name="keywords" content="comité, membres, féminisme, Université de Montréal, égalité" />
             </Head>
-            <Navbar />
-            <main className="flex-grow p-8">
-                <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
+            <div>
+                <Navbar />
+                <main className="p-8">
+                    <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
                 {loading ? (
                     <p>Loading...</p>
@@ -108,8 +108,8 @@ export default function NotreComite() {
                     </div>
                 )}
                 <SponsorsBar />
-            </main>
-            <Footer />
-        </div>
+                </main>
+            </div>
+        </>
     );
 }
