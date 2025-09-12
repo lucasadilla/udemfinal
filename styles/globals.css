@@ -284,8 +284,8 @@ nav a {
 }
 
 .article-card-image {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
     margin: 0.5rem auto;
     display: block;
@@ -293,8 +293,9 @@ nav a {
 
 /* Ensure images embedded in articles and the editor aren't oversized */
 .ProseMirror img,
-.prose img {
-    max-width: 300px;
+.prose img,
+.article-box img {
+    max-width: 200px;
     height: auto;
     display: block;
     margin: 0.5rem auto;
