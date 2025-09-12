@@ -47,8 +47,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                 </div>
                 <div className="right-side">
                     <form onSubmit={handleSubmit} className="contact-form">
-                        <div className="mb-4">
-                            <label htmlFor="nom" className="block text-sm font-semibold mb-2">Nom</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="nom" className="block text-sm font-semibold mb-2 text-center">Nom</label>
                             <input
                                 type="text"
                                 id="nom"
@@ -59,8 +59,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 placeholder="Votre nom"
                             />
                         </div>
-                        <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-semibold mb-2">Courriel</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="email" className="block text-sm font-semibold mb-2 text-center">Courriel</label>
                             <input
                                 type="email"
                                 id="email"
@@ -71,8 +71,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 placeholder="Votre Courriel"
                             />
                         </div>
-                        <div className="mb-4">
-                            <label htmlFor="objet" className="block text-sm font-semibold mb-2">Objet</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="objet" className="block text-sm font-semibold mb-2 text-center">Objet</label>
                             <input
                                 type="text"
                                 id="objet"
@@ -83,8 +83,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 placeholder="Objet de votre message"
                             />
                         </div>
-                        <div className="mb-4">
-                            <label htmlFor="message" className="block text-sm font-semibold mb-2">Message</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="message" className="block text-sm font-semibold mb-2 text-center">Message</label>
                             <textarea
                                 id="message"
                                 name="message"
