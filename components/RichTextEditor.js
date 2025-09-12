@@ -80,7 +80,7 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
           }}
         />
       </div>
-      <EditorContent editor={editor} className="p-2 min-h-[200px] bg-white" />
+      <EditorContent editor={editor} className="p-2 min-h-[200px] bg-[#e8e0e0]" />
     </div>
   );
 }

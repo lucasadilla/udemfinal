@@ -14,7 +14,7 @@ export default function Navbar() {
     const isActive = (path) => router.pathname === path;
 
     return (
-        <nav className="bg-white p-4 flex items-center justify-center">
+        <nav className="bg-[#e8e0e0] p-4 flex items-center justify-center">
             <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
                 <a href="/">
                     <img src="/images/logo femme et droit-Photoroom.png" alt="Logo" className="logo w-10 h-10" />

@@ -31,9 +31,9 @@ export default function ArticleCard({ article = {} }) {
 
   return (
     <Link href={`/articles/${a.id}`}>
-      <article className="max-w-md overflow-hidden rounded-xl bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <article className="article-card max-w-md h-full flex flex-col overflow-hidden rounded-xl shadow-md">
         <img src={a.image} alt={a.title} className="article-card-image" />
-        <div className="p-6">
+        <div className="p-6 flex flex-col flex-grow">
           <h3 className="mb-3 text-2xl font-bold text-gray-800">{a.title}</h3>
           {a.date && <p className="mb-3 text-sm text-gray-500">{a.date}</p>}
           <p className="text-base text-gray-600">{excerpt}</p>
