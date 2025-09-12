@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
 import { useArticles } from '../../context/ArticlesContext';
 
 export default function Article() {
@@ -52,12 +51,13 @@ export default function Article() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="article-page article-box flex-grow">
-        <button onClick={handleBack} className="back-button">
-          ← Arrière
-        </button>
+    <>
+      <div>
+        <Navbar />
+        <main className="article-page article-box">
+          <button onClick={handleBack} className="back-button">
+            ← Arrière
+          </button>
         <h1 className="article-title font-bold mb-4">{currentArticle.title}</h1>
 
         <div className="flex items-center mb-4">
@@ -83,7 +83,7 @@ export default function Article() {
           Partagez cet article
         </button>
       </main>
-      <Footer />
-    </div>
+      </div>
+    </>
   );
 }

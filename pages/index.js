@@ -1,6 +1,5 @@
 // pages/index.js
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
 import SponsorsBar from "../components/Sponsors";
@@ -48,41 +47,41 @@ export default function Home() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <>
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDescription}/>
                 <meta name="keywords" content={pageKeywords}/>
             </Head>
-            <Navbar/>
+            <div>
+                <Navbar/>
 
-            <main className="relative flex-grow">
-                <div className="banner">
-                    <img src={heroBanner} alt="Banner" className="w-full h-auto"/>
-                    <div className="banner-text-box">
-                        <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
-                        <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
+                <main className="relative">
+                    <div className="banner">
+                        <img src={heroBanner} alt="Banner" className="w-full h-auto"/>
+                        <div className="banner-text-box">
+                            <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
+                            <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
+                        </div>
                     </div>
-                </div>
-                {isAdmin && (
-                    <div className="max-w-6xl mx-auto px-4">
-                        <HeroBannerEditor updateContent={updateContent} />
-                    </div>
-                )}
-                <section className="recent-articles">
-                    <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
-                    <div className="article-cards-container">
-                        {topThreeArticles.map((article) => (
-                            <ArticleCard key={article._id || article.id} article={article} />
-                        ))}
-                    </div>
-                </section>
-                <ContactCard />
-                <SponsorsBar />
-            </main>
-
-            <Footer />
-        </div>
+                    {isAdmin && (
+                        <div className="max-w-6xl mx-auto px-4">
+                            <HeroBannerEditor updateContent={updateContent} />
+                        </div>
+                    )}
+                    <section className="recent-articles">
+                        <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
+                        <div className="article-cards-container">
+                            {topThreeArticles.map((article) => (
+                                <ArticleCard key={article._id || article.id} article={article} />
+                            ))}
+                        </div>
+                    </section>
+                    <ContactCard />
+                    <SponsorsBar />
+                </main>
+            </div>
+        </>
     );
 }
 

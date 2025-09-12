@@ -7,14 +7,11 @@ html, body {
     margin: 0;
 }
 
-#__next {
+.flex-wrapper {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-}
-
-main {
-    flex: 1;
+    justify-content: space-between;
 }
 
 .author-image {
@@ -549,7 +546,6 @@ button[type="submit"]:hover {
     cursor: pointer;
 }
 .footer {
-    margin-top: auto;
     background-color: #e8e0e0;
     color: #000000;
     padding: 1rem;

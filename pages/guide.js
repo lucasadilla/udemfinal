@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import Head from 'next/head';
 import useGuideSponsors from '../hooks/useGuideSponsors';
 
@@ -57,7 +56,7 @@ export default function GuidePage() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <>
             <Head>
                 <title>Guide des Commanditaires</title>
                 <meta
@@ -69,11 +68,12 @@ export default function GuidePage() {
                     content="commanditaires, guide, partenaires, photos, féminisme, Université de Montréal"
                 />
             </Head>
-            <Navbar />
-            <main className="flex-grow p-8">
-                <h1 className="page-title text-center mb-8">Guide des Commanditaires</h1>
-                {isAdmin && (
-                    <form onSubmit={handleAdd} className="mb-8 space-y-2">
+            <div>
+                <Navbar />
+                <main className="p-8">
+                    <h1 className="page-title text-center mb-8">Guide des Commanditaires</h1>
+                    {isAdmin && (
+                        <form onSubmit={handleAdd} className="mb-8 space-y-2">
                         <input
                             type="file"
                             accept="image/*"
@@ -132,9 +132,9 @@ export default function GuidePage() {
                         </div>
                     </div>
                 )}
-            </main>
-            <Footer />
-        </div>
+                </main>
+            </div>
+        </>
     );
 }
 

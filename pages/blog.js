@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useArticles } from '../context/ArticlesContext';
 import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import SponsorsBar from '../components/Sponsors';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
@@ -31,50 +30,51 @@ export default function Blog() {
     }, [articles]);
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <>
             <Head>
                 <title>Blog</title>
                 <meta name="description" content="Lisez des articles sur le féminisme intersectionnel et les événements communautaires à l'Université de Montréal."/>
                 <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
             </Head>
-            <Navbar/>
-            <main className="flex-grow">
-            <section className="recent-articles">
-                <div className="article-cards-container">
-                    {posts.length === 0 ? (
-                        <p>No articles found</p>
-                    ) : (
-                        posts.map((article) => (
-                            <ArticleCard key={article.id || article._id} article={article} />
-                        ))
-                    )}
-                </div>
-            </section>
-            {isAdmin ? (
-                <div className="my-8">
-                    {showForm ? (
-                        <ArticleForm
-                            onSubmit={async (data) => {
-                                await addArticle(data);
-                                setShowForm(false);
-                            }}
-                            onCancel={() => setShowForm(false)}
-                        />
-                    ) : (
-                        <button
-                            className="bg-green-500 text-white px-4 py-2 rounded"
-                            onClick={() => setShowForm(true)}
-                        >
-                            Add Article
-                        </button>
-                    )}
-                </div>
-            ) :
-            null}
-            <SponsorsBar />
-            </main>
-            <Footer />
-        </div>
+            <div>
+                <Navbar/>
+                <main>
+                <section className="recent-articles">
+                    <div className="article-cards-container">
+                        {posts.length === 0 ? (
+                            <p>No articles found</p>
+                        ) : (
+                            posts.map((article) => (
+                                <ArticleCard key={article.id || article._id} article={article} />
+                            ))
+                        )}
+                    </div>
+                </section>
+                {isAdmin ? (
+                    <div className="my-8">
+                        {showForm ? (
+                            <ArticleForm
+                                onSubmit={async (data) => {
+                                    await addArticle(data);
+                                    setShowForm(false);
+                                }}
+                                onCancel={() => setShowForm(false)}
+                            />
+                        ) : (
+                            <button
+                                className="bg-green-500 text-white px-4 py-2 rounded"
+                                onClick={() => setShowForm(true)}
+                            >
+                                Add Article
+                            </button>
+                        )}
+                    </div>
+                ) :
+                null}
+                <SponsorsBar />
+                </main>
+            </div>
+        </>
     );
 }
 
