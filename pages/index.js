@@ -2,7 +2,6 @@
 import Navbar from '../components/Navbar';
 import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
-import SponsorsBar from "../components/Sponsors";
 import Head from 'next/head';
 import React, { useEffect, useState } from "react";
 import { useArticles } from '../context/ArticlesContext';
@@ -78,7 +77,6 @@ export default function Home() {
                         </div>
                     </section>
                     <ContactCard />
-                    <SponsorsBar />
                 </main>
             </div>
         </>

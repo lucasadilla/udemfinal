@@ -2,7 +2,6 @@
 import Navbar from "../components/Navbar";
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
-import SponsorsBar from "../components/Sponsors";
 import useUsers from "../hooks/useUsers";
 
 export default function NotreComite() {
@@ -107,7 +106,6 @@ export default function NotreComite() {
                         </form>
                     </div>
                 )}
-                <SponsorsBar />
                 </main>
             </div>
         </>
