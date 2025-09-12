@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-export default function useSponsors() {
+// Hook for managing sponsor images displayed on the home page carousel.
+// Communicates with the `/api/sponsors` endpoint which stores images in the
+// `home_sponsors` collection.
+export default function useHomeSponsors() {
     const [sponsors, setSponsors] = useState([]);
     const [loading, setLoading] = useState(true);
 

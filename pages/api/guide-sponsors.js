@@ -3,8 +3,8 @@ import { MongoClient, ObjectId } from 'mongodb';
 let cachedClient = null;
 
 /**
- * Retrieve sponsor logos for the home page carousel from the
- * `home_sponsors` collection. Each document should contain
+ * Retrieve sponsors for the Guide des Commanditaires page from the
+ * `guide_sponsors` collection. Each document should contain
  * `{ image: string }` where the image is a base64-encoded data URL.
  *
  * This API route expects an environment variable `MONGODB_URI` to be
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         }
 
         const db = cachedClient.db();
-        const collection = db.collection('home_sponsors');
+        const collection = db.collection('guide_sponsors');
 
         if (req.method === 'POST') {
             const { image } = req.body || {};
