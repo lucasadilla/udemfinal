@@ -118,7 +118,7 @@ a {
 }
 
 nav {
-    background-color: #e8e0e0;
+    background-color: #f0efe9;
 }
 
 nav ul {
@@ -226,7 +226,7 @@ nav a {
 
 /* navbar backround colour */
 .bg-white {
-    background-color: #e8e0e0;
+    background-color: #f0efe9;
 }
 
 .text-black {
@@ -277,7 +277,7 @@ nav a {
 
 .recent-articles {
     padding: 2rem;
-    background-color: #e8e0e0;
+    background-color: #e6dede;
 }
 
 .article-cards-container {
@@ -290,7 +290,7 @@ nav a {
 }
 
 .article-card {
-    background-color: #e8e0e0;
+    background-color: #ffffff;
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -551,7 +551,7 @@ button[type="submit"]:hover {
     cursor: pointer;
 }
 .footer {
-    background-color: #e8e0e0;
+    background-color: #f0efe9;
     color: #000000;
     padding: 1rem;
     text-align: center;
@@ -807,6 +807,8 @@ button[type="submit"]:hover {
     margin-left: auto;
     margin-right: auto;
     width: fit-content;
+    transform: scale(1);
+    transform-origin: center;
 }
 
 
