@@ -1,4 +1,4 @@
-import { events } from '../../lib/eventDatabase';
+import { getEvents, addEvent } from '../../lib/eventDatabase';
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
@@ -6,9 +6,10 @@ export default function handler(req, res) {
     if (!title || !bio || !date) {
       return res.status(400).json({ error: 'title, bio and date are required' });
     }
-    events.push({ id: Date.now().toString(), title, bio, date });
+    addEvent({ id: Date.now().toString(), title, bio, date });
     return res.status(201).json({ ok: true });
   }
 
+  const events = getEvents();
   res.status(200).json(events);
 }
