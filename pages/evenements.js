@@ -1,6 +1,6 @@
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import { Calendar } from '@mantine/dates';
 import { Indicator } from '@mantine/core';
@@ -16,6 +16,12 @@ export default function Evenements() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
+  const updateVisibleMonth = useCallback((value) => {
+    if (!value) return;
+    const target = value instanceof Date ? value : new Date(value);
+    setVisibleMonth(new Date(target.getFullYear(), target.getMonth(), 1));
+  }, []);
 
   const parseEventDate = (dateString) => {
     if (!dateString) return null;
@@ -115,7 +121,7 @@ export default function Evenements() {
       </Head>
       <div>
         <Navbar />
-        <main className="max-w-4xl mx-auto p-4">
+        <main className="max-w-6xl mx-auto p-4">
           <h1 className="text-3xl text-center mb-4">Événements</h1>
           {isAdmin && (
             <form onSubmit={handleSubmit} className="mb-8 space-y-2">
@@ -149,23 +155,15 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
-              <div className="flex justify-center">
+            <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,360px)_minmax(0,1fr)] md:items-start">
+              <div className="flex justify-center md:justify-start">
                 <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
                   <Calendar
                     aria-label="Calendrier des événements"
                     className="calendar"
                     month={visibleMonth}
-                    onMonthChange={(nextMonth) => {
-                      if (!nextMonth) return;
-                      const target =
-                        nextMonth instanceof Date
-                          ? nextMonth
-                          : new Date(nextMonth);
-                      setVisibleMonth(
-                        new Date(target.getFullYear(), target.getMonth(), 1)
-                      );
-                    }}
+                    onMonthChange={updateVisibleMonth}
+                    onChange={updateVisibleMonth}
                     size="lg"
                     renderDay={(currentDate) => {
                       const dateObj =
@@ -184,7 +182,7 @@ export default function Evenements() {
                   />
                 </div>
               </div>
-              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:w-auto">
+              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:max-w-none">
                 <h2 className="text-xl font-semibold text-gray-900">
                   Événements de {monthLabel}
                 </h2>
