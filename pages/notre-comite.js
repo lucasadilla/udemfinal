@@ -57,14 +57,14 @@ export default function NotreComite() {
                 ) : (
                     <div className="grid grid-cols-3 gap-8 justify-items-center">
                         {users.map((member) => (
-                            <div key={member.id} className="flex flex-col items-center text-center">
+                            <div key={member.id} className="flex flex-col items-center text-center space-y-1">
                                 <img
                                     src={member.profilePicture}
                                     alt={member.name}
-                                    className="committee-avatar mb-4 border-image"
+                                    className="committee-avatar border-image"
                                 />
-                                <h2 className="text-xl font-semibold">{member.name}</h2>
-                                <p className="text-gray-600">{member.title}</p>
+                                <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
+                                <p className="text-gray-600 leading-snug">{member.title}</p>
                                 {isAdmin && (
                                     <button onClick={() => deleteUser(member.id)} className="mt-2 text-red-600">
                                         Supprimer
