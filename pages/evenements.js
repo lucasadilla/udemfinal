@@ -12,7 +12,10 @@ export default function Evenements() {
   const [bio, setBio] = useState('');
   // Rename state variable to avoid confusion with Calendar's date parameter
   const [eventDate, setEventDate] = useState('');
-  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
 
   const parseEventDate = (dateString) => {
     if (!dateString) return null;
@@ -146,14 +149,23 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
-              <div className="flex justify-center md:justify-start">
+            <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
+              <div className="flex justify-center">
                 <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
                   <Calendar
                     aria-label="Calendrier des événements"
                     className="calendar"
                     month={visibleMonth}
-                    onMonthChange={setVisibleMonth}
+                    onMonthChange={(nextMonth) => {
+                      if (!nextMonth) return;
+                      const target =
+                        nextMonth instanceof Date
+                          ? nextMonth
+                          : new Date(nextMonth);
+                      setVisibleMonth(
+                        new Date(target.getFullYear(), target.getMonth(), 1)
+                      );
+                    }}
                     size="lg"
                     renderDay={(currentDate) => {
                       const dateObj =
@@ -172,7 +184,7 @@ export default function Evenements() {
                   />
                 </div>
               </div>
-              <aside className="w-full rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur">
+              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:w-auto">
                 <h2 className="text-xl font-semibold text-gray-900">
                   Événements de {monthLabel}
                 </h2>
