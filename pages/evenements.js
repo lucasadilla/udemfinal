@@ -12,10 +12,84 @@ export default function Evenements() {
   const [bio, setBio] = useState('');
   // Rename state variable to avoid confusion with Calendar's date parameter
   const [eventDate, setEventDate] = useState('');
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+
+  const parseEventDate = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    if (
+      Number.isNaN(year) ||
+      Number.isNaN(month) ||
+      Number.isNaN(day) ||
+      !year ||
+      !month ||
+      !day
+    ) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  };
+
+  const formatDateKey = (date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+      date.getDate()
+    ).padStart(2, '0')}`;
+
+  const formatDisplayDate = (date) =>
+    date
+      ? date.toLocaleDateString('fr-CA', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      : '';
+
+  const eventsWithParsedDates = useMemo(
+    () =>
+      events.map((event) => {
+        const parsedDate = parseEventDate(event.date);
+        return {
+          ...event,
+          parsedDate,
+          dateKey: parsedDate ? formatDateKey(parsedDate) : null,
+        };
+      }),
+    [events]
+  );
 
   const eventDates = useMemo(
-    () => new Set(events.map((ev) => ev.date)),
-    [events]
+    () =>
+      new Set(
+        eventsWithParsedDates
+          .map((event) => event.dateKey)
+          .filter((dateKey) => Boolean(dateKey))
+      ),
+    [eventsWithParsedDates]
+  );
+
+  const filteredEvents = useMemo(() => {
+    const month = visibleMonth.getMonth();
+    const year = visibleMonth.getFullYear();
+
+    return eventsWithParsedDates
+      .filter((event) => {
+        if (!event.parsedDate) return false;
+        return (
+          event.parsedDate.getMonth() === month &&
+          event.parsedDate.getFullYear() === year
+        );
+      })
+      .sort((a, b) => a.parsedDate - b.parsedDate);
+  }, [eventsWithParsedDates, visibleMonth]);
+
+  const monthLabel = useMemo(
+    () =>
+      visibleMonth.toLocaleDateString('fr-CA', {
+        month: 'long',
+        year: 'numeric',
+      }),
+    [visibleMonth]
   );
 
   useEffect(() => {
@@ -72,37 +146,66 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div>
-            <div className="my-4 flex justify-center">
-                <Calendar
-                  aria-label="Calendrier des événements"
-                  className="calendar"
-                  size="lg"
-                  renderDay={(currentDate) => {
-                    const dateObj =
-                      currentDate instanceof Date
-                        ? currentDate
-                        : new Date(currentDate);
-                    const day = dateObj.getDate();
-                    const dateString = dateObj.toISOString().split('T')[0];
-                    const hasEvent = eventDates.has(dateString);
-                    return (
-                      <Indicator size={6} color="red" disabled={!hasEvent}>
-                        <div>{day}</div>
-                      </Indicator>
-                    );
-                  }}
-                />
+            <div className="mt-8 grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
+              <div className="flex justify-center md:justify-start">
+                <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+                  <Calendar
+                    aria-label="Calendrier des événements"
+                    className="calendar"
+                    month={visibleMonth}
+                    onMonthChange={setVisibleMonth}
+                    size="lg"
+                    renderDay={(currentDate) => {
+                      const dateObj =
+                        currentDate instanceof Date
+                          ? currentDate
+                          : new Date(currentDate);
+                      const day = dateObj.getDate();
+                      const dateKey = formatDateKey(dateObj);
+                      const hasEvent = eventDates.has(dateKey);
+                      return (
+                        <Indicator size={6} color="red" disabled={!hasEvent}>
+                          <div>{day}</div>
+                        </Indicator>
+                      );
+                    }}
+                  />
+                </div>
               </div>
-              <div className="mt-8 space-y-4">
-                {events.map((ev) => (
-                  <div key={ev.id}>
-                    <div className="font-bold">{ev.title}</div>
-                    <div className="text-sm">{ev.date}</div>
-                    <div className="text-sm">{ev.bio}</div>
-                  </div>
-                ))}
-              </div>
+              <aside className="w-full rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Événements de {monthLabel}
+                </h2>
+                <div className="mt-4 space-y-4">
+                  {filteredEvents.length === 0 ? (
+                    <p className="text-sm text-gray-600">
+                      Aucun événement prévu ce mois-ci.
+                    </p>
+                  ) : (
+                    filteredEvents.map((event) => (
+                      <article
+                        key={event.id}
+                        className={[
+                          'rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/70 to-blue-100/40',
+                          'p-4 shadow-sm',
+                        ].join(' ')}
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {event.title}
+                        </h3>
+                        <p className="mt-1 text-sm font-medium text-blue-700">
+                          {event.parsedDate
+                            ? formatDisplayDate(event.parsedDate)
+                            : event.date}
+                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-gray-700">
+                          {event.bio}
+                        </p>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </aside>
             </div>
           )}
         </main>
