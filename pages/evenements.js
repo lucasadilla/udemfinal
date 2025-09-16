@@ -20,7 +20,33 @@ export default function Evenements() {
   const updateVisibleMonth = useCallback((value) => {
     if (!value) return;
     const target = value instanceof Date ? value : new Date(value);
-    setVisibleMonth(new Date(target.getFullYear(), target.getMonth(), 1));
+    setVisibleMonth((previousMonth) => {
+      const nextMonth = new Date(target.getFullYear(), target.getMonth(), 1);
+
+      if (
+        previousMonth &&
+        previousMonth.getFullYear() === nextMonth.getFullYear() &&
+        previousMonth.getMonth() === nextMonth.getMonth()
+      ) {
+        return previousMonth;
+      }
+
+      return nextMonth;
+    });
+  }, []);
+
+  const formatMonthLabel = useCallback((date) => {
+    if (!(date instanceof Date)) {
+      return '';
+    }
+
+    const formatter = new Intl.DateTimeFormat('fr-CA', {
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const formattedLabel = formatter.format(date);
+    return formattedLabel.charAt(0).toUpperCase() + formattedLabel.slice(1);
   }, []);
 
   const parseEventDate = (dateString) => {
@@ -93,12 +119,8 @@ export default function Evenements() {
   }, [eventsWithParsedDates, visibleMonth]);
 
   const monthLabel = useMemo(
-    () =>
-      visibleMonth.toLocaleDateString('fr-CA', {
-        month: 'long',
-        year: 'numeric',
-      }),
-    [visibleMonth]
+    () => formatMonthLabel(visibleMonth),
+    [formatMonthLabel, visibleMonth]
   );
 
   useEffect(() => {
