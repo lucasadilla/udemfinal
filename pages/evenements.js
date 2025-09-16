@@ -5,6 +5,49 @@ import useEvents from '../hooks/useEvents';
 import { Calendar } from '@mantine/dates';
 import { Indicator } from '@mantine/core';
 
+const isValidDate = (date) =>
+  date instanceof Date && !Number.isNaN(date.getTime());
+
+const toDateAtMidnight = (date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const normalizeCalendarValue = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const normalizedEntry = normalizeCalendarValue(entry);
+      if (normalizedEntry) {
+        return normalizedEntry;
+      }
+    }
+
+    return null;
+  }
+
+  const candidate = value instanceof Date ? value : new Date(value);
+
+  if (!isValidDate(candidate)) {
+    return null;
+  }
+
+  return toDateAtMidnight(candidate);
+};
+
+const startOfMonth = (date) =>
+  new Date(date.getFullYear(), date.getMonth(), 1);
+
+const isSameMonth = (first, second) =>
+  isValidDate(first) &&
+  isValidDate(second) &&
+  first.getFullYear() === second.getFullYear() &&
+  first.getMonth() === second.getMonth();
+
+const isSameDay = (first, second) =>
+  isSameMonth(first, second) && first.getDate() === second.getDate();
+
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -12,15 +55,71 @@ export default function Evenements() {
   const [bio, setBio] = useState('');
   // Rename state variable to avoid confusion with Calendar's date parameter
   const [eventDate, setEventDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(null);
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return startOfMonth(now);
   });
 
-  const updateVisibleMonth = useCallback((value) => {
-    if (!value) return;
-    const target = value instanceof Date ? value : new Date(value);
-    setVisibleMonth(new Date(target.getFullYear(), target.getMonth(), 1));
+  const applyVisibleMonth = useCallback((targetDate) => {
+    if (!targetDate) {
+      return;
+    }
+
+    const nextMonth = startOfMonth(targetDate);
+
+    setVisibleMonth((previousMonth) => {
+      if (isSameMonth(previousMonth, nextMonth)) {
+        return previousMonth;
+      }
+
+      return nextMonth;
+    });
+  }, []);
+
+  const handleMonthChange = useCallback(
+    (value) => {
+      const targetDate = normalizeCalendarValue(value);
+      if (!targetDate) {
+        return;
+      }
+
+      applyVisibleMonth(targetDate);
+    },
+    [applyVisibleMonth]
+  );
+
+  const handleDateChange = useCallback(
+    (value) => {
+      const targetDate = normalizeCalendarValue(value);
+      if (!targetDate) {
+        return;
+      }
+
+      setSelectedDate((previousSelectedDate) => {
+        if (isSameDay(previousSelectedDate, targetDate)) {
+          return previousSelectedDate;
+        }
+
+        applyVisibleMonth(targetDate);
+        return targetDate;
+      });
+    },
+    [applyVisibleMonth]
+  );
+
+  const formatMonthLabel = useCallback((date) => {
+    if (!(date instanceof Date)) {
+      return '';
+    }
+
+    const formatter = new Intl.DateTimeFormat('fr-CA', {
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const formattedLabel = formatter.format(date);
+    return formattedLabel.charAt(0).toUpperCase() + formattedLabel.slice(1);
   }, []);
 
   const parseEventDate = (dateString) => {
@@ -93,12 +192,8 @@ export default function Evenements() {
   }, [eventsWithParsedDates, visibleMonth]);
 
   const monthLabel = useMemo(
-    () =>
-      visibleMonth.toLocaleDateString('fr-CA', {
-        month: 'long',
-        year: 'numeric',
-      }),
-    [visibleMonth]
+    () => formatMonthLabel(visibleMonth),
+    [formatMonthLabel, visibleMonth]
   );
 
   useEffect(() => {
@@ -162,8 +257,8 @@ export default function Evenements() {
                     aria-label="Calendrier des événements"
                     className="calendar"
                     month={visibleMonth}
-                    onMonthChange={updateVisibleMonth}
-                    onChange={updateVisibleMonth}
+                    onMonthChange={handleMonthChange}
+                    onChange={handleDateChange}
                     size="lg"
                     renderDay={(currentDate) => {
                       const dateObj =
