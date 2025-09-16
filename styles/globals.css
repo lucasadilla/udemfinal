@@ -294,15 +294,16 @@ nav a {
     display: flex;
     flex-direction: column;
     height: 100%;
-    border: 1px solid #e5e7eb;
+    border: 2px solid #b8b6b6;
     border-radius: 1rem;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .article-card:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    border-color: #9ca3af;
 }
 
 .article-card-image {
