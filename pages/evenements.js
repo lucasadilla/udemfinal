@@ -184,8 +184,9 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div className="mt-8 grid gap-8 justify-items-center md:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)] md:items-start md:justify-items-start">
-              <div className="flex justify-center md:justify-start">
+            <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
+              <div className="hidden md:block md:h-0 md:w-[22rem] md:shrink-0" aria-hidden="true" />
+              <div className="flex justify-center">
                 <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
                   <Calendar
                     aria-label="Calendrier des événements"
@@ -211,7 +212,7 @@ export default function Evenements() {
                   />
                 </div>
               </div>
-              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:max-w-md md:justify-self-start">
+              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:w-[22rem] md:shrink-0">
                 <h2 className="text-xl font-semibold text-gray-900">
                   Événements de {monthLabel}
                 </h2>
