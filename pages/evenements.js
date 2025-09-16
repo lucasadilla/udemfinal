@@ -14,19 +14,27 @@ export default function Evenements() {
   const [eventDate, setEventDate] = useState('');
   const [visibleMonth, setVisibleMonth] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return { year: now.getFullYear(), month: now.getMonth() };
   });
+
+  const visibleMonthDate = useMemo(
+    () => new Date(visibleMonth.year, visibleMonth.month, 1),
+    [visibleMonth]
+  );
 
   const updateVisibleMonth = useCallback((value) => {
     if (!value) return;
     const target = value instanceof Date ? value : new Date(value);
     setVisibleMonth((previousMonth) => {
-      const nextMonth = new Date(target.getFullYear(), target.getMonth(), 1);
+      const nextMonth = {
+        year: target.getFullYear(),
+        month: target.getMonth(),
+      };
 
       if (
         previousMonth &&
-        previousMonth.getFullYear() === nextMonth.getFullYear() &&
-        previousMonth.getMonth() === nextMonth.getMonth()
+        previousMonth.year === nextMonth.year &&
+        previousMonth.month === nextMonth.month
       ) {
         return previousMonth;
       }
@@ -104,8 +112,7 @@ export default function Evenements() {
   );
 
   const filteredEvents = useMemo(() => {
-    const month = visibleMonth.getMonth();
-    const year = visibleMonth.getFullYear();
+    const { month, year } = visibleMonth;
 
     return eventsWithParsedDates
       .filter((event) => {
@@ -119,8 +126,8 @@ export default function Evenements() {
   }, [eventsWithParsedDates, visibleMonth]);
 
   const monthLabel = useMemo(
-    () => formatMonthLabel(visibleMonth),
-    [formatMonthLabel, visibleMonth]
+    () => formatMonthLabel(visibleMonthDate),
+    [formatMonthLabel, visibleMonthDate]
   );
 
   useEffect(() => {
@@ -183,7 +190,7 @@ export default function Evenements() {
                   <Calendar
                     aria-label="Calendrier des événements"
                     className="calendar"
-                    month={visibleMonth}
+                    month={visibleMonthDate}
                     onMonthChange={updateVisibleMonth}
                     onChange={updateVisibleMonth}
                     size="lg"
