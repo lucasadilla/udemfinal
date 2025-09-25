@@ -44,7 +44,7 @@ export default function usePodcasts() {
       reader.readAsDataURL(file);
     });
 
-  const addPodcast = async ({ title, date, video, image }) => {
+  const addPodcast = async ({ title, date, video, image, bio }) => {
     try {
       if (!video) {
         throw new Error('A video file must be provided');
@@ -65,6 +65,7 @@ export default function usePodcasts() {
         body: JSON.stringify({
           title,
           date,
+          bio,
           videoDataUrl,
           originalName: video.name,
           imageDataUrl,

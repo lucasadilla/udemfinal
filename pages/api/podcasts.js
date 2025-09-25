@@ -94,6 +94,7 @@ export default function handler(req, res) {
     const {
       title,
       date,
+      bio,
       videoDataUrl,
       originalName,
       imageDataUrl,
@@ -130,6 +131,7 @@ export default function handler(req, res) {
       image: storedImagePath,
       slug: createSlug(title, podcasts),
       createdAt: new Date().toISOString(),
+      bio: typeof bio === 'string' ? bio.trim() : '',
     };
 
     addPodcast(podcast);
