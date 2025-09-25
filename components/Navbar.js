@@ -32,6 +32,11 @@ export default function Navbar() {
                     </Link>
                 </li>
                 <li>
+                    <Link href="/podcasts">
+                        <span className={`nav-link text-black ${isActive('/podcasts') ? 'underline font-bold' : ''}`}>Podcasts</span>
+                    </Link>
+                </li>
+                <li>
                     <Link href="/contact">
                         <span className={`nav-link text-black ${isActive('/contact') ? 'underline font-bold' : ''}`}>Contact</span>
                     </Link>
