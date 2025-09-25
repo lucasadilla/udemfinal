@@ -37,6 +37,15 @@ export default function PodcastDetail({ podcast }) {
             <p className="text-sm uppercase tracking-wide text-gray-500">{displayDate}</p>
             <h1 className="text-3xl font-semibold">{podcast.title}</h1>
           </header>
+          {podcast.image && (
+            <div className="overflow-hidden rounded-lg">
+              <img
+                src={podcast.image}
+                alt={podcast.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
           <div className="aspect-video w-full">
             <video
               src={podcast.video}

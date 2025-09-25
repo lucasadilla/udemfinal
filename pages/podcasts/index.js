@@ -1,15 +1,16 @@
 import Head from 'next/head';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Navbar from '../../components/Navbar';
 import usePodcasts from '../../hooks/usePodcasts';
+import PodcastCard from '../../components/PodcastCard';
 
 export default function PodcastsPage() {
-  const { podcasts, loading, addPodcast } = usePodcasts();
+  const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts();
   const [isAdmin, setIsAdmin] = useState(false);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [videoFile, setVideoFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
@@ -17,31 +18,36 @@ export default function PodcastsPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!title || !date || !videoFile) return;
+    if (!title || !date || !videoFile || !imageFile) return;
 
-    await addPodcast({ title, date, video: videoFile });
+    await addPodcast({ title, date, video: videoFile, image: imageFile });
     setTitle('');
     setDate('');
     setVideoFile(null);
+    setImageFile(null);
     event.target.reset();
   };
 
-  const formatDisplayDate = (dateString) => {
-    const parsed = dateString ? new Date(dateString) : null;
-    if (!parsed || Number.isNaN(parsed.getTime())) {
-      return dateString;
-    }
+  const sortedPodcasts = [...podcasts]
+    .map((podcast) => ({
+      ...podcast,
+      image:
+        podcast.image ||
+        podcast.coverImage ||
+        podcast.thumbnail ||
+        podcast.imageUrl ||
+        '',
+    }))
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 
-    return parsed.toLocaleDateString('fr-CA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  const handleDeletePodcast = async (id) => {
+    const confirmation = window.confirm(
+      'Êtes-vous sûr de vouloir supprimer ce podcast ?'
+    );
+    if (!confirmation) return;
+
+    await deletePodcast(id);
   };
-
-  const sortedPodcasts = [...podcasts].sort((a, b) =>
-    a.date < b.date ? 1 : -1
-  );
 
   return (
     <>
@@ -104,6 +110,28 @@ export default function PodcastsPage() {
                   <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {videoFile.name}</p>
                 )}
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium" htmlFor="image">
+                  Image de couverture
+                </label>
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
+                    setImageFile(file);
+                  }}
+                  className="w-full rounded border border-gray-300 p-2"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Téléversez une image qui sera affichée sur la carte du podcast.
+                </p>
+                {imageFile && (
+                  <p className="mt-1 text-sm text-gray-600">Image sélectionnée : {imageFile.name}</p>
+                )}
+              </div>
               <button
                 type="submit"
                 className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
@@ -120,22 +148,16 @@ export default function PodcastsPage() {
           ) : sortedPodcasts.length === 0 ? (
             <p className="text-center text-gray-600">Aucun podcast n'est disponible pour le moment.</p>
           ) : (
-            <ul className="grid gap-6 md:grid-cols-2">
+            <div className="article-cards-container">
               {sortedPodcasts.map((podcast) => (
-                <li key={podcast.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                  <h3 className="text-lg font-semibold">{podcast.title}</h3>
-                  <p className="text-sm text-gray-600">
-                    {formatDisplayDate(podcast.date)}
-                  </p>
-                  <Link
-                    href={`/podcasts/${podcast.slug}`}
-                    className="mt-4 inline-block rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-                  >
-                    Écouter le podcast
-                  </Link>
-                </li>
+                <PodcastCard
+                  key={podcast.id}
+                  podcast={podcast}
+                  isAdmin={isAdmin}
+                  onDelete={handleDeletePodcast}
+                />
               ))}
-            </ul>
+            </div>
           )}
         </section>
       </main>

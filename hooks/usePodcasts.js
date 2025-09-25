@@ -24,33 +24,40 @@ export default function usePodcasts() {
     fetchPodcasts();
   }, []);
 
-  const addPodcast = async ({ title, date, video }) => {
+  const fileToDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      if (typeof window === 'undefined' || !window.FileReader) {
+        reject(new Error('File uploads are only supported in the browser environment.'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const { result } = reader;
+        if (typeof result !== 'string') {
+          reject(new Error('Unexpected file reader result.'));
+          return;
+        }
+        resolve(result);
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+
+  const addPodcast = async ({ title, date, video, image }) => {
     try {
       if (!video) {
         throw new Error('A video file must be provided');
       }
 
-      const fileToDataUrl = (file) =>
-        new Promise((resolve, reject) => {
-          if (typeof window === 'undefined' || !window.FileReader) {
-            reject(new Error('File uploads are only supported in the browser environment.'));
-            return;
-          }
+      if (!image) {
+        throw new Error('An image file must be provided');
+      }
 
-          const reader = new FileReader();
-          reader.onload = () => {
-            const { result } = reader;
-            if (typeof result !== 'string') {
-              reject(new Error('Unexpected file reader result.'));
-              return;
-            }
-            resolve(result);
-          };
-          reader.onerror = (error) => reject(error);
-          reader.readAsDataURL(file);
-        });
-
-      const videoDataUrl = await fileToDataUrl(video);
+      const [videoDataUrl, imageDataUrl] = await Promise.all([
+        fileToDataUrl(video),
+        fileToDataUrl(image),
+      ]);
 
       const res = await fetch('/api/podcasts', {
         method: 'POST',
@@ -60,6 +67,8 @@ export default function usePodcasts() {
           date,
           videoDataUrl,
           originalName: video.name,
+          imageDataUrl,
+          imageOriginalName: image.name,
         }),
       });
 
@@ -73,5 +82,21 @@ export default function usePodcasts() {
     }
   };
 
-  return { podcasts, loading, addPodcast };
+  const deletePodcast = async (id) => {
+    try {
+      const res = await fetch(`/api/podcasts?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await fetchPodcasts();
+      } else {
+        console.warn('Failed to delete podcast:', res.status);
+      }
+    } catch (err) {
+      console.error('Failed to delete podcast:', err);
+    }
+  };
+
+  return { podcasts, loading, addPodcast, deletePodcast };
 }

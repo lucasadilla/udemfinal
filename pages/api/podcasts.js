@@ -1,21 +1,23 @@
 import fs from 'fs';
 import path from 'path';
-import { addPodcast, getPodcasts } from '../../lib/podcastDatabase';
+import { addPodcast, deletePodcastById, getPodcasts } from '../../lib/podcastDatabase';
 
-const uploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'podcasts');
+const baseUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'podcasts');
+const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
+const imageUploadsDirectory = path.join(baseUploadsDirectory, 'images');
 
-function ensureUploadsDirectory() {
-  if (!fs.existsSync(uploadsDirectory)) {
-    fs.mkdirSync(uploadsDirectory, { recursive: true });
+function ensureUploadsDirectory(directory) {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
   }
 }
 
-function saveVideoFromDataUrl(videoDataUrl, originalName) {
-  if (!videoDataUrl || typeof videoDataUrl !== 'string') {
-    throw new Error('Invalid video payload.');
+function saveMediaFromDataUrl(dataUrl, originalName, directory, fallbackBaseName) {
+  if (!dataUrl || typeof dataUrl !== 'string') {
+    throw new Error('Invalid media payload.');
   }
 
-  const matches = videoDataUrl.match(/^data:(.+);base64,(.*)$/);
+  const matches = dataUrl.match(/^data:(.+);base64,(.*)$/);
   if (!matches) {
     throw new Error('Invalid data URL format.');
   }
@@ -24,11 +26,13 @@ function saveVideoFromDataUrl(videoDataUrl, originalName) {
   const buffer = Buffer.from(base64Data, 'base64');
 
   const originalExt = (originalName && path.extname(originalName).toLowerCase()) || '';
-  const baseName = (originalName && path.basename(originalName, originalExt)) || 'video';
-  const sanitizedBaseName = baseName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '') || 'video';
+  const baseName =
+    (originalName && path.basename(originalName, originalExt)) || fallbackBaseName || 'file';
+  const sanitizedBaseName =
+    baseName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') || fallbackBaseName || 'file';
 
   const fallbackExt =
     originalExt ||
@@ -38,10 +42,29 @@ function saveVideoFromDataUrl(videoDataUrl, originalName) {
 
   const fileName = `${Date.now()}-${sanitizedBaseName}${fallbackExt}`;
 
-  ensureUploadsDirectory();
-  fs.writeFileSync(path.join(uploadsDirectory, fileName), buffer);
+  ensureUploadsDirectory(directory);
+  fs.writeFileSync(path.join(directory, fileName), buffer);
 
-  return path.posix.join('/uploads/podcasts', fileName);
+  const relativeDirectory = path.relative(path.join(process.cwd(), 'public'), directory);
+  return path.posix.join('/', relativeDirectory.split(path.sep).join('/'), fileName);
+}
+
+function deleteMediaFileIfExists(filePath) {
+  if (!filePath) {
+    return;
+  }
+
+  const sanitizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+  const absolutePath = path.join(process.cwd(), 'public', sanitizedPath);
+
+  try {
+    const stats = fs.statSync(absolutePath);
+    if (stats.isFile()) {
+      fs.unlinkSync(absolutePath);
+    }
+  } catch (error) {
+    // File already removed or does not exist. Ignore silently.
+  }
 }
 
 function createSlug(baseSlug, existingPodcasts) {
@@ -68,20 +91,34 @@ function createSlug(baseSlug, existingPodcasts) {
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, date, videoDataUrl, originalName } = req.body;
+    const {
+      title,
+      date,
+      videoDataUrl,
+      originalName,
+      imageDataUrl,
+      imageOriginalName,
+    } = req.body;
 
-    if (!title || !date || !videoDataUrl || !originalName) {
-      return res
-        .status(400)
-        .json({ error: 'title, date, videoDataUrl and originalName are required' });
+    if (!title || !date || !videoDataUrl || !originalName || !imageDataUrl || !imageOriginalName) {
+      return res.status(400).json({
+        error: 'title, date, videoDataUrl, originalName, imageDataUrl and imageOriginalName are required',
+      });
     }
 
     let storedVideoPath;
+    let storedImagePath;
     try {
-      storedVideoPath = saveVideoFromDataUrl(videoDataUrl, originalName);
+      storedVideoPath = saveMediaFromDataUrl(videoDataUrl, originalName, videoUploadsDirectory, 'video');
+      storedImagePath = saveMediaFromDataUrl(
+        imageDataUrl,
+        imageOriginalName,
+        imageUploadsDirectory,
+        'podcast-cover'
+      );
     } catch (error) {
-      console.error('Failed to store uploaded video:', error);
-      return res.status(500).json({ error: 'Failed to store uploaded video.' });
+      console.error('Failed to store uploaded media:', error);
+      return res.status(500).json({ error: 'Failed to store uploaded media.' });
     }
 
     const podcasts = getPodcasts();
@@ -90,12 +127,32 @@ export default function handler(req, res) {
       title,
       date,
       video: storedVideoPath,
+      image: storedImagePath,
       slug: createSlug(title, podcasts),
       createdAt: new Date().toISOString(),
     };
 
     addPodcast(podcast);
     return res.status(201).json(podcast);
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = req.query.id ? req.query : req.body || {};
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'A podcast id is required.' });
+    }
+
+    const deletedPodcast = deletePodcastById(id);
+
+    if (!deletedPodcast) {
+      return res.status(404).json({ error: 'Podcast not found.' });
+    }
+
+    deleteMediaFileIfExists(deletedPodcast.video);
+    deleteMediaFileIfExists(deletedPodcast.image);
+
+    return res.status(200).json({ success: true });
   }
 
   const podcasts = getPodcasts();
