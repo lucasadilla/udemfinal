@@ -49,22 +49,15 @@ export default function PodcastDetail({ podcast }) {
             <p className="mt-4 text-base text-gray-700">{podcast.bio}</p>
           )}
         </header>
-        {podcast.image && (
-          <div className="mb-6 overflow-hidden rounded-lg">
-            <img
-              src={podcast.image}
-              alt={podcast.title}
-              className="h-full w-full object-cover"
+        <div className="mx-auto mt-6 w-full max-w-3xl">
+          <div className="aspect-video w-full">
+            <video
+              src={podcast.video}
+              controls
+              autoPlay
+              className="h-full w-full rounded-lg bg-black"
             />
           </div>
-        )}
-        <div className="aspect-video w-full">
-          <video
-            src={podcast.video}
-            controls
-            autoPlay
-            className="h-full w-full rounded-lg bg-black"
-          />
         </div>
       </main>
     </>
