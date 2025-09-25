@@ -11,6 +11,7 @@ export default function PodcastsPage() {
   const [date, setDate] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
@@ -20,9 +21,10 @@ export default function PodcastsPage() {
     event.preventDefault();
     if (!title || !date || !videoFile || !imageFile) return;
 
-    await addPodcast({ title, date, video: videoFile, image: imageFile });
+    await addPodcast({ title, date, bio, video: videoFile, image: imageFile });
     setTitle('');
     setDate('');
+    setBio('');
     setVideoFile(null);
     setImageFile(null);
     event.target.reset();
@@ -87,6 +89,22 @@ export default function PodcastsPage() {
                   className="w-full rounded border border-gray-300 p-2"
                   required
                 />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium" htmlFor="bio">
+                  Courte bio
+                </label>
+                <textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                  className="w-full rounded border border-gray-300 p-2"
+                  placeholder="Ajoutez une courte description du podcast"
+                  rows={4}
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Cette bio sera affichée sur la carte du podcast et sur la page détaillée.
+                </p>
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium" htmlFor="video">

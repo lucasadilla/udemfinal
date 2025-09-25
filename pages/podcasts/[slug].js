@@ -1,8 +1,11 @@
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import Navbar from '../../components/Navbar';
 import { getPodcastBySlug } from '../../lib/podcastDatabase';
 
 export default function PodcastDetail({ podcast }) {
+  const router = useRouter();
+
   if (!podcast) {
     return (
       <>
@@ -25,36 +28,44 @@ export default function PodcastDetail({ podcast }) {
       })
     : '';
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <>
       <Head>
         <title>{podcast.title}</title>
       </Head>
       <Navbar />
-      <main className="mx-auto max-w-4xl p-4">
-        <article className="space-y-6 rounded-lg bg-white p-6 shadow">
-          <header>
-            <p className="text-sm uppercase tracking-wide text-gray-500">{displayDate}</p>
-            <h1 className="text-3xl font-semibold">{podcast.title}</h1>
-          </header>
-          {podcast.image && (
-            <div className="overflow-hidden rounded-lg">
-              <img
-                src={podcast.image}
-                alt={podcast.title}
-                className="h-full w-full object-cover"
-              />
-            </div>
+      <main className="article-page article-box">
+        <button type="button" onClick={handleBack} className="back-button">
+          ← Arrière
+        </button>
+        <header className="mb-6 text-center">
+          <h1 className="mb-2 text-3xl font-semibold">{podcast.title}</h1>
+          {displayDate && <p className="text-sm text-gray-600">{displayDate}</p>}
+          {podcast.bio && (
+            <p className="mt-4 text-base text-gray-700">{podcast.bio}</p>
           )}
-          <div className="aspect-video w-full">
-            <video
-              src={podcast.video}
-              controls
-              autoPlay
-              className="h-full w-full rounded-lg bg-black"
+        </header>
+        {podcast.image && (
+          <div className="mb-6 overflow-hidden rounded-lg">
+            <img
+              src={podcast.image}
+              alt={podcast.title}
+              className="h-full w-full object-cover"
             />
           </div>
-        </article>
+        )}
+        <div className="aspect-video w-full">
+          <video
+            src={podcast.video}
+            controls
+            autoPlay
+            className="h-full w-full rounded-lg bg-black"
+          />
+        </div>
       </main>
     </>
   );

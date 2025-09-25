@@ -20,8 +20,11 @@ function formatDate(dateString) {
 }
 
 export default function PodcastCard({ podcast, isAdmin = false, onDelete }) {
-  const { id, title, image, date, slug } = podcast;
+  const { id, title, image, date, slug, bio, description, content } = podcast;
   const coverImage = image || FALLBACK_IMAGE;
+  const rawBio = bio || description || content || '';
+  const plainBio = rawBio ? rawBio.replace(/<[^>]+>/g, '') : '';
+  const excerpt = plainBio.length > 200 ? `${plainBio.slice(0, 200)}...` : plainBio;
 
   return (
     <article className="article-card flex h-full max-w-md flex-col overflow-hidden rounded-2xl shadow-md">
@@ -32,6 +35,7 @@ export default function PodcastCard({ podcast, isAdmin = false, onDelete }) {
         <div className="article-card-content flex flex-grow flex-col">
           <h3 className="mb-1 text-2xl font-bold leading-snug text-black">{title}</h3>
           {date && <p className="mb-4 text-sm text-gray-500">{formatDate(date)}</p>}
+          <p className="text-base text-gray-600 flex-grow">{excerpt}</p>
         </div>
       </Link>
       {isAdmin && (
