@@ -72,19 +72,28 @@ export default function PodcastDetail({ podcast }) {
 }
 
 export async function getServerSideProps({ params }) {
-  const podcast = getPodcastBySlug(params.slug);
+  try {
+    const podcast = await getPodcastBySlug(params.slug);
 
-  if (!podcast) {
+    if (!podcast) {
+      return {
+        props: {
+          podcast: null,
+        },
+      };
+    }
+
+    return {
+      props: {
+        podcast,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to fetch podcast for page:', error);
     return {
       props: {
         podcast: null,
       },
     };
   }
-
-  return {
-    props: {
-      podcast,
-    },
-  };
 }
