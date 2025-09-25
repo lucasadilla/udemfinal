@@ -36,7 +36,7 @@ export default function ArticleCard({ article = {} }) {
           <img src={a.image} alt={a.title} className="article-card-image" />
         </div>
         <div className="article-card-content flex flex-col flex-grow">
-          <h3 className="mb-1 text-4xl font-bold leading-snug text-gray-800">{a.title}</h3>
+          <h3 className="mb-1 text-4xl font-bold leading-snug text-black">{a.title}</h3>
           {a.date && <p className="mb-4 text-sm text-gray-500">{a.date}</p>}
           <p className="text-base text-gray-600 flex-grow">{excerpt}</p>
         </div>
