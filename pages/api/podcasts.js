@@ -160,3 +160,15 @@ export default function handler(req, res) {
   const podcasts = getPodcasts();
   res.status(200).json(podcasts);
 }
+
+export const config = {
+  api: {
+    bodyParser: {
+      // Podcasts include base64-encoded video and image payloads which easily
+      // exceed Next.js' default 1MB body size limit. Increasing the limit
+      // ensures the request body is fully parsed instead of being rejected
+      // before we can persist the podcast to disk.
+      sizeLimit: '200mb',
+    },
+  },
+};
