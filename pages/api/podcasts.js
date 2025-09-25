@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { addPodcast, deletePodcastById, getPodcasts } from '../../lib/podcastDatabase';
+import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../lib/podcastDatabase';
 
 const baseUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'podcasts');
 const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
@@ -67,98 +67,105 @@ function deleteMediaFileIfExists(filePath) {
   }
 }
 
-function createSlug(baseSlug, existingPodcasts) {
-  const slug = baseSlug
+async function generateUniqueSlug(title) {
+  const baseSlug = title
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '');
 
-  if (!slug) {
-    return Date.now().toString();
+  const initialSlug = baseSlug || Date.now().toString();
+
+  // Ensure slug uniqueness even if multiple requests happen in quick succession.
+  // We reuse getPodcastBySlug to leverage the shared MongoDB connection layer.
+  for (let suffix = 0; ; suffix += 1) {
+    const slugCandidate = suffix === 0 ? initialSlug : `${initialSlug}-${suffix}`;
+    // eslint-disable-next-line no-await-in-loop
+    const existing = await getPodcastBySlug(slugCandidate);
+    if (!existing) {
+      return slugCandidate;
+    }
   }
-
-  let uniqueSlug = slug;
-  let suffix = 1;
-
-  while (existingPodcasts.some((podcast) => podcast.slug === uniqueSlug)) {
-    uniqueSlug = `${slug}-${suffix}`;
-    suffix += 1;
-  }
-
-  return uniqueSlug;
 }
 
-export default function handler(req, res) {
-  if (req.method === 'POST') {
-    const {
-      title,
-      date,
-      bio,
-      videoDataUrl,
-      originalName,
-      imageDataUrl,
-      imageOriginalName,
-    } = req.body;
-
-    if (!title || !date || !videoDataUrl || !originalName || !imageDataUrl || !imageOriginalName) {
-      return res.status(400).json({
-        error: 'title, date, videoDataUrl, originalName, imageDataUrl and imageOriginalName are required',
-      });
-    }
-
-    let storedVideoPath;
-    let storedImagePath;
-    try {
-      storedVideoPath = saveMediaFromDataUrl(videoDataUrl, originalName, videoUploadsDirectory, 'video');
-      storedImagePath = saveMediaFromDataUrl(
+export default async function handler(req, res) {
+  try {
+    if (req.method === 'POST') {
+      const {
+        title,
+        date,
+        bio,
+        videoDataUrl,
+        originalName,
         imageDataUrl,
         imageOriginalName,
-        imageUploadsDirectory,
-        'podcast-cover'
-      );
-    } catch (error) {
-      console.error('Failed to store uploaded media:', error);
-      return res.status(500).json({ error: 'Failed to store uploaded media.' });
+      } = req.body;
+
+      if (!title || !date || !videoDataUrl || !originalName || !imageDataUrl || !imageOriginalName) {
+        return res.status(400).json({
+          error: 'title, date, videoDataUrl, originalName, imageDataUrl and imageOriginalName are required',
+        });
+      }
+
+      let storedVideoPath;
+      let storedImagePath;
+      try {
+        storedVideoPath = saveMediaFromDataUrl(
+          videoDataUrl,
+          originalName,
+          videoUploadsDirectory,
+          'video'
+        );
+        storedImagePath = saveMediaFromDataUrl(
+          imageDataUrl,
+          imageOriginalName,
+          imageUploadsDirectory,
+          'podcast-cover'
+        );
+      } catch (error) {
+        console.error('Failed to store uploaded media:', error);
+        return res.status(500).json({ error: 'Failed to store uploaded media.' });
+      }
+
+      const slug = await generateUniqueSlug(title);
+      const podcast = await addPodcast({
+        title,
+        date,
+        video: storedVideoPath,
+        image: storedImagePath,
+        slug,
+        createdAt: new Date().toISOString(),
+        bio: typeof bio === 'string' ? bio.trim() : '',
+      });
+
+      return res.status(201).json(podcast);
     }
 
-    const podcasts = getPodcasts();
-    const podcast = {
-      id: Date.now().toString(),
-      title,
-      date,
-      video: storedVideoPath,
-      image: storedImagePath,
-      slug: createSlug(title, podcasts),
-      createdAt: new Date().toISOString(),
-      bio: typeof bio === 'string' ? bio.trim() : '',
-    };
+    if (req.method === 'DELETE') {
+      const { id } = req.query.id ? req.query : req.body || {};
 
-    addPodcast(podcast);
-    return res.status(201).json(podcast);
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ error: 'A podcast id is required.' });
+      }
+
+      const deletedPodcast = await deletePodcastById(id);
+
+      if (!deletedPodcast) {
+        return res.status(404).json({ error: 'Podcast not found.' });
+      }
+
+      deleteMediaFileIfExists(deletedPodcast.video);
+      deleteMediaFileIfExists(deletedPodcast.image);
+
+      return res.status(200).json({ success: true });
+    }
+
+    const podcasts = await getPodcasts();
+    return res.status(200).json(podcasts);
+  } catch (error) {
+    console.error('Failed to handle podcast request:', error);
+    return res.status(500).json({ error: 'Failed to handle podcast request.' });
   }
-
-  if (req.method === 'DELETE') {
-    const { id } = req.query.id ? req.query : req.body || {};
-
-    if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: 'A podcast id is required.' });
-    }
-
-    const deletedPodcast = deletePodcastById(id);
-
-    if (!deletedPodcast) {
-      return res.status(404).json({ error: 'Podcast not found.' });
-    }
-
-    deleteMediaFileIfExists(deletedPodcast.video);
-    deleteMediaFileIfExists(deletedPodcast.image);
-
-    return res.status(200).json({ success: true });
-  }
-
-  const podcasts = getPodcasts();
-  res.status(200).json(podcasts);
 }
 
 export const config = {
