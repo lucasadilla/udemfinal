@@ -9,7 +9,7 @@ export default function PodcastsPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [video, setVideo] = useState('');
+  const [videoFile, setVideoFile] = useState(null);
 
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
@@ -17,12 +17,13 @@ export default function PodcastsPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!title || !date || !video) return;
+    if (!title || !date || !videoFile) return;
 
-    await addPodcast({ title, date, video });
+    await addPodcast({ title, date, video: videoFile });
     setTitle('');
     setDate('');
-    setVideo('');
+    setVideoFile(null);
+    event.target.reset();
   };
 
   const formatDisplayDate = (dateString) => {
@@ -83,20 +84,25 @@ export default function PodcastsPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium" htmlFor="video">
-                  Lien de la vidéo
+                  Fichier vidéo
                 </label>
                 <input
                   id="video"
-                  type="url"
-                  value={video}
-                  onChange={(event) => setVideo(event.target.value)}
+                  type="file"
+                  accept="video/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
+                    setVideoFile(file);
+                  }}
                   className="w-full rounded border border-gray-300 p-2"
-                  placeholder="https://exemple.com/video.mp4"
                   required
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Fournissez un lien direct vers une vidéo compatible avec les balises HTML5.
+                  Sélectionnez un fichier vidéo présent sur votre ordinateur (format MP4, WebM, etc.).
                 </p>
+                {videoFile && (
+                  <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {videoFile.name}</p>
+                )}
               </div>
               <button
                 type="submit"

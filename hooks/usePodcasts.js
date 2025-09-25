@@ -24,12 +24,43 @@ export default function usePodcasts() {
     fetchPodcasts();
   }, []);
 
-  const addPodcast = async (podcast) => {
+  const addPodcast = async ({ title, date, video }) => {
     try {
+      if (!video) {
+        throw new Error('A video file must be provided');
+      }
+
+      const fileToDataUrl = (file) =>
+        new Promise((resolve, reject) => {
+          if (typeof window === 'undefined' || !window.FileReader) {
+            reject(new Error('File uploads are only supported in the browser environment.'));
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            const { result } = reader;
+            if (typeof result !== 'string') {
+              reject(new Error('Unexpected file reader result.'));
+              return;
+            }
+            resolve(result);
+          };
+          reader.onerror = (error) => reject(error);
+          reader.readAsDataURL(file);
+        });
+
+      const videoDataUrl = await fileToDataUrl(video);
+
       const res = await fetch('/api/podcasts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(podcast),
+        body: JSON.stringify({
+          title,
+          date,
+          videoDataUrl,
+          originalName: video.name,
+        }),
       });
 
       if (res.ok) {
