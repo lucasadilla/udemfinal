@@ -7,6 +7,8 @@ export default function ContactCard({ leftContent, rightContent }) {
         objet: '',
         message: ''
     });
+    const [status, setStatus] = useState({ type: null, message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -18,6 +20,8 @@ export default function ContactCard({ leftContent, rightContent }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setStatus({ type: null, message: '' });
         try {
             const response = await fetch('/api/send-email', {
                 method: 'POST',
@@ -26,14 +30,17 @@ export default function ContactCard({ leftContent, rightContent }) {
                 },
                 body: JSON.stringify(formData)
             });
-            if (response.ok) {
-                alert('Email sent successfully');
-            } else {
-                alert('Failed to send email');
+            const data = await response.json().catch(() => ({ message: 'Une erreur est survenue.' }));
+            if (!response.ok) {
+                throw new Error(data?.message || 'Échec de l\'envoi du courriel.');
             }
+            setFormData({ nom: '', email: '', objet: '', message: '' });
+            setStatus({ type: 'success', message: data?.message || 'Votre message a été envoyé avec succès.' });
         } catch (error) {
             console.error('Error sending email:', error);
-            alert('An error occurred while sending the email');
+            setStatus({ type: 'error', message: error.message || 'Une erreur est survenue lors de l\'envoi du courriel.' });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -57,6 +64,7 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 onChange={handleChange}
                                 className="w-full p-2 border rounded"
                                 placeholder="Votre nom"
+                                required
                             />
                         </div>
                         <div className="mb-4 flex flex-col items-center">
@@ -69,6 +77,7 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 onChange={handleChange}
                                 className="w-full p-2 border rounded"
                                 placeholder="Votre Courriel"
+                                required
                             />
                         </div>
                         <div className="mb-4 flex flex-col items-center">
@@ -81,6 +90,7 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 onChange={handleChange}
                                 className="w-full p-2 border rounded"
                                 placeholder="Objet de votre message"
+                                required
                             />
                         </div>
                         <div className="mb-4 flex flex-col items-center">
@@ -92,9 +102,25 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 onChange={handleChange}
                                 className="w-full p-2 border rounded"
                                 placeholder="Votre message"
+                                rows="4"
+                                required
                             />
                         </div>
-                        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Envoyer</button>
+                        <button
+                            type="submit"
+                            className="bg-blue-500 text-white p-2 rounded disabled:opacity-60 disabled:cursor-not-allowed"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Envoi...' : 'Envoyer'}
+                        </button>
+                        {status.message && (
+                            <p
+                                className={`mt-4 text-center ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}
+                                role="status"
+                            >
+                                {status.message}
+                            </p>
+                        )}
                     </form>
                 </div>
             </div>
