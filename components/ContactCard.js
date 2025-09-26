@@ -31,9 +31,15 @@ export default function ContactCard({ leftContent, rightContent }) {
                 body: JSON.stringify(formData)
             });
             const data = await response.json().catch(() => ({ message: 'Une erreur est survenue.' }));
+
             if (!response.ok) {
-                throw new Error(data?.message || 'Échec de l\'envoi du courriel.');
+                setStatus({
+                    type: 'error',
+                    message: data?.message || 'Échec de l\'envoi du courriel.'
+                });
+                return;
             }
+
             setFormData({ nom: '', email: '', objet: '', message: '' });
             setStatus({ type: 'success', message: data?.message || 'Votre message a été envoyé avec succès.' });
         } catch (error) {
