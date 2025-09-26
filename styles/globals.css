@@ -666,6 +666,22 @@ button[type="submit"]:hover {
     margin-bottom: 1rem;
 }
 
+.podcast-video-container {
+    margin: 2rem auto 0;
+    max-width: 800px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.podcast-video-player {
+    width: 100%;
+    max-width: 720px;
+    border-radius: 0.75rem;
+    background-color: #000;
+    display: block;
+}
+
 .article-box {
     border: 1px solid #b8b6b6;
     padding: 3rem;
