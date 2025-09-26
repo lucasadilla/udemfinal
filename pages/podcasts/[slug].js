@@ -49,15 +49,13 @@ export default function PodcastDetail({ podcast }) {
             <p className="mt-4 text-base text-gray-700">{podcast.bio}</p>
           )}
         </header>
-        <div className="mx-auto mt-6 w-full max-w-3xl">
-          <div className="aspect-video w-full">
-            <video
-              src={podcast.video}
-              controls
-              autoPlay
-              className="h-full w-full rounded-lg bg-black"
-            />
-          </div>
+        <div className="podcast-video-container">
+          <video
+            src={podcast.video}
+            controls
+            autoPlay
+            className="podcast-video-player"
+          />
         </div>
       </main>
     </>
