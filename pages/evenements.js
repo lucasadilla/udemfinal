@@ -193,6 +193,7 @@ export default function Evenements() {
                     className="calendar"
                     month={visibleMonthDate}
                     onMonthChange={updateVisibleMonth}
+                    onMonthSelect={updateVisibleMonth}
                     onChange={updateVisibleMonth}
                     size="lg"
                     renderDay={(currentDate) => {
