@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { sendContactEmail, validateEmailConfiguration } from '../../lib/mailer';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -13,27 +13,18 @@ export default async function handler(req, res) {
         return;
     }
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: parseInt(process.env.EMAIL_PORT, 10) || 587,
-        secure: process.env.EMAIL_SECURE === 'true',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
+    const configError = validateEmailConfiguration();
+
+    if (configError) {
+        res.status(500).json({ message: configError });
+        return;
+    }
 
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-            to: 'femmesetdroit.udem@gmail.com',
-            subject: `Contact Form: ${objet}`,
-            text: `Nom: ${nom}\nEmail: ${email}\n\n${message}`,
-            replyTo: email
-        });
-        res.status(200).json({ message: 'Email sent successfully' });
+        await sendContactEmail({ nom, email, objet, message });
+        res.status(200).json({ message: 'Votre message a été envoyé avec succès.' });
     } catch (error) {
         console.error('Error sending email:', error);
-        res.status(500).json({ message: 'Failed to send email' });
+        res.status(500).json({ message: "Impossible d'envoyer le courriel pour le moment." });
     }
 }
