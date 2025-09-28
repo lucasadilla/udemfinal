@@ -43,20 +43,6 @@ export default function Evenements() {
     });
   }, []);
 
-  const formatMonthLabel = useCallback((date) => {
-    if (!(date instanceof Date)) {
-      return '';
-    }
-
-    const formatter = new Intl.DateTimeFormat('fr-CA', {
-      month: 'long',
-      year: 'numeric',
-    });
-
-    const formattedLabel = formatter.format(date);
-    return formattedLabel.charAt(0).toUpperCase() + formattedLabel.slice(1);
-  }, []);
-
   const parseEventDate = (dateString) => {
     if (!dateString) return null;
     const [year, month, day] = dateString.split('-').map(Number);
@@ -77,16 +63,6 @@ export default function Evenements() {
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
       date.getDate()
     ).padStart(2, '0')}`;
-
-  const formatDisplayDate = (date) =>
-    date
-      ? date.toLocaleDateString('fr-CA', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      : '';
 
   const eventsWithParsedDates = useMemo(
     () =>
@@ -109,25 +85,6 @@ export default function Evenements() {
           .filter((dateKey) => Boolean(dateKey))
       ),
     [eventsWithParsedDates]
-  );
-
-  const filteredEvents = useMemo(() => {
-    const { month, year } = visibleMonth;
-
-    return eventsWithParsedDates
-      .filter((event) => {
-        if (!event.parsedDate) return false;
-        return (
-          event.parsedDate.getMonth() === month &&
-          event.parsedDate.getFullYear() === year
-        );
-      })
-      .sort((a, b) => a.parsedDate - b.parsedDate);
-  }, [eventsWithParsedDates, visibleMonth]);
-
-  const monthLabel = useMemo(
-    () => formatMonthLabel(visibleMonthDate),
-    [formatMonthLabel, visibleMonthDate]
   );
 
   useEffect(() => {
@@ -184,69 +141,32 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
-              <div className="hidden md:block md:h-0 md:w-[22rem] md:shrink-0" aria-hidden="true" />
-              <div className="flex justify-center">
-                <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
-                  <Calendar
-                    aria-label="Calendrier des événements"
-                    className="calendar"
-                    month={visibleMonthDate}
-                    onMonthChange={updateVisibleMonth}
-                    onMonthSelect={updateVisibleMonth}
-                    onChange={updateVisibleMonth}
-                    size="lg"
-                    renderDay={(currentDate) => {
-                      const dateObj =
-                        currentDate instanceof Date
-                          ? currentDate
-                          : new Date(currentDate);
-                      const day = dateObj.getDate();
-                      const dateKey = formatDateKey(dateObj);
-                      const hasEvent = eventDates.has(dateKey);
-                      return (
-                        <Indicator size={6} color="red" disabled={!hasEvent}>
-                          <div>{day}</div>
-                        </Indicator>
-                      );
-                    }}
-                  />
-                </div>
+            <div className="mt-8 flex justify-center">
+              <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+                <Calendar
+                  aria-label="Calendrier des événements"
+                  className="calendar"
+                  month={visibleMonthDate}
+                  onMonthChange={updateVisibleMonth}
+                  onMonthSelect={updateVisibleMonth}
+                  onChange={updateVisibleMonth}
+                  size="lg"
+                  renderDay={(currentDate) => {
+                    const dateObj =
+                      currentDate instanceof Date
+                        ? currentDate
+                        : new Date(currentDate);
+                    const day = dateObj.getDate();
+                    const dateKey = formatDateKey(dateObj);
+                    const hasEvent = eventDates.has(dateKey);
+                    return (
+                      <Indicator size={6} color="red" disabled={!hasEvent}>
+                        <div>{day}</div>
+                      </Indicator>
+                    );
+                  }}
+                />
               </div>
-              <aside className="w-full max-w-md rounded-2xl bg-white/90 p-6 shadow-md backdrop-blur md:w-[22rem] md:shrink-0">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Événements de {monthLabel}
-                </h2>
-                <div className="mt-4 space-y-4">
-                  {filteredEvents.length === 0 ? (
-                    <p className="text-sm text-gray-600">
-                      Aucun événement prévu ce mois-ci.
-                    </p>
-                  ) : (
-                    filteredEvents.map((event) => (
-                      <article
-                        key={event.id}
-                        className={[
-                          'rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/70 to-blue-100/40',
-                          'p-4 shadow-sm',
-                        ].join(' ')}
-                      >
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {event.title}
-                        </h3>
-                        <p className="mt-1 text-sm font-medium text-blue-700">
-                          {event.parsedDate
-                            ? formatDisplayDate(event.parsedDate)
-                            : event.date}
-                        </p>
-                        <p className="mt-2 text-sm leading-relaxed text-gray-700">
-                          {event.bio}
-                        </p>
-                      </article>
-                    ))
-                  )}
-                </div>
-              </aside>
             </div>
           )}
         </main>
