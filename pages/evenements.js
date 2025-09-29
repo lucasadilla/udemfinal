@@ -141,36 +141,104 @@ export default function Evenements() {
           {loading ? (
             <div>Loading...</div>
           ) : (
-            <div className="mt-8 flex justify-center">
-              <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
-                <Calendar
-                  aria-label="Calendrier des événements"
-                  className="calendar"
-                  month={visibleMonthDate}
-                  onMonthChange={updateVisibleMonth}
-                  onMonthSelect={updateVisibleMonth}
-                  onChange={updateVisibleMonth}
-                  size="lg"
-                  renderDay={(currentDate) => {
-                    const dateObj =
-                      currentDate instanceof Date
-                        ? currentDate
-                        : new Date(currentDate);
-                    const day = dateObj.getDate();
-                    const dateKey = formatDateKey(dateObj);
-                    const hasEvent = eventDates.has(dateKey);
-                    return (
-                      <Indicator size={6} color="red" disabled={!hasEvent}>
-                        <div>{day}</div>
-                      </Indicator>
-                    );
-                  }}
-                />
-              </div>
-            </div>
+            <EventsLayout
+              eventDates={eventDates}
+              eventsWithParsedDates={eventsWithParsedDates}
+              formatDateKey={formatDateKey}
+              updateVisibleMonth={updateVisibleMonth}
+              visibleMonth={visibleMonth}
+              visibleMonthDate={visibleMonthDate}
+            />
           )}
         </main>
       </div>
     </>
+  );
+}
+
+function EventsLayout({
+  eventDates,
+  eventsWithParsedDates,
+  formatDateKey,
+  updateVisibleMonth,
+  visibleMonth,
+  visibleMonthDate,
+}) {
+  const eventsForVisibleMonth = useMemo(() => {
+    const filteredEvents = eventsWithParsedDates.filter((event) => {
+      if (!event.parsedDate) return false;
+      return (
+        event.parsedDate.getFullYear() === visibleMonth.year &&
+        event.parsedDate.getMonth() === visibleMonth.month
+      );
+    });
+
+    return filteredEvents.sort((a, b) => a.parsedDate - b.parsedDate);
+  }, [eventsWithParsedDates, visibleMonth]);
+
+  const monthLabel = useMemo(() => {
+    const dateForLabel = new Date(visibleMonth.year, visibleMonth.month, 1);
+    return dateForLabel.toLocaleDateString('fr-CA', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }, [visibleMonth.month, visibleMonth.year]);
+
+  return (
+    <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
+      <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+        <Calendar
+          aria-label="Calendrier des événements"
+          className="calendar"
+          month={visibleMonthDate}
+          onMonthChange={updateVisibleMonth}
+          onMonthSelect={updateVisibleMonth}
+          onChange={updateVisibleMonth}
+          size="lg"
+          renderDay={(currentDate) => {
+            const dateObj =
+              currentDate instanceof Date
+                ? currentDate
+                : new Date(currentDate);
+            const day = dateObj.getDate();
+            const dateKey = formatDateKey(dateObj);
+            const hasEvent = eventDates.has(dateKey);
+            return (
+              <Indicator size={6} color="red" disabled={!hasEvent}>
+                <div>{day}</div>
+              </Indicator>
+            );
+          }}
+        />
+      </div>
+
+      <section className="w-full max-w-xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
+        <h2 className="mb-4 text-2xl font-semibold capitalize">
+          Événements de {monthLabel}
+        </h2>
+        {eventsForVisibleMonth.length === 0 ? (
+          <p>Aucun événement prévu pour ce mois.</p>
+        ) : (
+          <ul className="space-y-4">
+            {eventsForVisibleMonth.map((event) => (
+              <li key={event.id} className="rounded-lg border border-gray-200 p-4">
+                <h3 className="text-xl font-semibold">{event.title}</h3>
+                {event.parsedDate && (
+                  <p className="text-sm text-gray-600">
+                    {event.parsedDate.toLocaleDateString('fr-CA', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                )}
+                {event.bio && <p className="mt-2 whitespace-pre-line">{event.bio}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }
