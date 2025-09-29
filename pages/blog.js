@@ -8,8 +8,18 @@ import Navbar from '../components/Navbar';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 
+function mergeArticles(primary = [], secondary = []) {
+    const map = new Map();
+    [...secondary, ...primary].forEach((item) => {
+        const id = item?.id || item?._id;
+        if (!id) return;
+        map.set(id, item);
+    });
+    return Array.from(map.values());
+}
+
 export default function Blog() {
-    const { articles, addArticle } = useArticles();
+    const { articles, addArticle, deleteArticle } = useArticles();
     const [posts, setPosts] = useState([]);
     const [isAdmin, setIsAdmin] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -19,7 +29,7 @@ export default function Blog() {
             const res = await fetch('/api/posts');
             if (res.ok) {
                 const data = await res.json();
-                setPosts([...articles, ...data]);
+                setPosts(mergeArticles(articles, data));
             } else {
                 setPosts(articles);
             }
@@ -27,6 +37,17 @@ export default function Blog() {
         load();
         setIsAdmin(document.cookie.includes('admin-auth=true'));
     }, [articles]);
+
+    const handleDelete = async (id) => {
+        if (!id) {
+            return;
+        }
+        await deleteArticle(id);
+        setPosts((prev) => prev.filter((article) => {
+            const articleId = article?.id || article?._id;
+            return articleId !== id;
+        }));
+    };
 
     return (
         <>
@@ -44,7 +65,12 @@ export default function Blog() {
                             <p>No articles found</p>
                         ) : (
                             posts.map((article) => (
-                                <ArticleCard key={article.id || article._id} article={article} />
+                                <ArticleCard
+                                    key={article.id || article._id}
+                                    article={article}
+                                    isAdmin={isAdmin}
+                                    onDelete={handleDelete}
+                                />
                             ))
                         )}
                     </div>
