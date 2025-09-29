@@ -19,6 +19,7 @@ CONTACT_EMAIL_PASS="<GMAIL_APP_PASSWORD>"
 with regular account passwords. After updating the environment variables, restart
 the Next.js server so it loads the new credentials.
 
-If transporter verification fails, double-check that the app password is
-correct, SMTP access is enabled for the Gmail account, and the host/port values
-match your email provider.
+If transporter verification fails or you see an authentication error (`EAUTH`,
+`535 5.7.8 Username and Password not accepted`), double-check that the app
+password is correct, SMTP access is enabled for the Gmail account, and the
+host/port values match your email provider.
