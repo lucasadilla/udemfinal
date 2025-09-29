@@ -84,43 +84,6 @@ export default function Evenements() {
     [eventsWithParsedDates]
   );
 
-  const eventsByMonth = useMemo(() => {
-    const groupedEvents = new Map();
-
-    eventsWithParsedDates.forEach((event) => {
-      if (!event.parsedDate || !event.monthKey) return;
-      if (!groupedEvents.has(event.monthKey)) {
-        groupedEvents.set(event.monthKey, []);
-      }
-      groupedEvents.get(event.monthKey).push(event);
-    });
-
-    groupedEvents.forEach((monthEvents) => {
-      monthEvents.sort((a, b) => a.parsedDate - b.parsedDate);
-    });
-
-    return groupedEvents;
-  }, [eventsWithParsedDates]);
-
-  const calendarMonthKey = useMemo(
-    () => formatMonthKey(calendarViewDate),
-    [calendarViewDate]
-  );
-
-  const eventsForVisibleMonth = useMemo(
-    () => eventsByMonth.get(calendarMonthKey) ?? [],
-    [calendarMonthKey, eventsByMonth]
-  );
-
-  const monthLabel = useMemo(
-    () =>
-      calendarViewDate.toLocaleDateString('fr-CA', {
-        month: 'long',
-        year: 'numeric',
-      }),
-    [calendarViewDate]
-  );
-
   useEffect(() => {
     setIsAdmin(document.cookie.includes('admin-auth=true'));
   }, []);
@@ -177,11 +140,9 @@ export default function Evenements() {
           ) : (
             <EventsLayout
               eventDates={eventDates}
-              eventsForVisibleMonth={eventsForVisibleMonth}
               formatDateKey={formatDateKey}
               onCalendarViewChange={handleCalendarViewChange}
               calendarViewDate={calendarViewDate}
-              monthLabel={monthLabel}
             />
           )}
         </main>
@@ -192,15 +153,13 @@ export default function Evenements() {
 
 function EventsLayout({
   eventDates,
-  eventsForVisibleMonth,
   formatDateKey,
   onCalendarViewChange,
   calendarViewDate,
-  monthLabel,
 }) {
   return (
-    <div className="mt-8 grid w-full gap-8 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
-      <div className="w-full max-w-lg rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur lg:max-w-sm">
+    <div className="mt-8 flex w-full justify-center">
+      <div className="w-full max-w-lg rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
         <Calendar
           aria-label="Calendrier des événements"
           className="calendar"
@@ -225,34 +184,6 @@ function EventsLayout({
           }}
         />
       </div>
-
-      <section className="w-full rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
-        <h2 className="mb-4 text-2xl font-semibold capitalize">
-          Événements de {monthLabel}
-        </h2>
-        {eventsForVisibleMonth.length === 0 ? (
-          <p>Aucun événement prévu pour ce mois.</p>
-        ) : (
-          <ul className="space-y-4">
-            {eventsForVisibleMonth.map((event) => (
-              <li key={event.id} className="rounded-lg border border-gray-200 p-4">
-                <h3 className="text-xl font-semibold">{event.title}</h3>
-                {event.parsedDate && (
-                  <p className="text-sm text-gray-600">
-                    {event.parsedDate.toLocaleDateString('fr-CA', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                )}
-                {event.bio && <p className="mt-2 whitespace-pre-line">{event.bio}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 }
