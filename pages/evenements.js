@@ -2,7 +2,6 @@ import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
-import { Calendar } from '@mantine/dates';
 import { Indicator } from '@mantine/core';
 
 const normalizeToMonthStart = (value) => {
@@ -13,6 +12,8 @@ const normalizeToMonthStart = (value) => {
   }
   return new Date(date.getFullYear(), date.getMonth(), 1);
 };
+
+//
 
 const formatMonthKey = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -30,13 +31,7 @@ export default function Evenements() {
 
   const handleCalendarViewChange = useCallback((value) => {
     if (!value) return;
-    const normalized = normalizeToMonthStart(value);
-    setCalendarViewDate((previousDate) => {
-      if (!previousDate || previousDate.getTime() !== normalized.getTime()) {
-        return normalized;
-      }
-      return previousDate;
-    });
+    setCalendarViewDate(normalizeToMonthStart(value));
   }, []);
 
   const parseEventDate = (dateString) => {
@@ -143,6 +138,7 @@ export default function Evenements() {
               formatDateKey={formatDateKey}
               onCalendarViewChange={handleCalendarViewChange}
               calendarViewDate={calendarViewDate}
+              eventsWithParsedDates={eventsWithParsedDates}
             />
           )}
         </main>
@@ -156,7 +152,33 @@ function EventsLayout({
   formatDateKey,
   onCalendarViewChange,
   calendarViewDate,
+  eventsWithParsedDates,
 }) {
+  const goPrevMonth = () => {
+    const d = calendarViewDate || new Date();
+    onCalendarViewChange(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  };
+
+  const goNextMonth = () => {
+    const d = calendarViewDate || new Date();
+    onCalendarViewChange(new Date(d.getFullYear(), d.getMonth() + 1, 1));
+  };
+
+  const buildMonthCells = (date) => {
+    const base = date ? new Date(date) : new Date();
+    const year = base.getFullYear();
+    const month = base.getMonth();
+    const firstOfMonth = new Date(year, month, 1);
+    const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // Monday=0
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const cells = [];
+    for (let i = 0; i < firstWeekday; i++) cells.push(null);
+    for (let day = 1; day <= daysInMonth; day++) cells.push(new Date(year, month, day));
+    while (cells.length < 42) cells.push(null); // 6 weeks * 7 days
+    return cells;
+  };
+
   const formattedMonthLabel = calendarViewDate
     ? calendarViewDate.toLocaleDateString('fr-CA', {
         month: 'long',
@@ -164,49 +186,199 @@ function EventsLayout({
       })
     : '';
 
+  const cells = buildMonthCells(calendarViewDate);
+
+  const currentMonthKey = calendarViewDate
+    ? `${calendarViewDate.getFullYear()}-${String(calendarViewDate.getMonth() + 1).padStart(2, '0')}`
+    : '';
+  const monthEvents = (eventsWithParsedDates || [])
+    .filter((e) => e.monthKey === currentMonthKey && e.parsedDate)
+    .sort((a, b) => a.parsedDate - b.parsedDate);
+
   return (
-    <div className="mt-8 flex w-full justify-center">
-      <div className="w-full max-w-3xl rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <Calendar
-            aria-label="Calendrier des événements"
-            className="calendar"
-            month={calendarViewDate}
-            onChange={onCalendarViewChange}
-            onMonthChange={onCalendarViewChange}
-            onMonthSelect={onCalendarViewChange}
-            size="lg"
-            renderDay={(currentDate) => {
-              const dateObj =
-                currentDate instanceof Date
-                  ? currentDate
-                  : new Date(currentDate);
-              const day = dateObj.getDate();
-              const dateKey = formatDateKey(dateObj);
-              const hasEvent = eventDates.has(dateKey);
-              return (
-                <Indicator size={6} color="red" disabled={!hasEvent}>
-                  <div>{day}</div>
-                </Indicator>
-              );
-            }}
-          />
-          <div className="flex w-full max-w-sm flex-col">
-            <label
-              htmlFor="calendar-month-display"
-              className="text-sm font-medium text-gray-700"
-            >
-              Mois affiché
-            </label>
-            <input
-              id="calendar-month-display"
-              type="text"
-              readOnly
-              value={formattedMonthLabel}
-              className="mt-2 rounded-lg border border-gray-300 bg-white/90 p-3 text-base capitalize text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            />
+    <div id="events-root" className="mt-8 flex w-full justify-center">
+      <div className="events-card w-full max-w-5xl rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+        <div id="events-calendar" className="layout">
+          <div className="calendar-panel">
+            <div className="mb-3 flex items-center justify-between">
+              <button
+                type="button"
+                className="rounded border px-3 py-1 text-sm hover:bg-gray-50"
+                onClick={goPrevMonth}
+                aria-label="Mois précédent"
+              >
+                ◀
+              </button>
+              <div className="text-base font-medium capitalize">{formattedMonthLabel}</div>
+              <button
+                type="button"
+                className="rounded border px-3 py-1 text-sm hover:bg-gray-50"
+                onClick={goNextMonth}
+                aria-label="Mois suivant"
+              >
+                ▶
+              </button>
+            </div>
+            <div className="grid-weekdays text-center text-sm text-gray-600">
+              <div>Lun</div>
+              <div>Mar</div>
+              <div>Mer</div>
+              <div>Jeu</div>
+              <div>Ven</div>
+              <div>Sam</div>
+              <div>Dim</div>
+            </div>
+            <div className="mt-1 grid-days">
+              {cells.map((d, idx) => {
+                if (!d) {
+                  return <div key={idx} className="day-cell rounded bg-transparent" />;
+                }
+                const dateKey = formatDateKey(d);
+                const hasEvent = eventDates.has(dateKey);
+                return (
+                  <div
+                    key={idx}
+                    className="day-cell relative flex items-center justify-center rounded border bg-white"
+                  >
+                    <Indicator size={6} color="red" disabled={!hasEvent}>
+                      <div>{d.getDate()}</div>
+                    </Indicator>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="events-list">
+            <div className="events-header">{formattedMonthLabel || 'Événements'}</div>
+            <div className="events-items">
+              {monthEvents.length === 0 ? (
+                <div className="event-empty">Aucun événement</div>
+              ) : (
+                monthEvents.map((ev) => (
+                  <div key={ev._id || ev.title + ev.date} className="event-item">
+                    <div className="event-date">
+                      {ev.parsedDate.toLocaleDateString('fr-CA', { day: '2-digit', month: 'short' })}
+                    </div>
+                    <div className="event-content">
+                      <div className="event-title">{ev.title}</div>
+                      {ev.bio ? <div className="event-bio">{ev.bio}</div> : null}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
+        <style jsx>{`
+          /* Force centering regardless of global styles */
+          #events-root {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+            text-align: center !important;
+          }
+          #events-root .events-card {
+            margin-left: auto !important;
+            margin-right: auto !important;
+            float: none !important;
+            width: 100%;
+          }
+          #events-calendar.layout {
+            display: inline-grid !important;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: start;
+            width: auto !important;
+            max-width: none !important;
+            margin: 0 auto !important;
+          }
+          @media (min-width: 640px) {
+            #events-calendar.layout {
+              grid-template-columns: auto 1fr;
+              justify-content: center;
+              align-items: start;
+            }
+          }
+          #events-calendar, #events-calendar * { box-sizing: border-box; }
+          #events-calendar .calendar-panel {
+            width: 100%;
+            max-width: 28rem; /* ~448px */
+            min-width: 20rem; /* ~320px */
+            flex: 0 0 auto;
+            float: none !important;
+          }
+          #events-calendar .grid-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 4px;
+            width: 100%;
+          }
+          #events-calendar .grid-days {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 4px;
+            width: 100%;
+          }
+          #events-calendar .day-cell {
+            min-height: 64px;
+          }
+          #events-calendar .events-list {
+            width: 100%;
+            max-width: 26rem;
+            flex: 1 1 22rem;
+            float: none !important;
+          }
+          #events-calendar .events-header {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            color: #374151;
+            margin-bottom: 0.5rem;
+          }
+          #events-calendar .events-items {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          }
+          #events-calendar .event-item {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            align-items: flex-start;
+          }
+          #events-calendar .event-item + .event-item {
+            border-top: 1px solid #f3f4f6;
+          }
+          #events-calendar .event-date {
+            flex: 0 0 auto;
+            font-size: 0.875rem;
+            color: #6b7280;
+            width: 3.5rem;
+          }
+          #events-calendar .event-content {
+            flex: 1 1 auto;
+          }
+          #events-calendar .event-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+          }
+          #events-calendar .event-bio {
+            font-size: 0.875rem;
+            color: #4b5563;
+            margin-top: 2px;
+          }
+          #events-calendar .event-empty {
+            font-size: 0.9rem;
+            color: #6b7280;
+            padding: 0.5rem;
+          }
+        `}</style>
       </div>
     </div>
   );
