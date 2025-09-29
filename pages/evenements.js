@@ -196,10 +196,10 @@ function EventsLayout({
     .sort((a, b) => a.parsedDate - b.parsedDate);
 
   return (
-    <div id="events-root" className="mt-8 flex w-full justify-center">
-      <div className="events-card w-full max-w-5xl rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
-        <div id="events-calendar" className="layout">
-          <div className="calendar-panel">
+    <div className="mt-8 flex w-full justify-center px-4">
+      <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
+        <div className="mx-auto flex w-full flex-col items-center gap-8 sm:flex-row sm:items-start sm:justify-center">
+          <div className="w-full max-w-md">
             <div className="mb-3 flex items-center justify-between">
               <button
                 type="button"
@@ -219,7 +219,7 @@ function EventsLayout({
                 ▶
               </button>
             </div>
-            <div className="grid-weekdays text-center text-sm text-gray-600">
+            <div className="grid grid-cols-7 gap-1 text-center text-sm text-gray-600">
               <div>Lun</div>
               <div>Mar</div>
               <div>Mer</div>
@@ -228,17 +228,17 @@ function EventsLayout({
               <div>Sam</div>
               <div>Dim</div>
             </div>
-            <div className="mt-1 grid-days">
+            <div className="mt-1 grid grid-cols-7 gap-1">
               {cells.map((d, idx) => {
                 if (!d) {
-                  return <div key={idx} className="day-cell rounded bg-transparent" />;
+                  return <div key={idx} className="h-16 rounded bg-transparent" />;
                 }
                 const dateKey = formatDateKey(d);
                 const hasEvent = eventDates.has(dateKey);
                 return (
                   <div
                     key={idx}
-                    className="day-cell relative flex items-center justify-center rounded border bg-white"
+                    className="relative flex h-16 items-center justify-center rounded border bg-white"
                   >
                     <Indicator size={6} color="red" disabled={!hasEvent}>
                       <div>{d.getDate()}</div>
@@ -248,20 +248,28 @@ function EventsLayout({
               })}
             </div>
           </div>
-          <div className="events-list">
-            <div className="events-header">{formattedMonthLabel || 'Événements'}</div>
-            <div className="events-items">
+          <div className="w-full max-w-md sm:max-w-sm lg:max-w-md">
+            <div className="mb-2 text-base font-semibold capitalize text-gray-700">
+              {formattedMonthLabel || 'Événements'}
+            </div>
+            <div className="space-y-2 rounded-lg border border-gray-200 bg-white/90 p-3 shadow-sm">
               {monthEvents.length === 0 ? (
-                <div className="event-empty">Aucun événement</div>
+                <div className="text-sm text-gray-500">Aucun événement</div>
               ) : (
                 monthEvents.map((ev) => (
-                  <div key={ev._id || ev.title + ev.date} className="event-item">
-                    <div className="event-date">
-                      {ev.parsedDate.toLocaleDateString('fr-CA', { day: '2-digit', month: 'short' })}
+                  <div
+                    key={ev._id || ev.title + ev.date}
+                    className="flex gap-2 rounded-md border border-transparent p-2 hover:border-gray-200"
+                  >
+                    <div className="w-14 flex-shrink-0 text-sm font-medium uppercase text-gray-500">
+                      {ev.parsedDate.toLocaleDateString('fr-CA', {
+                        day: '2-digit',
+                        month: 'short',
+                      })}
                     </div>
-                    <div className="event-content">
-                      <div className="event-title">{ev.title}</div>
-                      {ev.bio ? <div className="event-bio">{ev.bio}</div> : null}
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold text-gray-900">{ev.title}</div>
+                      {ev.bio ? <div className="text-sm text-gray-600">{ev.bio}</div> : null}
                     </div>
                   </div>
                 ))
@@ -269,116 +277,6 @@ function EventsLayout({
             </div>
           </div>
         </div>
-        <style jsx>{`
-          /* Force centering regardless of global styles */
-          #events-root {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: flex-start !important;
-            width: 100% !important;
-            text-align: center !important;
-          }
-          #events-root .events-card {
-            margin-left: auto !important;
-            margin-right: auto !important;
-            float: none !important;
-            width: 100%;
-          }
-          #events-calendar.layout {
-            display: inline-grid !important;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-            justify-content: center;
-            align-items: start;
-            width: auto !important;
-            max-width: none !important;
-            margin: 0 auto !important;
-          }
-          @media (min-width: 640px) {
-            #events-calendar.layout {
-              grid-template-columns: auto 1fr;
-              justify-content: center;
-              align-items: start;
-            }
-          }
-          #events-calendar, #events-calendar * { box-sizing: border-box; }
-          #events-calendar .calendar-panel {
-            width: 100%;
-            max-width: 28rem; /* ~448px */
-            min-width: 20rem; /* ~320px */
-            flex: 0 0 auto;
-            float: none !important;
-          }
-          #events-calendar .grid-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 4px;
-            width: 100%;
-          }
-          #events-calendar .grid-days {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 4px;
-            width: 100%;
-          }
-          #events-calendar .day-cell {
-            min-height: 64px;
-          }
-          #events-calendar .events-list {
-            width: 100%;
-            max-width: 26rem;
-            flex: 1 1 22rem;
-            float: none !important;
-          }
-          #events-calendar .events-header {
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: capitalize;
-            color: #374151;
-            margin-bottom: 0.5rem;
-          }
-          #events-calendar .events-items {
-            background: rgba(255,255,255,0.9);
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-          }
-          #events-calendar .event-item {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            align-items: flex-start;
-          }
-          #events-calendar .event-item + .event-item {
-            border-top: 1px solid #f3f4f6;
-          }
-          #events-calendar .event-date {
-            flex: 0 0 auto;
-            font-size: 0.875rem;
-            color: #6b7280;
-            width: 3.5rem;
-          }
-          #events-calendar .event-content {
-            flex: 1 1 auto;
-          }
-          #events-calendar .event-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #111827;
-          }
-          #events-calendar .event-bio {
-            font-size: 0.875rem;
-            color: #4b5563;
-            margin-top: 2px;
-          }
-          #events-calendar .event-empty {
-            font-size: 0.9rem;
-            color: #6b7280;
-            padding: 0.5rem;
-          }
-        `}</style>
       </div>
     </div>
   );
