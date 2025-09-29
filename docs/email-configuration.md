@@ -1,23 +1,24 @@
 # Email configuration
 
-The contact form no longer depends on environment variables for its SMTP
-settings. Instead, the Gmail configuration lives directly in
-[`lib/mailer.js`](../lib/mailer.js). Update the hard-coded credentials before
-deploying the site so outgoing email succeeds.
+The contact form now reads its SMTP credentials from environment variables so
+you do not need to edit the source code. Configure the following variables in
+`.env.local` (or the deployment environment) before starting the app:
 
-## Gmail setup steps
+```bash
+CONTACT_EMAIL_USER="femmesetdroit.udem@gmail.com"
+CONTACT_EMAIL_PASS="<GMAIL_APP_PASSWORD>"
+# Optional overrides
+# CONTACT_EMAIL_TO="alerts@example.com"
+# CONTACT_EMAIL_FROM="Site Contact <alerts@example.com>"
+# CONTACT_EMAIL_HOST="smtp.gmail.com"
+# CONTACT_EMAIL_PORT=465
+# CONTACT_EMAIL_SECURE=true
+```
 
-1. Enable two-factor authentication on the Gmail account if it is not already
-   enabled.
-2. Generate an **App password** from Google Account → Security → App passwords.
-   Google only allows SMTP access with an app password – your regular account
-   password will fail.
-3. Open `lib/mailer.js` and replace the `REPLACE_WITH_GMAIL_APP_PASSWORD`
-   placeholder with the 16-character app password. Update the `defaults.from`
-   and `defaults.to` values if the project should send email from or to a
-   different address.
-4. Restart the Next.js server so it picks up the updated code.
+`CONTACT_EMAIL_PASS` must be a Gmail **App password** – Google blocks SMTP logins
+with regular account passwords. After updating the environment variables, restart
+the Next.js server so it loads the new credentials.
 
-If the transporter fails to verify at startup, double-check that the app
-password was entered correctly and that SMTP access is allowed on the Gmail
-account.
+If transporter verification fails, double-check that the app password is
+correct, SMTP access is enabled for the Gmail account, and the host/port values
+match your email provider.
