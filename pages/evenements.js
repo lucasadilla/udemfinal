@@ -5,6 +5,18 @@ import useEvents from '../hooks/useEvents';
 import { Calendar } from '@mantine/dates';
 import { Indicator } from '@mantine/core';
 
+const normalizeToMonthStart = (value) => {
+  const fallback = new Date();
+  const date = value instanceof Date ? value : new Date(value ?? fallback);
+  if (Number.isNaN(date.getTime())) {
+    return new Date(fallback.getFullYear(), fallback.getMonth(), 1);
+  }
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
+const formatMonthKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
 export default function Evenements() {
   const { events, loading, addEvent } = useEvents();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -12,34 +24,18 @@ export default function Evenements() {
   const [bio, setBio] = useState('');
   // Rename state variable to avoid confusion with Calendar's date parameter
   const [eventDate, setEventDate] = useState('');
-  const [visibleMonth, setVisibleMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
-
-  const visibleMonthDate = useMemo(
-    () => new Date(visibleMonth.year, visibleMonth.month, 1),
-    [visibleMonth]
+  const [calendarViewDate, setCalendarViewDate] = useState(() =>
+    normalizeToMonthStart(new Date())
   );
 
-  const updateVisibleMonth = useCallback((value) => {
+  const handleCalendarViewChange = useCallback((value) => {
     if (!value) return;
-    const target = value instanceof Date ? value : new Date(value);
-    setVisibleMonth((previousMonth) => {
-      const nextMonth = {
-        year: target.getFullYear(),
-        month: target.getMonth(),
-      };
-
-      if (
-        previousMonth &&
-        previousMonth.year === nextMonth.year &&
-        previousMonth.month === nextMonth.month
-      ) {
-        return previousMonth;
+    const normalized = normalizeToMonthStart(value);
+    setCalendarViewDate((previousDate) => {
+      if (!previousDate || previousDate.getTime() !== normalized.getTime()) {
+        return normalized;
       }
-
-      return nextMonth;
+      return previousDate;
     });
   }, []);
 
@@ -72,6 +68,7 @@ export default function Evenements() {
           ...event,
           parsedDate,
           dateKey: parsedDate ? formatDateKey(parsedDate) : null,
+          monthKey: parsedDate ? formatMonthKey(parsedDate) : null,
         };
       }),
     [events]
@@ -85,6 +82,43 @@ export default function Evenements() {
           .filter((dateKey) => Boolean(dateKey))
       ),
     [eventsWithParsedDates]
+  );
+
+  const eventsByMonth = useMemo(() => {
+    const groupedEvents = new Map();
+
+    eventsWithParsedDates.forEach((event) => {
+      if (!event.parsedDate || !event.monthKey) return;
+      if (!groupedEvents.has(event.monthKey)) {
+        groupedEvents.set(event.monthKey, []);
+      }
+      groupedEvents.get(event.monthKey).push(event);
+    });
+
+    groupedEvents.forEach((monthEvents) => {
+      monthEvents.sort((a, b) => a.parsedDate - b.parsedDate);
+    });
+
+    return groupedEvents;
+  }, [eventsWithParsedDates]);
+
+  const calendarMonthKey = useMemo(
+    () => formatMonthKey(calendarViewDate),
+    [calendarViewDate]
+  );
+
+  const eventsForVisibleMonth = useMemo(
+    () => eventsByMonth.get(calendarMonthKey) ?? [],
+    [calendarMonthKey, eventsByMonth]
+  );
+
+  const monthLabel = useMemo(
+    () =>
+      calendarViewDate.toLocaleDateString('fr-CA', {
+        month: 'long',
+        year: 'numeric',
+      }),
+    [calendarViewDate]
   );
 
   useEffect(() => {
@@ -143,11 +177,11 @@ export default function Evenements() {
           ) : (
             <EventsLayout
               eventDates={eventDates}
-              eventsWithParsedDates={eventsWithParsedDates}
+              eventsForVisibleMonth={eventsForVisibleMonth}
               formatDateKey={formatDateKey}
-              updateVisibleMonth={updateVisibleMonth}
-              visibleMonth={visibleMonth}
-              visibleMonthDate={visibleMonthDate}
+              onCalendarViewChange={handleCalendarViewChange}
+              calendarViewDate={calendarViewDate}
+              monthLabel={monthLabel}
             />
           )}
         </main>
@@ -158,42 +192,22 @@ export default function Evenements() {
 
 function EventsLayout({
   eventDates,
-  eventsWithParsedDates,
+  eventsForVisibleMonth,
   formatDateKey,
-  updateVisibleMonth,
-  visibleMonth,
-  visibleMonthDate,
+  onCalendarViewChange,
+  calendarViewDate,
+  monthLabel,
 }) {
-  const eventsForVisibleMonth = useMemo(() => {
-    const filteredEvents = eventsWithParsedDates.filter((event) => {
-      if (!event.parsedDate) return false;
-      return (
-        event.parsedDate.getFullYear() === visibleMonth.year &&
-        event.parsedDate.getMonth() === visibleMonth.month
-      );
-    });
-
-    return filteredEvents.sort((a, b) => a.parsedDate - b.parsedDate);
-  }, [eventsWithParsedDates, visibleMonth]);
-
-  const monthLabel = useMemo(() => {
-    const dateForLabel = new Date(visibleMonth.year, visibleMonth.month, 1);
-    return dateForLabel.toLocaleDateString('fr-CA', {
-      month: 'long',
-      year: 'numeric',
-    });
-  }, [visibleMonth.month, visibleMonth.year]);
-
   return (
-    <div className="mt-8 flex flex-col items-center gap-8 md:flex-row md:items-start md:justify-center">
-      <div className="w-full max-w-md rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+    <div className="mt-8 grid w-full gap-8 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
+      <div className="w-full max-w-lg rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur lg:max-w-sm">
         <Calendar
           aria-label="Calendrier des événements"
           className="calendar"
-          month={visibleMonthDate}
-          onMonthChange={updateVisibleMonth}
-          onMonthSelect={updateVisibleMonth}
-          onChange={updateVisibleMonth}
+          month={calendarViewDate}
+          onChange={onCalendarViewChange}
+          onMonthChange={onCalendarViewChange}
+          onMonthSelect={onCalendarViewChange}
           size="lg"
           renderDay={(currentDate) => {
             const dateObj =
@@ -212,7 +226,7 @@ function EventsLayout({
         />
       </div>
 
-      <section className="w-full max-w-xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
+      <section className="w-full rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
         <h2 className="mb-4 text-2xl font-semibold capitalize">
           Événements de {monthLabel}
         </h2>
