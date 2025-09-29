@@ -20,8 +20,8 @@ main {
 }
 
 .author-image {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     object-fit: cover;
 }
@@ -38,9 +38,19 @@ main {
     color: #718096;
 }
 
-.flex.items-center .ml-2 {
+.author-details {
     display: flex;
     flex-direction: column;
+    line-height: 1.1;
+    gap: 0.2rem;
+}
+
+.author-date {
+    margin-bottom: 0.1rem;
+}
+
+.author-name {
+    margin-top: 0.1rem;
 }
 
 .banner {

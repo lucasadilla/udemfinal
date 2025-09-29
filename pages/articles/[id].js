@@ -64,13 +64,13 @@ export default function Article() {
           <Image
             src={currentArticle.authorImage}
             alt={currentArticle.author}
-            width={40}
-            height={40}
+            width={60}
+            height={60}
             className="author-image"
           />
-          <div className="ml-2">
-            <p className="text-sm font-semibold">{currentArticle.author}</p>
-            <p className="text-sm text-gray-600">{currentArticle.date}</p>
+          <div className="ml-2 author-details">
+            <p className="text-sm text-gray-600 author-date">{currentArticle.date}</p>
+            <p className="text-sm font-semibold author-name">{currentArticle.author}</p>
           </div>
         </div>
 
