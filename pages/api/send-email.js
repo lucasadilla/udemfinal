@@ -25,6 +25,15 @@ export default async function handler(req, res) {
         res.status(200).json({ message: 'Votre message a été envoyé avec succès.' });
     } catch (error) {
         console.error('Error sending email:', error);
+
+        if (error?.code === 'EAUTH' || error?.responseCode === 535) {
+            res.status(500).json({
+                message:
+                    'La connexion au serveur de courriel a échoué. Vérifiez le nom d’utilisateur et le mot de passe d’application Gmail configurés.'
+            });
+            return;
+        }
+
         res.status(500).json({ message: "Impossible d'envoyer le courriel pour le moment." });
     }
 }
