@@ -157,32 +157,56 @@ function EventsLayout({
   onCalendarViewChange,
   calendarViewDate,
 }) {
+  const formattedMonthLabel = calendarViewDate
+    ? calendarViewDate.toLocaleDateString('fr-CA', {
+        month: 'long',
+        year: 'numeric',
+      })
+    : '';
+
   return (
     <div className="mt-8 flex w-full justify-center">
-      <div className="w-full max-w-lg rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
-        <Calendar
-          aria-label="Calendrier des événements"
-          className="calendar"
-          month={calendarViewDate}
-          onChange={onCalendarViewChange}
-          onMonthChange={onCalendarViewChange}
-          onMonthSelect={onCalendarViewChange}
-          size="lg"
-          renderDay={(currentDate) => {
-            const dateObj =
-              currentDate instanceof Date
-                ? currentDate
-                : new Date(currentDate);
-            const day = dateObj.getDate();
-            const dateKey = formatDateKey(dateObj);
-            const hasEvent = eventDates.has(dateKey);
-            return (
-              <Indicator size={6} color="red" disabled={!hasEvent}>
-                <div>{day}</div>
-              </Indicator>
-            );
-          }}
-        />
+      <div className="w-full max-w-3xl rounded-2xl bg-white/80 p-4 shadow-md backdrop-blur">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          <Calendar
+            aria-label="Calendrier des événements"
+            className="calendar"
+            month={calendarViewDate}
+            onChange={onCalendarViewChange}
+            onMonthChange={onCalendarViewChange}
+            onMonthSelect={onCalendarViewChange}
+            size="lg"
+            renderDay={(currentDate) => {
+              const dateObj =
+                currentDate instanceof Date
+                  ? currentDate
+                  : new Date(currentDate);
+              const day = dateObj.getDate();
+              const dateKey = formatDateKey(dateObj);
+              const hasEvent = eventDates.has(dateKey);
+              return (
+                <Indicator size={6} color="red" disabled={!hasEvent}>
+                  <div>{day}</div>
+                </Indicator>
+              );
+            }}
+          />
+          <div className="flex w-full max-w-sm flex-col">
+            <label
+              htmlFor="calendar-month-display"
+              className="text-sm font-medium text-gray-700"
+            >
+              Mois affiché
+            </label>
+            <input
+              id="calendar-month-display"
+              type="text"
+              readOnly
+              value={formattedMonthLabel}
+              className="mt-2 rounded-lg border border-gray-300 bg-white/90 p-3 text-base capitalize text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
