@@ -59,8 +59,8 @@ export default function Home() {
                     <div className="banner">
                         <img src={heroBanner} alt="Banner" className="w-full h-auto"/>
                         <div className="banner-text-box">
-                            <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
-                            <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
+                            <h1 className="text-3xl md:text-5xl text-center text-white">{heroTitle}</h1>
+                            <h2 className="text-lg md:text-2xl text-center text-white mt-4">{heroSubtitle}</h2>
                         </div>
                     </div>
                     {isAdmin && (
