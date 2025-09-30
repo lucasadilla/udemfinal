@@ -205,10 +205,10 @@ function EventsLayout({
     .sort((a, b) => a.parsedDate - b.parsedDate);
 
   return (
-    <div className="events-container mt-8 px-4">
-      <div className="events-surface w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
-        <div className="events-wrapper">
-          <div id="ev-wrap">
+    <div className="mt-8 flex w-full justify-center px-4" style={{ width: '100%' }}>
+      <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur" style={{ display: 'inline-block', textAlign: 'left', margin: '0 auto' }}>
+        <div style={{ width: '100%', textAlign: 'center' }}>
+          <div id="ev-wrap" style={{ display: 'inline-grid', gap: '2rem' }}>
           <div className="panel w-full max-w-lg md:max-w-2xl">
             <div className="cal-header">
               <button
@@ -295,42 +295,23 @@ function EventsLayout({
           </div>
         </div>
         <style jsx>{`
-          .events-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-          }
-          .events-surface {
-            width: 100%;
-            text-align: left;
-          }
-          .events-wrapper {
-            width: 100%;
-            text-align: center;
-          }
           #ev-wrap {
             display: grid !important;
             grid-template-columns: 1fr;
             justify-content: center !important;
             align-items: start !important;
-            gap: clamp(1.5rem, 4vw, 3rem);
-            width: min(100%, 1100px);
+            gap: 2rem;
+            width: max-content;
             margin: 0 auto;
+            margin-left: 1rem;
           }
-          @media (min-width: 768px) {
-            #ev-wrap {
-              grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-            }
-          }
-          @media (min-width: 1024px) {
-            #ev-wrap {
-              grid-template-columns: minmax(420px, 1fr) minmax(320px, 420px);
-            }
+          @media (min-width: 640px) {
+            #ev-wrap { grid-template-columns: minmax(560px, 820px) minmax(360px, 520px); margin-left: 30rem; }
           }
           #ev-wrap > .panel {
-            width: 100%;
+            width: auto;
           }
-          .cal-header {
+          .cal-header { 
             display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;
           }
           .month-title { text-align: center; font-size: 1.35rem; font-weight: 700; text-transform: capitalize; color: #111827; }
@@ -338,8 +319,8 @@ function EventsLayout({
           .nav-btn:hover { background:#f9fafb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
           .weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; text-align: center; font-size: 0.95rem; color: #6b7280; }
           .days { margin-top: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
-          .day { position: relative; min-height: 112px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 12px; transition: border-color 120ms ease, box-shadow 120ms ease; }
-          @media (min-width: 768px) { .day { min-height: 132px; } }
+          .day { position: relative; height: 112px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 12px; transition: border-color 120ms ease, box-shadow 120ms ease; }
+          @media (min-width: 768px) { .day { height: 132px; } }
           .day:hover { border-color:#d1d5db; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
           .day.empty { background: transparent; border-color: transparent; box-shadow: none; }
           .date-number { font-weight: 700; color: #111827; font-size: 1rem; }
@@ -347,14 +328,6 @@ function EventsLayout({
           .events-title { font-size: 1.25rem; font-weight: 800; }
           .events-box { backdrop-filter: blur(2px); }
           .event-bullet { flex: 0 0 auto; width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 1.1rem; line-height: 1; margin-top: 2px; margin-right: 2px; }
-          @media (max-width: 767px) {
-            .events-box { padding: 1rem; }
-            .events-title { text-align: center; }
-            .weekdays { font-size: 0.75rem; gap: 6px; }
-            .days { gap: 6px; }
-            .day { min-height: 96px; padding: 10px; }
-            .cal-header { grid-template-columns: 40px 1fr 40px; }
-          }
         `}</style>
       </div>
     </div>

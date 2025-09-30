@@ -49,13 +49,13 @@ export default function NotreComite() {
             </Head>
             <div>
                 <Navbar />
-                <main className="page-wrapper committee-page">
+                <main className="p-8">
                     <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <div className="grid grid-cols-1 gap-8 justify-items-center sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid grid-cols-3 gap-8 justify-items-center">
                         {users.map((member) => (
                             <div key={member.id} className="flex flex-col items-center text-center">
                                 <img
