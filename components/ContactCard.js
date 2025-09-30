@@ -51,7 +51,7 @@ export default function ContactCard({ leftContent, rightContent }) {
     };
 
     return (
-        <section className="contact-page">
+        <div className="contact-page p-8">
             <div className="contact-card">
                 <div className="left-side">
                     <h2 className="text-2xl font-bold mb-4">NOUS CONTACTER</h2>
@@ -60,8 +60,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                 </div>
                 <div className="right-side">
                     <form onSubmit={handleSubmit} className="contact-form">
-                        <div className="mb-4 flex flex-col items-center gap-2 md:items-start">
-                            <label htmlFor="nom" className="block text-sm font-semibold text-center md:text-left">Nom</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="nom" className="block text-sm font-semibold mb-2 text-center">Nom</label>
                             <input
                                 type="text"
                                 id="nom"
@@ -73,8 +73,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 required
                             />
                         </div>
-                        <div className="mb-4 flex flex-col items-center gap-2 md:items-start">
-                            <label htmlFor="email" className="block text-sm font-semibold text-center md:text-left">Courriel</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="email" className="block text-sm font-semibold mb-2 text-center">Courriel</label>
                             <input
                                 type="email"
                                 id="email"
@@ -86,8 +86,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 required
                             />
                         </div>
-                        <div className="mb-4 flex flex-col items-center gap-2 md:items-start">
-                            <label htmlFor="objet" className="block text-sm font-semibold text-center md:text-left">Objet</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="objet" className="block text-sm font-semibold mb-2 text-center">Objet</label>
                             <input
                                 type="text"
                                 id="objet"
@@ -99,8 +99,8 @@ export default function ContactCard({ leftContent, rightContent }) {
                                 required
                             />
                         </div>
-                        <div className="mb-4 flex flex-col items-center gap-2 md:items-start">
-                            <label htmlFor="message" className="block text-sm font-semibold text-center md:text-left">Message</label>
+                        <div className="mb-4 flex flex-col items-center">
+                            <label htmlFor="message" className="block text-sm font-semibold mb-2 text-center">Message</label>
                             <textarea
                                 id="message"
                                 name="message"
@@ -114,7 +114,7 @@ export default function ContactCard({ leftContent, rightContent }) {
                         </div>
                         <button
                             type="submit"
-                            className="bg-blue-500 text-white p-2 rounded disabled:opacity-60 disabled:cursor-not-allowed self-center md:self-start"
+                            className="bg-blue-500 text-white p-2 rounded disabled:opacity-60 disabled:cursor-not-allowed"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? 'Envoi...' : 'Envoyer'}
@@ -130,7 +130,7 @@ export default function ContactCard({ leftContent, rightContent }) {
                     </form>
                 </div>
             </div>
-        </section>
+        </div>
     );
 }
 

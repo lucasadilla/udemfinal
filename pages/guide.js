@@ -70,25 +70,25 @@ export default function GuidePage() {
             </Head>
             <div>
                 <Navbar />
-                <main className="page-wrapper guide-page">
+                <main className="p-8">
                     <h1 className="page-title text-center mb-8">Guide des Commanditaires</h1>
                     {isAdmin && (
                         <form onSubmit={handleAdd} className="mb-8 space-y-2">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                className="border p-2 w-full"
-                                onChange={handleFileChange}
-                            />
-                            <button
-                                type="submit"
-                                className="bg-blue-600 text-white px-4 py-2 rounded"
-                            >
-                                Ajouter
-                            </button>
-                        </form>
-                    )}
-                    <div className="sponsor-gallery">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="border p-2 w-full"
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            type="submit"
+                            className="bg-blue-600 text-white px-4 py-2 rounded"
+                        >
+                            Ajouter
+                        </button>
+                    </form>
+                )}
+                <div className="sponsor-gallery">
                     {loading ? (
                         <p>Loading...</p>
                     ) : (
@@ -112,26 +112,26 @@ export default function GuidePage() {
                         ))
                     )}
                 </div>
-                    {selectedSponsor && (
-                        <div className="modal">
-                            <div className="modal-content">
-                                <img
-                                    src={selectedSponsor.image}
-                                    alt="Sponsor"
-                                    className="modal-image"
-                                />
-                                <button className="close" onClick={closeModal}>
-                                    &times;
-                                </button>
-                                <button className="prev" onClick={prevImage}>
-                                    &lt;
-                                </button>
-                                <button className="next" onClick={nextImage}>
-                                    &gt;
-                                </button>
-                            </div>
+                {selectedSponsor && (
+                    <div className="modal">
+                        <div className="modal-content">
+                            <img
+                                src={selectedSponsor.image}
+                                alt="Sponsor"
+                                className="modal-image"
+                            />
+                            <button className="close" onClick={closeModal}>
+                                &times;
+                            </button>
+                            <button className="prev" onClick={prevImage}>
+                                &lt;
+                            </button>
+                            <button className="next" onClick={nextImage}>
+                                &gt;
+                            </button>
                         </div>
-                    )}
+                    </div>
+                )}
                 </main>
             </div>
         </>
