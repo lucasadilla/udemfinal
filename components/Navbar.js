@@ -28,7 +28,7 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="bg-[#e8e0e0] p-4 flex items-center justify-center">
+        <nav className="bg-[#f0efe9] p-4 flex items-center justify-center">
             <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
                 <a href="/">
                     <img src="/images/logo femme et droit-Photoroom.png" alt="Logo" className="logo w-10 h-10" />

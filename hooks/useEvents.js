@@ -41,5 +41,21 @@ export default function useEvents() {
     }
   };
 
-  return { events, loading, addEvent };
+  const deleteEventById = async (id) => {
+    if (!id) return;
+    try {
+      const res = await fetch(`/api/events?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchEvents();
+      } else {
+        console.warn('Failed to delete event:', res.status);
+      }
+    } catch (err) {
+      console.error('Failed to delete event:', err);
+    }
+  };
+
+  return { events, loading, addEvent, deleteEvent: deleteEventById };
 }

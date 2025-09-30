@@ -19,7 +19,7 @@ const formatMonthKey = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
 export default function Evenements() {
-  const { events, loading, addEvent } = useEvents();
+  const { events, loading, addEvent, deleteEvent } = useEvents();
   const [isAdmin, setIsAdmin] = useState(false);
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
@@ -92,6 +92,11 @@ export default function Evenements() {
     setEventDate('');
   };
 
+  const handleDelete = async (id) => {
+    if (!id) return;
+    await deleteEvent(id);
+  };
+
   return (
     <>
       <Head>
@@ -139,6 +144,8 @@ export default function Evenements() {
               onCalendarViewChange={handleCalendarViewChange}
               calendarViewDate={calendarViewDate}
               eventsWithParsedDates={eventsWithParsedDates}
+              isAdmin={isAdmin}
+              onDelete={handleDelete}
             />
           )}
         </main>
@@ -153,6 +160,8 @@ function EventsLayout({
   onCalendarViewChange,
   calendarViewDate,
   eventsWithParsedDates,
+  isAdmin,
+  onDelete,
 }) {
   const goPrevMonth = () => {
     const d = calendarViewDate || new Date();
@@ -269,6 +278,15 @@ function EventsLayout({
                       <div className="text-base font-semibold text-gray-900">{ev.title}</div>
                       {ev.bio ? <div className="text-sm text-gray-600 leading-snug">{ev.bio}</div> : null}
                     </div>
+                    {isAdmin ? (
+                      <button
+                        onClick={() => onDelete(ev.id || ev._id)}
+                        className="ml-auto text-sm text-red-600 hover:text-red-700"
+                        title="Supprimer l’événement"
+                      >
+                        Supprimer
+                      </button>
+                    ) : null}
                   </div>
                 ))
               )}
