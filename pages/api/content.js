@@ -1,20 +1,8 @@
-import { MongoClient } from 'mongodb';
-
-let cachedClient = null;
+import getMongoDb from '../../lib/mongoClient';
 
 export default async function handler(req, res) {
   try {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) {
-      return res.status(500).json({ error: 'MONGODB_URI not configured' });
-    }
-
-    if (!cachedClient) {
-      const client = new MongoClient(uri);
-      cachedClient = await client.connect();
-    }
-
-    const db = cachedClient.db();
+    const db = await getMongoDb();
     const collection = db.collection('content');
 
     if (req.method === 'GET') {

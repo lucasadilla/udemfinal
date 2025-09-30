@@ -1,28 +1,18 @@
-import { MongoClient, ObjectId } from 'mongodb';
-
-let cachedClient = null;
+import { ObjectId } from 'mongodb';
+import getMongoDb from '../../lib/mongoClient';
 
 /**
  * Retrieve sponsor logos for the home page carousel from the
  * `home_sponsors` collection. Each document should contain
  * `{ image: string }` where the image is a base64-encoded data URL.
  *
- * This API route expects an environment variable `MONGODB_URI` to be
- * defined with the connection string to the database.
+ * This API route expects environment variables `MONGODB_URI` and
+ * `MONGODB_DB_NAME` to be defined with the connection string and
+ * database name.
  */
 export default async function handler(req, res) {
     try {
-        const uri = process.env.MONGODB_URI;
-        if (!uri) {
-            return res.status(500).json({ error: 'MONGODB_URI not configured' });
-        }
-
-        if (!cachedClient) {
-            const client = new MongoClient(uri);
-            cachedClient = await client.connect();
-        }
-
-        const db = cachedClient.db();
+        const db = await getMongoDb();
         const collection = db.collection('home_sponsors');
 
         if (req.method === 'POST') {

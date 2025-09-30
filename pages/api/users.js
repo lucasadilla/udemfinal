@@ -1,26 +1,16 @@
-import { MongoClient, ObjectId } from 'mongodb';
-
-let cachedClient = null;
+import { ObjectId } from 'mongodb';
+import getMongoDb from '../../lib/mongoClient';
 
 /**
  * Retrieve or create users from the `users` collection.
  * Each document contains `{ title: string, name: string, profilePicture: string }`.
  *
- * Expects `MONGODB_URI` environment variable for connection string.
+ * Expects `MONGODB_URI` and `MONGODB_DB_NAME` environment variables for
+ * the connection string and database name.
  */
 export default async function handler(req, res) {
   try {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) {
-      return res.status(500).json({ error: 'MONGODB_URI not configured' });
-    }
-
-    if (!cachedClient) {
-      const client = new MongoClient(uri);
-      cachedClient = await client.connect();
-    }
-
-    const db = cachedClient.db();
+    const db = await getMongoDb();
     const collection = db.collection('users');
 
     if (req.method === 'POST') {
