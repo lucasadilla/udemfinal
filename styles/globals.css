@@ -1043,11 +1043,31 @@ button[type="submit"]:hover {
     }
 
     /* styles/global.css */
+    .hamburger-icon {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .hamburger-icon div {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        height: 18px;
+    }
+
     .hamburger-icon span {
         display: block;
-        width: 25px;
-        height: 3px;
-        margin: 5px auto;
+        width: 24px;
+        height: 2px;
+        margin: 0;
+        background-color: #000;
+        border-radius: 9999px;
         -webkit-transition: all 0.3s ease-in-out;
         transition: all 0.3s ease-in-out;
     }
@@ -1071,12 +1091,6 @@ button[type="submit"]:hover {
         flex: 1;
         display: flex;
         justify-content: center;
-    }
-
-    .hamburger-icon {
-        flex: 1;
-        display: flex;
-        justify-content: flex-end;
     }
 }
 
