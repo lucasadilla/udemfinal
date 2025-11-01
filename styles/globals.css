@@ -199,6 +199,24 @@ nav a {
     line-height: 2.5rem;
 }
 
+.editor-content {
+    line-height: 1.6;
+}
+
+.editor-content p {
+    margin-bottom: 1rem;
+}
+
+.editor-content img {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    display: block;
+    margin: 1.5rem auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
 .loading-spinner {
     display: inline-flex;
     align-items: center;
