@@ -76,26 +76,35 @@ export default function Blog() {
                     </div>
                 </section>
                 {isAdmin ? (
-                    <div className="my-8">
-                        {showForm ? (
-                            <ArticleForm
-                                onSubmit={async (data) => {
-                                    await addArticle(data);
-                                    setShowForm(false);
-                                }}
-                                onCancel={() => setShowForm(false)}
-                            />
-                        ) : (
-                            <button
-                                className="bg-green-500 text-white px-4 py-2 rounded"
-                                onClick={() => setShowForm(true)}
-                            >
-                                Add Article
-                            </button>
-                        )}
-                    </div>
-                ) :
-                null}
+                    <section className="my-16 px-4 flex justify-center">
+                        <div className="w-full max-w-5xl">
+                            {showForm ? (
+                                <ArticleForm
+                                    onSubmit={async (data) => {
+                                        await addArticle(data);
+                                        setShowForm(false);
+                                    }}
+                                    onCancel={() => setShowForm(false)}
+                                />
+                            ) : (
+                                <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 border border-purple-100 rounded-3xl shadow-xl px-6 py-12 sm:px-12 text-center">
+                                    <h2 className="text-3xl font-semibold text-gray-900">Create New Article</h2>
+                                    <p className="mt-3 text-sm text-gray-600 max-w-2xl mx-auto">
+                                        Share the latest news, resources, and success stories with the community. Click below to open the editor and start writing.
+                                    </p>
+                                    <div className="mt-8 flex justify-center">
+                                        <button
+                                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:from-green-600 hover:to-emerald-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                                            onClick={() => setShowForm(true)}
+                                        >
+                                            Start Writing
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                ) : null}
                 </main>
             </div>
         </>
