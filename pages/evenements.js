@@ -208,10 +208,10 @@ function EventsLayout({
     .sort((a, b) => a.parsedDate - b.parsedDate);
 
   return (
-    <div className="mt-8 flex w-full justify-center px-4" style={{ width: '100%' }}>
-      <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur" style={{ display: 'inline-block', textAlign: 'left', margin: '0 auto' }}>
-        <div style={{ width: '100%', textAlign: 'center' }}>
-          <div id="ev-wrap" style={{ display: 'inline-grid', gap: '2rem' }}>
+    <div className="mt-8 flex w-full justify-center px-4">
+      <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
+        <div className="w-full text-center">
+          <div id="ev-wrap">
           <div className="panel w-full max-w-lg md:max-w-2xl">
             <div className="cal-header">
               <button
@@ -299,20 +299,23 @@ function EventsLayout({
         </div>
         <style jsx>{`
           #ev-wrap {
-            display: grid !important;
+            display: grid;
             grid-template-columns: 1fr;
-            justify-content: center !important;
-            align-items: start !important;
+            justify-content: center;
+            justify-items: center;
+            align-items: start;
             gap: 2rem;
-            width: max-content;
+            width: 100%;
             margin: 0 auto;
-            margin-left: 1rem;
           }
-          @media (min-width: 640px) {
-            #ev-wrap { grid-template-columns: minmax(560px, 820px) minmax(360px, 520px); margin-left: 30rem; }
+          @media (min-width: 1024px) {
+            #ev-wrap {
+              grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+              justify-items: stretch;
+            }
           }
           #ev-wrap > .panel {
-            width: auto;
+            width: 100%;
           }
           .cal-header { 
             display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;
