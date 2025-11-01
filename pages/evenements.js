@@ -206,6 +206,7 @@ function EventsLayout({
   const monthEvents = (eventsWithParsedDates || [])
     .filter((e) => e.monthKey === currentMonthKey && e.parsedDate)
     .sort((a, b) => a.parsedDate - b.parsedDate);
+  const hasMonthEvents = monthEvents.length > 0;
 
   return (
     <div className="mt-8 flex w-full justify-center px-4">
@@ -261,10 +262,12 @@ function EventsLayout({
             <div className="events-title mb-3 capitalize text-gray-800">
               {formattedMonthLabel || 'Événements'}
             </div>
-            <div className="events-box space-y-3 rounded-xl border border-gray-200 bg-white/95 p-4 shadow">
-              {monthEvents.length === 0 ? (
-                <div className="text-base text-gray-500">Aucun événement</div>
-              ) : (
+            <div
+              className={`events-box space-y-3 rounded-xl border border-gray-200 bg-white/95 p-4 shadow${
+                hasMonthEvents ? '' : ' empty'
+              }`}
+            >
+              {hasMonthEvents ? (
                 monthEvents.map((ev) => (
                   <div
                     key={ev._id || ev.title + ev.date}
@@ -292,6 +295,8 @@ function EventsLayout({
                     ) : null}
                   </div>
                 ))
+              ) : (
+                <div className="empty-message text-base text-gray-500">Aucun événement</div>
               )}
             </div>
           </div>
@@ -332,7 +337,20 @@ function EventsLayout({
           .date-number { font-weight: 700; color: #111827; font-size: 1rem; }
           .event-dot { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 9px; height: 9px; border-radius: 9999px; background: #ef4444; }
           .events-title { font-size: 1.25rem; font-weight: 800; }
-          .events-box { backdrop-filter: blur(2px); }
+          .events-box {
+            backdrop-filter: blur(2px);
+            min-height: 18rem;
+            display: flex;
+            flex-direction: column;
+          }
+          .events-box.empty {
+            justify-content: center;
+            text-align: center;
+          }
+          .events-box .empty-message {
+            margin: 0 auto;
+            max-width: 16rem;
+          }
           .event-bullet { flex: 0 0 auto; width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 1.1rem; line-height: 1; margin-top: 2px; margin-right: 2px; }
         `}</style>
       </div>
