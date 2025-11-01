@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import useUsers from "../hooks/useUsers";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function NotreComite() {
     const { users, loading, addUser, deleteUser } = useUsers();
@@ -53,7 +54,7 @@ export default function NotreComite() {
                     <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
                 {loading ? (
-                    <p>Loading...</p>
+                    <LoadingSpinner />
                 ) : (
                     <div className="committee-grid">
                         {users.map((member) => (
