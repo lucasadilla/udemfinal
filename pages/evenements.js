@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import { Indicator } from '@mantine/core';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const normalizeToMonthStart = (value) => {
   const fallback = new Date();
@@ -136,7 +137,9 @@ export default function Evenements() {
           )}
 
           {loading ? (
-            <div>Loading...</div>
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
+            </div>
           ) : (
             <EventsLayout
               eventDates={eventDates}

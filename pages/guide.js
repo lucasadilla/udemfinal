@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import useGuideSponsors from '../hooks/useGuideSponsors';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function GuidePage() {
     const { sponsors, loading, addSponsor, deleteSponsor } = useGuideSponsors();
@@ -90,7 +91,7 @@ export default function GuidePage() {
                 )}
                 <div className="sponsor-gallery">
                     {loading ? (
-                        <p>Loading...</p>
+                        <LoadingSpinner />
                     ) : (
                         sponsors.map((sponsor, index) => (
                             <div key={sponsor.id} className="relative inline-block">

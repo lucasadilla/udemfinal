@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function Home() {
     const { articles, loading: articlesLoading } = useArticles();
@@ -35,7 +36,7 @@ export default function Home() {
     if (contentLoading && !contentError) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-xl">Loading...</div>
+                <LoadingSpinner />
             </div>
         );
     }
