@@ -55,9 +55,9 @@ export default function NotreComite() {
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <div className="grid grid-cols-3 gap-8 justify-items-center">
+                    <div className="committee-grid">
                         {users.map((member) => (
-                            <div key={member.id} className="flex flex-col items-center text-center">
+                            <div key={member.id} className="committee-card">
                                 <img
                                     src={member.profilePicture}
                                     alt={member.name}
@@ -66,7 +66,7 @@ export default function NotreComite() {
                                 <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
                                 <p className="text-gray-600 leading-snug">{member.title}</p>
                                 {isAdmin && (
-                                    <button onClick={() => deleteUser(member.id)} className="mt-2 text-red-600">
+                                    <button onClick={() => deleteUser(member.id)} className="committee-delete">
                                         Supprimer
                                     </button>
                                 )}
