@@ -118,7 +118,7 @@ export default function Evenements() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Bio"
+                placeholder="Description"
                 className="border p-2 w-full"
               />
               <input

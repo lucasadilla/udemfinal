@@ -13,7 +13,7 @@ export default function useContent() {
           const data = await res.json();
           setContent(data);
         } else {
-          setError(new Error('Failed to fetch content'));
+          setError(new Error('Impossible de récupérer le contenu'));
         }
       } catch (err) {
         setError(err);
@@ -56,10 +56,10 @@ export default function useContent() {
         const data = await res.json();
         setContent(data);
       } else {
-        console.warn('Failed to update content:', res.status);
+        console.warn('Impossible de mettre à jour le contenu :', res.status);
       }
     } catch (err) {
-      console.error('Failed to update content', err);
+      console.error('Impossible de mettre à jour le contenu :', err);
     }
   };
 

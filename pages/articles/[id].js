@@ -24,7 +24,7 @@ export default function Article() {
   const currentArticle = article || post;
 
   if (!currentArticle) {
-    return <p>Article not found</p>;
+    return <p>Article introuvable</p>;
   }
 
   const handleBack = () => {
@@ -40,13 +40,13 @@ export default function Article() {
           url: window.location.href,
         })
         .then(() => {
-          console.log('Article shared successfully');
+          console.log("Article partagé avec succès");
         })
         .catch((error) => {
-          console.error('Error sharing article:', error);
+          console.error("Erreur lors du partage de l’article :", error);
         });
     } else {
-      console.log('Web Share API not supported in this browser');
+      console.log("L’API de partage Web n’est pas prise en charge par ce navigateur");
     }
   };
 
@@ -56,7 +56,7 @@ export default function Article() {
         <Navbar />
         <main className="article-page article-box">
           <button onClick={handleBack} className="back-button">
-            ← Arrière
+            ← Retour
           </button>
         <h1 className="article-title font-bold mb-4">{currentArticle.title}</h1>
 

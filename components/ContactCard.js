@@ -43,7 +43,7 @@ export default function ContactCard({ leftContent, rightContent }) {
             setFormData({ nom: '', email: '', objet: '', message: '' });
             setStatus({ type: 'success', message: data?.message || 'Votre message a été envoyé avec succès.' });
         } catch (error) {
-            console.error('Error sending email:', error);
+            console.error("Erreur lors de l'envoi du courriel :", error);
             setStatus({ type: 'error', message: error.message || 'Une erreur est survenue lors de l\'envoi du courriel.' });
         } finally {
             setIsSubmitting(false);

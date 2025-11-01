@@ -97,7 +97,7 @@ export default function GuidePage() {
                             <div key={sponsor.id} className="relative inline-block">
                                 <img
                                     src={sponsor.image}
-                                    alt="Sponsor"
+                                    alt="Logo de commanditaire"
                                     className="sponsor-image rounded-lg cursor-pointer hover:shadow-lg"
                                     onClick={() => openModal(index)}
                                 />
@@ -118,7 +118,7 @@ export default function GuidePage() {
                         <div className="modal-content">
                             <img
                                 src={selectedSponsor.image}
-                                alt="Sponsor"
+                                alt="Logo de commanditaire"
                                 className="modal-image"
                             />
                             <button className="close" onClick={closeModal}>

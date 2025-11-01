@@ -11,10 +11,10 @@ export default function useEvents() {
         const data = await res.json();
         setEvents(data);
       } else {
-        console.warn('Failed to fetch events:', res.status);
+        console.warn('Impossible de récupérer les événements :', res.status);
       }
     } catch (err) {
-      console.error('Failed to fetch events:', err);
+      console.error('Impossible de récupérer les événements :', err);
     } finally {
       setLoading(false);
     }
@@ -34,10 +34,10 @@ export default function useEvents() {
       if (res.ok) {
         await fetchEvents();
       } else {
-        console.warn('Failed to add event:', res.status);
+        console.warn('Impossible d’ajouter un événement :', res.status);
       }
     } catch (err) {
-      console.error('Failed to add event:', err);
+      console.error('Impossible d’ajouter un événement :', err);
     }
   };
 
@@ -50,10 +50,10 @@ export default function useEvents() {
       if (res.ok) {
         await fetchEvents();
       } else {
-        console.warn('Failed to delete event:', res.status);
+        console.warn('Impossible de supprimer l’événement :', res.status);
       }
     } catch (err) {
-      console.error('Failed to delete event:', err);
+      console.error('Impossible de supprimer l’événement :', err);
     }
   };
 

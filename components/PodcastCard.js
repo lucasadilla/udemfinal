@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-const FALLBACK_IMAGE = 'https://placehold.co/600x400?text=Podcast';
+const FALLBACK_IMAGE = 'https://placehold.co/600x400?text=Balado';
 
 function formatDate(dateString) {
   if (!dateString) {
@@ -45,7 +45,7 @@ export default function PodcastCard({ podcast, isAdmin = false, onDelete }) {
             onClick={() => onDelete?.(id)}
             className="w-full rounded bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
           >
-            Supprimer le podcast
+            Supprimer le balado
           </button>
         </div>
       )}

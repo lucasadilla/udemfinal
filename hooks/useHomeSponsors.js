@@ -14,10 +14,10 @@ export default function useHomeSponsors() {
                 const data = await res.json();
                 setSponsors(data);
             } else {
-                console.warn('Failed to fetch sponsors:', res.status);
+                console.warn('Impossible de récupérer les commanditaires :', res.status);
             }
         } catch (err) {
-            console.error('Failed to fetch sponsors:', err);
+            console.error('Impossible de récupérer les commanditaires :', err);
         } finally {
             setLoading(false);
         }
@@ -37,10 +37,10 @@ export default function useHomeSponsors() {
             if (res.ok) {
                 await fetchSponsors();
             } else {
-                console.warn('Failed to add sponsor:', res.status);
+                console.warn('Impossible d’ajouter un commanditaire :', res.status);
             }
         } catch (err) {
-            console.error('Failed to add sponsor:', err);
+            console.error('Impossible d’ajouter un commanditaire :', err);
         }
     };
 
@@ -50,10 +50,10 @@ export default function useHomeSponsors() {
             if (res.ok) {
                 await fetchSponsors();
             } else {
-                console.warn('Failed to delete sponsor:', res.status);
+                console.warn('Impossible de supprimer le commanditaire :', res.status);
             }
         } catch (err) {
-            console.error('Failed to delete sponsor:', err);
+            console.error('Impossible de supprimer le commanditaire :', err);
         }
     };
 

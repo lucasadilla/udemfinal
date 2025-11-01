@@ -2,14 +2,14 @@ import { sendContactEmail, validateEmailConfiguration } from '../../lib/mailer';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        res.status(405).json({ message: 'Method Not Allowed' });
+        res.status(405).json({ message: 'Méthode non autorisée.' });
         return;
     }
 
     const { nom, email, objet, message } = req.body || {};
 
     if (!nom || !email || !objet || !message) {
-        res.status(400).json({ message: 'Missing required fields' });
+        res.status(400).json({ message: 'Champs obligatoires manquants.' });
         return;
     }
 
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         await sendContactEmail({ nom, email, objet, message });
         res.status(200).json({ message: 'Votre message a été envoyé avec succès.' });
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error("Erreur lors de l'envoi du courriel :", error);
 
         if (error?.code === 'EAUTH' || error?.responseCode === 535) {
             res.status(500).json({

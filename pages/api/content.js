@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       const { section, subsection, key, value } = req.body || {};
       if (!section || !subsection || !key) {
-        return res.status(400).json({ error: 'section, subsection and key are required' });
+        return res.status(400).json({ error: 'Les champs section, subsection et key sont requis.' });
       }
       const path = `${section}.${subsection}.${key}`;
       await collection.updateOne(
@@ -28,10 +28,10 @@ export default async function handler(req, res) {
     }
 
     res.setHeader('Allow', ['GET', 'PUT']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res.status(405).end(`Méthode ${req.method} non autorisée`);
   } catch (err) {
-    console.error('Failed to handle content request', err);
-    return res.status(500).json({ error: 'Failed to handle content request' });
+    console.error('Échec du traitement de la requête de contenu :', err);
+    return res.status(500).json({ error: 'Échec du traitement de la requête de contenu.' });
   }
 }
 

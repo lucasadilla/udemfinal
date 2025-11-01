@@ -11,10 +11,10 @@ export default function usePodcasts() {
         const data = await res.json();
         setPodcasts(data);
       } else {
-        console.warn('Failed to fetch podcasts:', res.status);
+        console.warn('Impossible de récupérer les balados :', res.status);
       }
     } catch (err) {
-      console.error('Failed to fetch podcasts:', err);
+      console.error('Impossible de récupérer les balados :', err);
     } finally {
       setLoading(false);
     }
@@ -27,7 +27,7 @@ export default function usePodcasts() {
   const fileToDataUrl = (file) =>
     new Promise((resolve, reject) => {
       if (typeof window === 'undefined' || !window.FileReader) {
-        reject(new Error('File uploads are only supported in the browser environment.'));
+        reject(new Error('Le téléversement de fichiers est seulement pris en charge dans le navigateur.'));
         return;
       }
 
@@ -35,7 +35,7 @@ export default function usePodcasts() {
       reader.onload = () => {
         const { result } = reader;
         if (typeof result !== 'string') {
-          reject(new Error('Unexpected file reader result.'));
+          reject(new Error('Résultat de lecture de fichier inattendu.'));
           return;
         }
         resolve(result);
@@ -47,11 +47,11 @@ export default function usePodcasts() {
   const addPodcast = async ({ title, date, video, image, bio }) => {
     try {
       if (!video) {
-        throw new Error('A video file must be provided');
+        throw new Error('Un fichier vidéo doit être fourni.');
       }
 
       if (!image) {
-        throw new Error('An image file must be provided');
+        throw new Error('Un fichier image doit être fourni.');
       }
 
       const [videoDataUrl, imageDataUrl] = await Promise.all([
@@ -76,10 +76,10 @@ export default function usePodcasts() {
       if (res.ok) {
         await fetchPodcasts();
       } else {
-        console.warn('Failed to add podcast:', res.status);
+        console.warn('Impossible d’ajouter le balado :', res.status);
       }
     } catch (err) {
-      console.error('Failed to add podcast:', err);
+      console.error('Impossible d’ajouter le balado :', err);
     }
   };
 
@@ -92,10 +92,10 @@ export default function usePodcasts() {
       if (res.ok) {
         await fetchPodcasts();
       } else {
-        console.warn('Failed to delete podcast:', res.status);
+        console.warn('Impossible de supprimer le balado :', res.status);
       }
     } catch (err) {
-      console.error('Failed to delete podcast:', err);
+      console.error('Impossible de supprimer le balado :', err);
     }
   };
 

@@ -5,7 +5,7 @@ function formatArticle(raw = {}) {
   const {
     _id,
     id,
-    title = 'Untitled',
+    title = 'Sans titre',
     body,
     content,
     image,

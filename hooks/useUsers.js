@@ -11,10 +11,10 @@ export default function useUsers() {
         const data = await res.json();
         setUsers(data);
       } else {
-        console.warn('Failed to fetch users:', res.status);
+        console.warn('Impossible de récupérer les membres :', res.status);
       }
     } catch (err) {
-      console.error('Failed to fetch users:', err);
+      console.error('Impossible de récupérer les membres :', err);
     } finally {
       setLoading(false);
     }
@@ -35,10 +35,10 @@ export default function useUsers() {
         setLoading(true);
         await fetchUsers();
       } else {
-        console.warn('Failed to add user:', res.status);
+        console.warn('Impossible d’ajouter le membre :', res.status);
       }
     } catch (err) {
-      console.error('Failed to add user:', err);
+      console.error('Impossible d’ajouter le membre :', err);
     }
   };
 
@@ -49,10 +49,10 @@ export default function useUsers() {
         setLoading(true);
         await fetchUsers();
       } else {
-        console.warn('Failed to delete user:', res.status);
+        console.warn('Impossible de supprimer le membre :', res.status);
       }
     } catch (err) {
-      console.error('Failed to delete user:', err);
+      console.error('Impossible de supprimer le membre :', err);
     }
   };
 
