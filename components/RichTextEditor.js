@@ -30,7 +30,7 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
         .focus()
         .setImage({
           src: reader.result,
-          style: 'max-width: 300px; height: auto;'
+          style: 'max-width: 480px; width: 100%; height: auto; display: block; margin: 1.5rem auto; border-radius: 12px;'
         })
         .run();
     };
@@ -38,7 +38,7 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden bg-white">
       <div className="flex flex-wrap items-center gap-2 bg-gray-50 p-2 border-b">
         <button
           type="button"
@@ -80,7 +80,10 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
           }}
         />
       </div>
-      <EditorContent editor={editor} className="p-2 min-h-[200px] bg-[#e8e0e0]" />
+      <EditorContent
+        editor={editor}
+        className="editor-content p-4 min-h-[320px] bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
     </div>
   );
 }
