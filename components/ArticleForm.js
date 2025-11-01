@@ -60,13 +60,18 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-lg p-6 max-w-3xl mx-auto">
-      <h3 className="text-xl font-semibold mb-4">
-        {article ? 'Edit Article' : 'Create New Article'}
-      </h3>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-purple-100 p-8 sm:p-10 max-w-4xl mx-auto">
+      <div className="text-center">
+        <h3 className="text-3xl font-semibold text-gray-900">
+          {article ? 'Edit Article' : 'Create New Article'}
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Fill out the details below to share a new story with the community.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Article Title *
@@ -76,12 +81,12 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
               placeholder="Enter article title"
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Author *
@@ -90,7 +95,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
               name="author"
               value={formData.author}
               onChange={handleAuthorChange}
-              className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
               required
             >
               <option value="">Select author</option>
@@ -110,11 +115,11 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
-            className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-dashed border-gray-300 w-full rounded-xl bg-white px-4 py-4 text-sm text-gray-600 hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           {/* Article preview removed as per new requirements */}
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Publication Date *
@@ -124,11 +129,11 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className="border border-gray-300 p-2 rounded w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             required
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Article Content *
@@ -146,18 +151,18 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             {formData.content.replace(/<[^>]*>/g, '').length} characters
           </p>
         </div>
-        
-        <div className="flex space-x-3 pt-4">
+
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-6">
           <button
             type="submit"
-            className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:from-green-600 hover:to-emerald-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             {article ? 'Update Article' : 'Create Article'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-semibold shadow-sm hover:bg-gray-300 transition-colors focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
           >
             Cancel
           </button>
