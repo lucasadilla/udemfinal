@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const { title, content, author, authorImage, image, date } = req.body;
       if (!title || !content || !author || !date) {
-        return res.status(400).json({ error: 'title, content, author and date are required' });
+        return res.status(400).json({ error: 'Les champs title, content, author et date sont requis.' });
       }
       const article = {
         title,
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       const { id } = req.query;
       if (!id) {
-        return res.status(400).json({ error: 'id is required' });
+        return res.status(400).json({ error: "L’identifiant est requis." });
       }
       await collection.deleteOne({ _id: new ObjectId(id) });
       return res.status(200).json({ ok: true });
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       const { id } = req.query;
       const doc = await collection.findOne({ _id: new ObjectId(id) });
       if (!doc) {
-        return res.status(404).json({ error: 'Article not found' });
+        return res.status(404).json({ error: 'Article introuvable.' });
       }
       const article = {
         id: doc._id.toString(),
@@ -67,8 +67,8 @@ export default async function handler(req, res) {
     }));
     res.status(200).json(articles);
   } catch (err) {
-    console.error('Failed to handle articles', err);
-    res.status(500).json({ error: 'Failed to handle articles' });
+    console.error('Échec du traitement des articles :', err);
+    res.status(500).json({ error: 'Échec du traitement des articles.' });
   }
 }
 

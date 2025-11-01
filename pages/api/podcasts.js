@@ -14,12 +14,12 @@ function ensureUploadsDirectory(directory) {
 
 function saveMediaFromDataUrl(dataUrl, originalName, directory, fallbackBaseName) {
   if (!dataUrl || typeof dataUrl !== 'string') {
-    throw new Error('Invalid media payload.');
+    throw new Error('Chargement de média invalide.');
   }
 
   const matches = dataUrl.match(/^data:(.+);base64,(.*)$/);
   if (!matches) {
-    throw new Error('Invalid data URL format.');
+    throw new Error('Format d’URL de données invalide.');
   }
 
   const [, mimeType, base64Data] = matches;
@@ -27,7 +27,7 @@ function saveMediaFromDataUrl(dataUrl, originalName, directory, fallbackBaseName
 
   const originalExt = (originalName && path.extname(originalName).toLowerCase()) || '';
   const baseName =
-    (originalName && path.basename(originalName, originalExt)) || fallbackBaseName || 'file';
+    (originalName && path.basename(originalName, originalExt)) || fallbackBaseName || 'fichier';
   const sanitizedBaseName =
     baseName
       .toLowerCase()
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
 
       if (!title || !date || !videoDataUrl || !originalName || !imageDataUrl || !imageOriginalName) {
         return res.status(400).json({
-          error: 'title, date, videoDataUrl, originalName, imageDataUrl and imageOriginalName are required',
+          error: 'Les champs title, date, videoDataUrl, originalName, imageDataUrl et imageOriginalName sont requis.',
         });
       }
 
@@ -120,11 +120,11 @@ export default async function handler(req, res) {
           imageDataUrl,
           imageOriginalName,
           imageUploadsDirectory,
-          'podcast-cover'
+          'balado-couverture'
         );
       } catch (error) {
-        console.error('Failed to store uploaded media:', error);
-        return res.status(500).json({ error: 'Failed to store uploaded media.' });
+        console.error('Impossible d’enregistrer les fichiers téléversés :', error);
+        return res.status(500).json({ error: 'Impossible d’enregistrer les fichiers téléversés.' });
       }
 
       const slug = await generateUniqueSlug(title);
@@ -145,13 +145,13 @@ export default async function handler(req, res) {
       const { id } = req.query.id ? req.query : req.body || {};
 
       if (!id || typeof id !== 'string') {
-        return res.status(400).json({ error: 'A podcast id is required.' });
+        return res.status(400).json({ error: 'Un identifiant de balado est requis.' });
       }
 
       const deletedPodcast = await deletePodcastById(id);
 
       if (!deletedPodcast) {
-        return res.status(404).json({ error: 'Podcast not found.' });
+        return res.status(404).json({ error: 'Balado introuvable.' });
       }
 
       deleteMediaFileIfExists(deletedPodcast.video);
@@ -163,8 +163,8 @@ export default async function handler(req, res) {
     const podcasts = await getPodcasts();
     return res.status(200).json(podcasts);
   } catch (error) {
-    console.error('Failed to handle podcast request:', error);
-    return res.status(500).json({ error: 'Failed to handle podcast request.' });
+    console.error('Échec du traitement de la requête de balado :', error);
+    return res.status(500).json({ error: 'Échec du traitement de la requête de balado.' });
   }
 }
 

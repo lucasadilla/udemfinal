@@ -27,7 +27,7 @@ export default function HeroBannerEditor({ updateContent }) {
         type="submit"
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        Update Banner
+        Mettre à jour la bannière
       </button>
     </form>
   );

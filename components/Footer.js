@@ -23,7 +23,7 @@ export default function Footer() {
         if (res.ok) {
             router.reload();
         } else {
-            setError('Invalid credentials');
+            setError('Identifiants invalides');
         }
     };
 
@@ -41,26 +41,26 @@ export default function Footer() {
                         className="bg-blue-500 text-white px-3 py-1 mt-2 sm:mt-0"
                         onClick={handleSignOut}
                     >
-                        Sign Out
+                        Déconnexion
                     </button>
                 ) : (
                     <form onSubmit={handleSubmit} className="mt-2 sm:mt-0 flex space-x-2">
                         <input
                             className="border p-1"
                             type="text"
-                            placeholder="Username"
+                            placeholder="Nom d'utilisateur"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                         <input
                             className="border p-1"
                             type="password"
-                            placeholder="Password"
+                            placeholder="Mot de passe"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <button className="bg-blue-500 text-white px-3 py-1" type="submit">
-                            Login
+                            Connexion
                         </button>
                     </form>
                 )}

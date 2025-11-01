@@ -63,10 +63,10 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
     <div className="bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-purple-100 p-8 sm:p-10 max-w-4xl mx-auto">
       <div className="text-center">
         <h3 className="text-3xl font-semibold text-gray-900">
-          {article ? 'Edit Article' : 'Create New Article'}
+          {article ? 'Modifier l’article' : 'Créer un nouvel article'}
         </h3>
         <p className="mt-2 text-sm text-gray-500">
-          Fill out the details below to share a new story with the community.
+          Remplissez les informations ci-dessous afin de partager une nouvelle histoire avec la communauté.
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Article Title *
+              Titre de l’article *
             </label>
             <input
               type="text"
@@ -82,14 +82,14 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
               value={formData.title}
               onChange={handleChange}
               className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              placeholder="Enter article title"
+              placeholder="Saisissez le titre de l’article"
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Author *
+              Autrice ou auteur *
             </label>
             <select
               name="author"
@@ -98,7 +98,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
               className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
               required
             >
-              <option value="">Select author</option>
+              <option value="">Sélectionnez une autrice ou un auteur</option>
               {users.map(user => (
                 <option key={user.id} value={user.name}>{user.name}</option>
               ))}
@@ -109,7 +109,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Cover Image
+            Image de couverture
           </label>
           <input
             type="file"
@@ -122,7 +122,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Publication Date *
+            Date de publication *
           </label>
           <input
             type="date"
@@ -136,7 +136,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Article Content *
+            Contenu de l’article *
           </label>
           <RichTextEditor
             value={formData.content}
@@ -148,7 +148,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             }
           />
           <p className="text-sm text-gray-500 mt-1">
-            {formData.content.replace(/<[^>]*>/g, '').length} characters
+            {formData.content.replace(/<[^>]*>/g, '').length} caractères
           </p>
         </div>
 
@@ -157,14 +157,14 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             type="submit"
             className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:from-green-600 hover:to-emerald-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
-            {article ? 'Update Article' : 'Create Article'}
+            {article ? 'Mettre à jour l’article' : 'Publier l’article'}
           </button>
           <button
             type="button"
             onClick={onCancel}
             className="bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-semibold shadow-sm hover:bg-gray-300 transition-colors focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
           >
-            Cancel
+            Annuler
           </button>
         </div>
       </form>

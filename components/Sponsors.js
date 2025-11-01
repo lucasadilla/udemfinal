@@ -78,7 +78,7 @@ export default function SponsorsBar() {
                             <div key={sponsor.id} className="relative inline-block">
                                 <img
                                     src={sponsor.image}
-                                    alt="Sponsor"
+                                    alt="Logo de commanditaire"
                                     className="scroller-item"
                                 />
                                 {isAdmin && (

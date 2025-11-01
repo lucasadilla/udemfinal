@@ -10,11 +10,11 @@ export default function PodcastDetail({ podcast }) {
     return (
       <>
         <Head>
-          <title>Podcast introuvable</title>
+          <title>Balado introuvable</title>
         </Head>
         <Navbar />
         <main className="mx-auto max-w-4xl p-4 text-center">
-          <h1 className="text-2xl font-semibold">Ce podcast est introuvable.</h1>
+          <h1 className="text-2xl font-semibold">Ce balado est introuvable.</h1>
         </main>
       </>
     );
@@ -40,7 +40,7 @@ export default function PodcastDetail({ podcast }) {
       <Navbar />
       <main className="article-page article-box">
         <button type="button" onClick={handleBack} className="back-button">
-          ← Arrière
+          ← Retour
         </button>
         <header className="mb-6 text-center">
           <h1 className="mb-2 text-3xl font-semibold">{podcast.title}</h1>
@@ -80,7 +80,7 @@ export async function getServerSideProps({ params }) {
       },
     };
   } catch (error) {
-    console.error('Failed to fetch podcast for page:', error);
+    console.error('Impossible de récupérer le balado pour la page :', error);
     return {
       props: {
         podcast: null,

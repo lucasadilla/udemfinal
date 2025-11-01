@@ -43,7 +43,7 @@ export default function Home() {
 
     // If there's an error, still show the page with fallback content
     if (contentError) {
-        console.warn('Content loading error, using fallback content:', contentError);
+        console.warn('Erreur lors du chargement du contenu, utilisation du contenu de secours :', contentError);
     }
 
     return (
@@ -58,7 +58,7 @@ export default function Home() {
 
                 <main className="relative">
                     <div className="banner">
-                        <img src={heroBanner} alt="Banner" className="w-full h-auto"/>
+                        <img src={heroBanner} alt="Bannière" className="w-full h-auto"/>
                         <div className="banner-text-box">
                             <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
                             <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>

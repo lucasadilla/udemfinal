@@ -52,7 +52,7 @@ export default function Blog() {
     return (
         <>
             <Head>
-                <title>Blog</title>
+                <title>Blogue</title>
                 <meta name="description" content="Lisez des articles sur le féminisme intersectionnel et les événements communautaires à l'Université de Montréal."/>
                 <meta name="keywords" content="féminisme, blog, articles, Université de Montréal, communauté"/>
             </Head>
@@ -62,7 +62,7 @@ export default function Blog() {
                 <section className="recent-articles">
                     <div className="article-cards-container">
                         {posts.length === 0 ? (
-                            <p>No articles found</p>
+                            <p>Aucun article trouvé</p>
                         ) : (
                             posts.map((article) => (
                                 <ArticleCard
@@ -88,16 +88,16 @@ export default function Blog() {
                                 />
                             ) : (
                                 <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 border border-purple-100 rounded-3xl shadow-xl px-6 py-12 sm:px-12 text-center">
-                                    <h2 className="text-3xl font-semibold text-gray-900">Create New Article</h2>
+                                    <h2 className="text-3xl font-semibold text-gray-900">Créer un nouvel article</h2>
                                     <p className="mt-3 text-sm text-gray-600 max-w-2xl mx-auto">
-                                        Share the latest news, resources, and success stories with the community. Click below to open the editor and start writing.
+                                        Partagez les dernières nouvelles, ressources et réussites avec la communauté. Cliquez ci-dessous pour ouvrir l’éditeur et commencer la rédaction.
                                     </p>
                                     <div className="mt-8 flex justify-center">
                                         <button
                                             className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:from-green-600 hover:to-emerald-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                                             onClick={() => setShowForm(true)}
                                         >
-                                            Start Writing
+                                            Commencer à écrire
                                         </button>
                                     </div>
                                 </div>

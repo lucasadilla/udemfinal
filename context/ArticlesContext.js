@@ -13,10 +13,10 @@ export function ArticlesProvider({ children }) {
                 const data = await res.json();
                 setArticles(data);
             } else {
-                console.warn('Failed to fetch articles:', res.status);
+                console.warn('Impossible de récupérer les articles :', res.status);
             }
         } catch (err) {
-            console.error('Failed to fetch articles:', err);
+            console.error('Impossible de récupérer les articles :', err);
         } finally {
             setLoading(false);
         }
@@ -36,10 +36,10 @@ export function ArticlesProvider({ children }) {
             if (res.ok) {
                 await fetchArticles();
             } else {
-                console.warn('Failed to add article:', res.status);
+                console.warn('Impossible d’ajouter un article :', res.status);
             }
         } catch (err) {
-            console.error('Failed to add article:', err);
+            console.error('Impossible d’ajouter un article :', err);
         }
     };
 
@@ -49,10 +49,10 @@ export function ArticlesProvider({ children }) {
             if (res.ok) {
                 await fetchArticles();
             } else {
-                console.warn('Failed to delete article:', res.status);
+                console.warn('Impossible de supprimer l’article :', res.status);
             }
         } catch (err) {
-            console.error('Failed to delete article:', err);
+            console.error('Impossible de supprimer l’article :', err);
         }
     };
 

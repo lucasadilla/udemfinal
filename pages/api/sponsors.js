@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         if (req.method === 'POST') {
             const { image } = req.body || {};
             if (!image) {
-                return res.status(400).json({ error: 'image is required' });
+                return res.status(400).json({ error: 'Le champ image est requis.' });
             }
             const result = await collection.insertOne({ image });
             return res.status(201).json({ id: result.insertedId.toString() });
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         if (req.method === 'DELETE') {
             const { id } = req.query;
             if (!id) {
-                return res.status(400).json({ error: 'id is required' });
+                return res.status(400).json({ error: "L’identifiant est requis." });
             }
             await collection.deleteOne({ _id: new ObjectId(id) });
             return res.status(200).json({ ok: true });
@@ -41,8 +41,8 @@ export default async function handler(req, res) {
 
         res.status(200).json(sponsors);
     } catch (err) {
-        console.error('Failed to load sponsors', err);
-        res.status(500).json({ error: 'Failed to load sponsors' });
+        console.error('Impossible de charger les commanditaires :', err);
+        res.status(500).json({ error: 'Impossible de charger les commanditaires.' });
     }
 }
 

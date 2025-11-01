@@ -31,7 +31,7 @@ export default function Navbar() {
         <nav className="bg-[#f0efe9] p-4 flex items-center justify-center">
             <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
                 <a href="/">
-                    <img src="/images/logo femme et droit-Photoroom.png" alt="Logo" className="logo w-10 h-10" />
+                    <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
                 </a>
             </div>
             <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4`}>
@@ -42,12 +42,12 @@ export default function Navbar() {
                 </li>
                 <li>
                     <Link href="/blog">
-                        <span className={`nav-link text-black ${isActive('/blog') ? 'font-bold' : ''}`}>Blog</span>
+                        <span className={`nav-link text-black ${isActive('/blog') ? 'font-bold' : ''}`}>Blogue</span>
                     </Link>
                 </li>
                 <li>
                     <Link href="/podcasts">
-                        <span className={`nav-link text-black ${isActive('/podcasts') ? 'font-bold' : ''}`}>Podcasts</span>
+                        <span className={`nav-link text-black ${isActive('/podcasts') ? 'font-bold' : ''}`}>Balados</span>
                     </Link>
                 </li>
                 <li>
@@ -77,7 +77,7 @@ export default function Navbar() {
                 rel="noopener noreferrer"
                 className={`${isOpen ? 'hidden' : ''}`}
             >
-                <img src="/images/insta.png" alt="Instagram" className="instagram-icon w-8 h-8" />
+                <img src="/images/insta.png" alt="Instagram de Femmes et Droit" className="instagram-icon w-8 h-8" />
             </a>
             <button className="hamburger-icon" onClick={toggleMenu}>
                 <div>
