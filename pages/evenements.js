@@ -188,12 +188,14 @@ function EventsLayout({
     return cells;
   };
 
-  const formattedMonthLabel = calendarViewDate
-    ? calendarViewDate.toLocaleDateString('fr-CA', {
-        month: 'long',
-        year: 'numeric',
-      })
-    : '';
+  const formattedMonthLabel = useMemo(() => {
+    if (!calendarViewDate) return '';
+    const label = calendarViewDate.toLocaleDateString('fr-CA', {
+      month: 'long',
+      year: 'numeric',
+    });
+    return label.replace(/^./u, (char) => char.toLocaleUpperCase('fr-CA'));
+  }, [calendarViewDate]);
 
   const cells = buildMonthCells(calendarViewDate);
 
@@ -210,7 +212,7 @@ function EventsLayout({
       <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
         <div className="w-full text-center">
           <div id="ev-wrap">
-          <div className="panel w-full max-w-lg md:max-w-2xl">
+          <div className="panel w-full max-w-md md:max-w-xl">
             <div className="cal-header">
               <button
                 type="button"
@@ -255,8 +257,8 @@ function EventsLayout({
               })}
             </div>
           </div>
-          <div className="panel w-full max-w-lg md:max-w-lg">
-            <div className="events-title mb-3 capitalize text-gray-800">
+          <div className="panel w-full max-w-lg md:max-w-xl">
+            <div className="events-title mb-3 text-gray-800">
               {formattedMonthLabel || 'Événements'}
             </div>
             <div
@@ -265,33 +267,61 @@ function EventsLayout({
               }`}
             >
               {hasMonthEvents ? (
-                monthEvents.map((ev) => (
-                  <div
-                    key={ev._id || ev.title + ev.date}
-                    className="flex gap-3 rounded-lg border border-transparent p-3 hover:border-gray-200 hover:shadow-sm"
-                  >
-                    <div className="event-bullet" aria-hidden="true">›</div>
-                    <div className="w-16 flex-shrink-0 text-base font-semibold uppercase text-gray-600">
-                      {ev.parsedDate.toLocaleDateString('fr-CA', {
-                        day: '2-digit',
-                        month: 'short',
-                      })}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="text-base font-semibold text-gray-900">{ev.title}</div>
-                      {ev.bio ? <div className="text-sm text-gray-600 leading-snug">{ev.bio}</div> : null}
-                    </div>
-                    {isAdmin ? (
-                      <button
-                        onClick={() => onDelete(ev.id || ev._id)}
-                        className="ml-auto text-sm text-red-600 hover:text-red-700"
-                        title="Supprimer l’événement"
+                <div className="events-list">
+                  {monthEvents.map((ev) => {
+                    const formattedDate = ev.parsedDate
+                      ? ev.parsedDate
+                          .toLocaleDateString('fr-CA', {
+                            day: '2-digit',
+                            month: 'short',
+                          })
+                          .replace(/^./u, (char) => char.toLocaleUpperCase('fr-CA'))
+                      : '';
+                    const [dayPartRaw, monthPartRaw] = formattedDate
+                      .split(/\s+/)
+                      .filter(Boolean);
+                    const dayPart =
+                      dayPartRaw ||
+                      (ev.parsedDate
+                        ? String(ev.parsedDate.getDate()).padStart(2, '0')
+                        : '');
+                    const monthPart =
+                      monthPartRaw ||
+                      (ev.parsedDate
+                        ? ev.parsedDate
+                            .toLocaleDateString('fr-CA', { month: 'short' })
+                            .replace(/^./u, (char) => char.toLocaleUpperCase('fr-CA'))
+                        : '');
+                    return (
+                      <article
+                        key={ev._id || ev.title + ev.date}
+                        className="event-card"
                       >
-                        Supprimer
-                      </button>
-                    ) : null}
-                  </div>
-                ))
+                        <div className="event-card__inner">
+                          <div className="event-card__date" aria-hidden="true">
+                            <span className="event-card__day">{dayPart}</span>
+                            <span className="event-card__month">{monthPart}</span>
+                          </div>
+                          <div className="event-card__content">
+                            <h3 className="event-card__title">{ev.title}</h3>
+                            {ev.bio ? (
+                              <p className="event-card__description">{ev.bio}</p>
+                            ) : null}
+                          </div>
+                          {isAdmin ? (
+                            <button
+                              onClick={() => onDelete(ev.id || ev._id)}
+                              className="event-card__delete"
+                              title="Supprimer l’événement"
+                            >
+                              Supprimer
+                            </button>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="empty-message text-base text-gray-500">Aucun événement</div>
               )}
@@ -319,24 +349,100 @@ function EventsLayout({
           #ev-wrap > .panel {
             width: 100%;
           }
-          .cal-header { 
-            display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;
+          .cal-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 40px;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
           }
-          .month-title { text-align: center; font-size: 1.35rem; font-weight: 700; text-transform: capitalize; color: #111827; }
-          .nav-btn { height: 48px; width: 48px; border-radius: 9999px; border: 1px solid #e5e7eb; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 120ms ease, box-shadow 120ms ease; }
-          .nav-btn:hover { background:#f9fafb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-          .weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; text-align: center; font-size: 0.95rem; color: #6b7280; }
-          .days { margin-top: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
-          .day { position: relative; height: 112px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 12px; transition: border-color 120ms ease, box-shadow 120ms ease; }
-          @media (min-width: 768px) { .day { height: 132px; } }
-          .day:hover { border-color:#d1d5db; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
-          .day.empty { background: transparent; border-color: transparent; box-shadow: none; }
-          .date-number { font-weight: 700; color: #111827; font-size: 1rem; }
-          .event-dot { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 9px; height: 9px; border-radius: 9999px; background: #ef4444; }
-          .events-title { font-size: 1.25rem; font-weight: 800; }
+          .month-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #111827;
+          }
+          .nav-btn {
+            height: 40px;
+            width: 40px;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+          }
+          .nav-btn:hover {
+            background: #f9fafb;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+          }
+          .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+          }
+          .days {
+            margin-top: 6px;
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+          }
+          .day {
+            position: relative;
+            height: 78px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 0.75rem;
+            padding: 10px;
+            transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+          }
+          @media (min-width: 768px) {
+            .day {
+              height: 92px;
+            }
+          }
+          .day:hover {
+            border-color: rgba(148, 163, 184, 0.9);
+            box-shadow: 0 8px 14px rgba(15, 23, 42, 0.08);
+            transform: translateY(-2px);
+          }
+          .day.empty {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+          }
+          .date-number {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 0.95rem;
+          }
+          .event-dot {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 7px;
+            height: 7px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
+          }
+          .events-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+          }
           .events-box {
-            backdrop-filter: blur(2px);
-            min-height: 18rem;
+            backdrop-filter: blur(4px);
+            min-height: 16rem;
             display: flex;
             flex-direction: column;
           }
@@ -348,7 +454,114 @@ function EventsLayout({
             margin: 0 auto;
             max-width: 16rem;
           }
-          .event-bullet { flex: 0 0 auto; width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 1.1rem; line-height: 1; margin-top: 2px; margin-right: 2px; }
+          .events-list {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-left: 1rem;
+          }
+          .events-list::before {
+            content: '';
+            position: absolute;
+            left: 1.75rem;
+            top: 0.25rem;
+            bottom: 0.25rem;
+            width: 2px;
+            background: linear-gradient(180deg, rgba(129, 140, 248, 0.4), rgba(236, 72, 153, 0.3));
+          }
+          @media (max-width: 640px) {
+            .events-list {
+              padding-left: 0.5rem;
+            }
+            .events-list::before {
+              left: 1.25rem;
+            }
+          }
+          .event-card {
+            position: relative;
+            padding-left: 3.5rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+            overflow: hidden;
+          }
+          .event-card::before {
+            content: '';
+            position: absolute;
+            left: 1.5rem;
+            top: 1.35rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.18);
+          }
+          .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.12);
+          }
+          .event-card__inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            padding: 1.25rem 1.5rem;
+          }
+          .event-card__date {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 3.75rem;
+            height: 3.75rem;
+            border-radius: 0.9rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(236, 72, 153, 0.12));
+            border: 1px solid rgba(99, 102, 241, 0.18);
+            color: #4338ca;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+          }
+          .event-card__day {
+            font-size: 1.1rem;
+            line-height: 1.1;
+          }
+          .event-card__month {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+          }
+          .event-card__content {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+          }
+          .event-card__title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+          }
+          .event-card__description {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #475569;
+          }
+          .event-card__delete {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: #ef4444;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 120ms ease;
+          }
+          .event-card__delete:hover {
+            color: #dc2626;
+          }
         `}</style>
       </div>
     </div>
