@@ -1072,6 +1072,7 @@ button[type="submit"]:hover {
 
     nav.menu-open .hamburger-icon {
         order: 2;
+        align-self: center;
     }
 
     nav.menu-open .nav-links {
@@ -1196,9 +1197,10 @@ button[type="submit"]:hover {
 
     /* styles/global.css */
     .hamburger-icon {
-        flex: 1;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+        margin-left: auto;
         background: transparent;
         border: none;
         padding: 0;
