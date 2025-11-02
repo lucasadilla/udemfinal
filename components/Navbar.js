@@ -86,9 +86,12 @@ export default function Navbar() {
                 href="https://www.instagram.com/femmesetdroit/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${isOpen ? 'hidden' : ''}`}
             >
-                <img src="/images/insta.png" alt="Instagram de Femmes et Droit" className="instagram-icon w-8 h-8" />
+                <img
+                    src="/images/insta.png"
+                    alt="Instagram de Femmes et Droit"
+                    className={`instagram-icon w-8 h-8 ${isOpen ? 'hidden' : ''}`}
+                />
             </a>
             <button className="hamburger-icon" onClick={toggleMenu}>
                 <div>
