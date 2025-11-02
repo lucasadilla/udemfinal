@@ -1,66 +1,11 @@
 import { useState, useEffect } from 'react';
 import useUsers from '@/hooks/useUsers';
 import RichTextEditor from '@/components/RichTextEditor';
-
-const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6 MB (fits within the 8 MB API limit once encoded)
-const MAX_BASE64_SIZE = 7.5 * 1024 * 1024; // 7.5 MB safety margin
-const DEFAULT_MAX_WIDTH = 1200;
-const DEFAULT_QUALITY = 0.7;
-
-const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = reject;
-  reader.readAsDataURL(file);
-});
-
-const compressImageFile = (file, maxWidth = DEFAULT_MAX_WIDTH, quality = DEFAULT_QUALITY) =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    image.onload = () => {
-      let { width, height } = image;
-
-      if (width > maxWidth) {
-        const ratio = maxWidth / width;
-        width = maxWidth;
-        height = Math.round(height * ratio);
-      }
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext('2d');
-      if (!context) {
-        reject(new Error("Impossible d'obtenir le contexte du canvas"));
-        return;
-      }
-      context.drawImage(image, 0, 0, width, height);
-
-      canvas.toBlob((blob) => {
-        URL.revokeObjectURL(objectUrl);
-        if (!blob) {
-          reject(new Error("Échec de la compression de l'image"));
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      }, 'image/jpeg', quality);
-    };
-
-    image.onerror = (err) => {
-      URL.revokeObjectURL(objectUrl);
-      reject(err);
-    };
-    image.src = objectUrl;
-  });
-
-const estimateBase64Size = (dataUrl = '') => {
-  const base64 = dataUrl.split(',')[1] || '';
-  return Math.ceil((base64.length * 3) / 4);
-};
+import {
+  createCoverImageDataUrl,
+  IMAGE_ERRORS,
+  MAX_FORM_BASE64_SIZE,
+} from '@/lib/clientImageUtils';
 
 export default function ArticleForm({ article, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -117,19 +62,15 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
     setImageError('');
 
     try {
-      const dataUrl = file.size > MAX_FILE_SIZE
-        ? await compressImageFile(file)
-        : await readFileAsDataURL(file);
-
-      if (estimateBase64Size(dataUrl) > MAX_BASE64_SIZE) {
-        setImageError("L’image sélectionnée est trop volumineuse. Choisissez une image plus petite (moins de 6 Mo).");
-        return;
-      }
-
+      const dataUrl = await createCoverImageDataUrl(file);
       setFormData(prev => ({ ...prev, image: dataUrl }));
     } catch (error) {
       console.error("Erreur lors du traitement de l'image :", error);
-      setImageError("Impossible d’utiliser cette image. Veuillez en choisir une autre.");
+      if (error?.code === IMAGE_ERRORS.TOO_LARGE) {
+        setImageError("L’image sélectionnée est trop volumineuse. Choisissez une image plus petite (moins de 6 Mo).");
+      } else {
+        setImageError("Impossible d’utiliser cette image. Veuillez en choisir une autre.");
+      }
     }
   };
 
@@ -194,7 +135,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
           {imageError ? (
             <p className="mt-2 text-sm text-red-600">{imageError}</p>
           ) : (
-            <p className="mt-2 text-xs text-gray-500">Images jusqu’à 6&nbsp;Mo. Les fichiers volumineux sont automatiquement compressés.</p>
+            <p className="mt-2 text-xs text-gray-500">Les fichiers jusqu’à 6&nbsp;Mo sont acceptés et automatiquement compressés (≈ {(MAX_FORM_BASE64_SIZE / (1024 * 1024)).toFixed(1)}&nbsp;Mo une fois encodés).</p>
           )}
           {/* Article preview removed as per new requirements */}
         </div>
