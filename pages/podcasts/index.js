@@ -44,7 +44,7 @@ export default function PodcastsPage() {
 
   const handleDeletePodcast = async (id) => {
     const confirmation = window.confirm(
-      'Êtes-vous sûr de vouloir supprimer ce balado ?'
+      'Êtes-vous sûr de vouloir supprimer ce podcast ?'
     );
     if (!confirmation) return;
 
@@ -54,15 +54,15 @@ export default function PodcastsPage() {
   return (
     <>
       <Head>
-        <title>Balados</title>
+        <title>Podcasts</title>
       </Head>
       <Navbar />
       <main className="mx-auto max-w-5xl p-4">
-        <h1 className="mb-6 text-center text-3xl font-semibold">Balados</h1>
+        <h1 className="mb-6 text-center text-3xl font-semibold">Podcasts</h1>
 
         {isAdmin && (
           <section className="mb-10 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="mb-4 text-xl font-semibold">Ajouter un balado</h2>
+            <h2 className="mb-4 text-xl font-semibold">Ajouter un podcast</h2>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-medium" htmlFor="title">
@@ -73,7 +73,7 @@ export default function PodcastsPage() {
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   className="w-full rounded border border-gray-300 p-2"
-                  placeholder="Titre du balado"
+                  placeholder="Titre du podcast"
                   required
                 />
               </div>
@@ -99,11 +99,11 @@ export default function PodcastsPage() {
                   value={bio}
                   onChange={(event) => setBio(event.target.value)}
                   className="w-full rounded border border-gray-300 p-2"
-                  placeholder="Ajoutez une courte description du balado"
+                  placeholder="Ajoutez une courte description du podcast"
                   rows={4}
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Cette bio sera affichée sur la carte du balado et sur la page détaillée.
+                  Cette bio sera affichée sur la carte du podcast et sur la page détaillée.
                 </p>
               </div>
               <div>
@@ -144,7 +144,7 @@ export default function PodcastsPage() {
                   required
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Téléversez une image qui sera affichée sur la carte du balado.
+                  Téléversez une image qui sera affichée sur la carte du podcast.
                 </p>
                 {imageFile && (
                   <p className="mt-1 text-sm text-gray-600">Image sélectionnée : {imageFile.name}</p>
@@ -154,7 +154,7 @@ export default function PodcastsPage() {
                 type="submit"
                 className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
               >
-                Publier le balado
+                Publier le podcast
               </button>
             </form>
           </section>
@@ -162,9 +162,9 @@ export default function PodcastsPage() {
 
         <section>
           {loading ? (
-            <p className="text-center text-gray-600">Chargement des balados...</p>
+            <p className="text-center text-gray-600">Chargement des podcasts...</p>
           ) : sortedPodcasts.length === 0 ? (
-            <p className="text-center text-gray-600">Aucun balado n'est disponible pour le moment.</p>
+            <p className="text-center text-gray-600">Aucun podcast n'est disponible pour le moment.</p>
           ) : (
             <div className="article-cards-container">
               {sortedPodcasts.map((podcast) => (
