@@ -28,8 +28,8 @@ export default function Navbar() {
     };
 
     return (
-        <nav className={`bg-[#f0efe9] p-4 flex items-center justify-between w-full ${isOpen ? 'menu-open' : ''}`}>
-            <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
+        <nav className={`bg-[#f0efe9] p-4 w-full ${isOpen ? 'menu-open' : ''}`}>
+            <div className="logo-container">
                 <a href="/">
                     <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
                 </a>
@@ -86,11 +86,12 @@ export default function Navbar() {
                 href="https://www.instagram.com/femmesetdroit/"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="instagram-link"
             >
                 <img
                     src="/images/insta.png"
                     alt="Instagram de Femmes et Droit"
-                    className={`instagram-icon w-8 h-8 ${isOpen ? 'hidden' : ''}`}
+                    className="instagram-icon w-8 h-8"
                 />
             </a>
             <button

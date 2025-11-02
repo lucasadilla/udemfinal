@@ -1024,10 +1024,12 @@ button[type="submit"]:hover {
     }
 
     nav {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-rows: auto auto;
         align-items: center;
         padding: 0.5rem 1rem;
+        row-gap: 0.75rem;
     }
 
     nav ul {
@@ -1035,6 +1037,7 @@ button[type="submit"]:hover {
         flex-direction: column;
         align-items: center;
         width: 100%;
+        grid-column: 1 / -1;
     }
 
     nav li {
@@ -1048,6 +1051,8 @@ button[type="submit"]:hover {
 
     .nav-links {
         display: none; /* Hide nav links when the menu is closed */
+        grid-column: 1 / -1;
+        width: 100%;
     }
 
     .nav-links.open {
@@ -1061,23 +1066,13 @@ button[type="submit"]:hover {
     }
 
     nav.menu-open {
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1rem;
+        align-items: start;
     }
 
-    nav.menu-open .logo-container {
-        order: 1;
-    }
-
-    nav.menu-open .hamburger-icon {
-        order: 2;
-        align-self: center;
-    }
-
-    nav.menu-open .nav-links {
-        order: 3;
-        width: 100%;
+    .hamburger-icon {
+        grid-column: 3 / 4;
+        justify-self: end;
+        margin-left: 0;
     }
 
     .mobile-instagram {
@@ -1240,24 +1235,23 @@ button[type="submit"]:hover {
     }
 
     .logo-container {
-        flex: 1;
+        grid-column: 1 / 2;
         display: flex;
         justify-content: flex-start;
     }
 
-    .logo-container.hidden,
-    .instagram-icon.hidden {
-        display: none;
+    .logo {
+        margin: 0;
     }
 
-    .logo {
-        margin: 0 auto;
+    .instagram-link {
+        grid-column: 2 / 3;
+        justify-self: center;
+        display: inline-flex;
     }
 
     .instagram-icon {
-        flex: 1;
-        display: flex;
-        justify-content: center;
+        display: block;
     }
 }
 
