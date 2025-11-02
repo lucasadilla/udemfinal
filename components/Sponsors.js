@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import useHomeSponsors from '../hooks/useHomeSponsors';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 /**
  * Displays a horizontally scrolling list of sponsor logos on the home page.
@@ -8,13 +9,8 @@ import useHomeSponsors from '../hooks/useHomeSponsors';
  */
 export default function SponsorsBar() {
     const { sponsors, loading, addSponsor, deleteSponsor } = useHomeSponsors();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     const [image, setImage] = useState('');
-
-    // Determine admin status from cookie
-    useEffect(() => {
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
-    }, []);
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];

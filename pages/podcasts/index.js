@@ -1,21 +1,18 @@
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
+import useAdminStatus from '../../hooks/useAdminStatus';
 
 export default function PodcastsPage() {
   const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [bio, setBio] = useState('');
-
-  useEffect(() => {
-    setIsAdmin(document.cookie.includes('admin-auth=true'));
-  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 export default function Footer() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     const router = useRouter();
-
-    useEffect(() => {
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
-    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,6 +18,11 @@ export default function Footer() {
             body: JSON.stringify({ username, password })
         });
         if (res.ok) {
+            try {
+                window.localStorage.setItem('admin-auth', 'true');
+            } catch (err) {
+                console.warn("Impossible d’enregistrer l’état administrateur :", err);
+            }
             router.reload();
         } else {
             setError('Identifiants invalides');
@@ -28,6 +30,11 @@ export default function Footer() {
     };
 
     const handleSignOut = () => {
+        try {
+            window.localStorage.removeItem('admin-auth');
+        } catch (err) {
+            console.warn("Impossible de réinitialiser l’état administrateur :", err);
+        }
         document.cookie = 'admin-auth=; Path=/; Max-Age=0';
         router.reload();
     };

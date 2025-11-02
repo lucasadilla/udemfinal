@@ -1,21 +1,18 @@
 // pages/notre-comite.js
 import Navbar from "../components/Navbar";
 import Head from "next/head";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import useUsers from "../hooks/useUsers";
 import LoadingSpinner from "../components/LoadingSpinner";
+import useAdminStatus from "../hooks/useAdminStatus";
 
 export default function NotreComite() {
     const { users, loading, addUser, deleteUser } = useUsers();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
     const [title, setTitle] = useState("");
     const [profilePicture, setProfilePicture] = useState("");
     const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
-    }, []);
 
     const handleProfilePictureChange = (e) => {
         const file = e.target.files?.[0];

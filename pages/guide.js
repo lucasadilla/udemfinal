@@ -1,19 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import useGuideSponsors from '../hooks/useGuideSponsors';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 export default function GuidePage() {
     const { sponsors, loading, addSponsor, deleteSponsor } = useGuideSponsors();
     const [selectedSponsor, setSelectedSponsor] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     const [image, setImage] = useState('');
-
-    useEffect(() => {
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
-    }, []);
 
     const openModal = (index) => {
         setSelectedSponsor(sponsors[index]);
