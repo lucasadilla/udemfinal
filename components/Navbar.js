@@ -28,13 +28,39 @@ export default function Navbar() {
     };
 
     return (
-        <nav className={`bg-[#f0efe9] p-4 flex items-center justify-between w-full ${isOpen ? 'menu-open' : ''}`}>
-            <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
-                <a href="/">
-                    <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
+        <nav className={`bg-[#f0efe9] p-4 flex flex-col md:flex-row items-center justify-between w-full ${isOpen ? 'menu-open' : ''}`}>
+            <div className="nav-header w-full flex items-center justify-between">
+                <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
+                    <a href="/">
+                        <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
+                    </a>
+                </div>
+                <a
+                    href="https://www.instagram.com/femmesetdroit/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`desktop-instagram ${isOpen ? 'hidden' : ''}`}
+                >
+                    <img
+                        src="/images/insta.png"
+                        alt="Instagram de Femmes et Droit"
+                        className="instagram-icon w-8 h-8"
+                    />
                 </a>
+                <button
+                    className={`hamburger-icon ${isOpen ? 'open' : ''}`}
+                    onClick={toggleMenu}
+                    aria-label="Toggle navigation menu"
+                    aria-expanded={isOpen}
+                >
+                    <div>
+                        <span className="block w-6 h-0.5 bg-black mb-1"></span>
+                        <span className="block w-6 h-0.5 bg-black mb-1"></span>
+                        <span className="block w-6 h-0.5 bg-black"></span>
+                    </div>
+                </button>
             </div>
-            <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4 w-full md:w-auto`}>
+            <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex md:flex-row md:space-x-4 w-full md:w-auto`}>
                 {isOpen && (
                     <li className="mobile-instagram">
                         <a
@@ -82,29 +108,6 @@ export default function Navbar() {
                     </Link>
                 </li>
             </ul>
-            <a
-                href="https://www.instagram.com/femmesetdroit/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <img
-                    src="/images/insta.png"
-                    alt="Instagram de Femmes et Droit"
-                    className={`instagram-icon w-8 h-8 ${isOpen ? 'hidden' : ''}`}
-                />
-            </a>
-            <button
-                className={`hamburger-icon ${isOpen ? 'open' : ''}`}
-                onClick={toggleMenu}
-                aria-label="Toggle navigation menu"
-                aria-expanded={isOpen}
-            >
-                <div>
-                    <span className="block w-6 h-0.5 bg-black mb-1"></span>
-                    <span className="block w-6 h-0.5 bg-black mb-1"></span>
-                    <span className="block w-6 h-0.5 bg-black"></span>
-                </div>
-            </button>
         </nav>
     );
 }

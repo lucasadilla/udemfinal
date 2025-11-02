@@ -1025,9 +1025,17 @@ button[type="submit"]:hover {
 
     nav {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         padding: 0.5rem 1rem;
+    }
+
+    .nav-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 0.75rem;
     }
 
     nav ul {
@@ -1060,34 +1068,25 @@ button[type="submit"]:hover {
         box-sizing: border-box;
     }
 
-    nav.menu-open {
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 1rem;
+    nav.menu-open .nav-header {
+        margin-bottom: 0.5rem;
     }
 
-    nav.menu-open .logo-container {
-        order: 1;
-    }
-
-    nav.menu-open .hamburger-icon {
-        order: 2;
-        align-self: center;
-    }
-
-    nav.menu-open .nav-links {
-        order: 3;
-        width: 100%;
+    .hamburger-icon {
+        margin-left: auto;
     }
 
     .mobile-instagram {
         width: 100%;
         display: flex;
-        justify-content: flex-start;
+        justify-content: center;
     }
 
-    .mobile-instagram a {
+    .mobile-instagram a,
+    .desktop-instagram {
         display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .grid {
@@ -1255,9 +1254,7 @@ button[type="submit"]:hover {
     }
 
     .instagram-icon {
-        flex: 1;
-        display: flex;
-        justify-content: center;
+        display: block;
     }
 }
 
@@ -1268,9 +1265,15 @@ button[type="submit"]:hover {
 
     nav {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
         padding: 0.5rem 1rem; /* Adjust the padding to make the navbar smaller */
+    }
+
+    .nav-header {
+        width: auto;
+        gap: 1rem;
     }
 
     .nav-links {
@@ -1278,6 +1281,8 @@ button[type="submit"]:hover {
         flex-direction: row;
         align-items: center;
         margin-right: auto;
+        padding-left: 0;
+        width: auto;
     }
 
     .nav-links li {
