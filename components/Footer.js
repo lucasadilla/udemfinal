@@ -35,31 +35,31 @@ export default function Footer() {
     return (
         <footer className="footer">
             <div className="footer-content flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <span>©2024 Comité Femmes et Droit UdeM</span>
+                <span className="footer-copy">©2024 Comité Femmes et Droit UdeM</span>
                 {isAdmin ? (
                     <button
-                        className="bg-blue-500 text-white px-3 py-1 mt-2 sm:mt-0"
+                        className="bg-blue-500 text-white px-3 py-1 mt-2 sm:mt-0 w-full sm:w-auto"
                         onClick={handleSignOut}
                     >
                         Déconnexion
                     </button>
                 ) : (
-                    <form onSubmit={handleSubmit} className="mt-2 sm:mt-0 flex space-x-2">
+                    <form onSubmit={handleSubmit} className="mt-2 sm:mt-0 flex flex-col sm:flex-row sm:space-x-2 gap-2 w-full sm:w-auto">
                         <input
-                            className="border p-1"
+                            className="border p-1 w-full sm:w-auto"
                             type="text"
                             placeholder="Nom d'utilisateur"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                         <input
-                            className="border p-1"
+                            className="border p-1 w-full sm:w-auto"
                             type="password"
                             placeholder="Mot de passe"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <button className="bg-blue-500 text-white px-3 py-1" type="submit">
+                        <button className="bg-blue-500 text-white px-3 py-1 w-full sm:w-auto" type="submit">
                             Connexion
                         </button>
                     </form>

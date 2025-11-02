@@ -28,13 +28,24 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="bg-[#f0efe9] p-4 flex items-center justify-center">
+        <nav className={`bg-[#f0efe9] p-4 flex items-center justify-between w-full ${isOpen ? 'menu-open' : ''}`}>
             <div className={`logo-container ${isOpen ? 'hidden' : ''}`}>
                 <a href="/">
                     <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
                 </a>
             </div>
-            <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4`}>
+            <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4 w-full md:w-auto`}>
+                {isOpen && (
+                    <li className="mobile-instagram">
+                        <a
+                            href="https://www.instagram.com/femmesetdroit/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <img src="/images/insta.png" alt="Instagram de Femmes et Droit" className="instagram-icon w-8 h-8" />
+                        </a>
+                    </li>
+                )}
                 <li>
                     <Link href="/">
                         <span className={`nav-link text-black ${isActive('/') ? 'font-bold' : ''}`}>Accueil</span>

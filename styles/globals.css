@@ -655,6 +655,11 @@ button[type="submit"]:hover {
     align-items: center;
     justify-content: center;
     width: 100%;
+    gap: 0.5rem;
+}
+
+.footer-copy {
+    white-space: nowrap;
 }
 .instagram-icon {
     width: 24px;
@@ -1000,7 +1005,22 @@ button[type="submit"]:hover {
     }
 
     .footer-content {
-        flex-direction: row;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .footer-content form {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .footer-content form input,
+    .footer-content form button,
+    .footer-content > button {
+        width: 100%;
     }
 
     nav {
@@ -1033,8 +1053,31 @@ button[type="submit"]:hover {
     .nav-links.open {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
         width: 100%;
+        gap: 0.75rem;
+        padding-left: 0.5rem;
+        box-sizing: border-box;
+    }
+
+    nav.menu-open {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    nav.menu-open .hamburger-icon {
+        align-self: flex-end;
+    }
+
+    .mobile-instagram {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .mobile-instagram a {
+        display: inline-flex;
     }
 
     .grid {
