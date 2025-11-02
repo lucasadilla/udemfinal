@@ -2,6 +2,15 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { useEffect, useRef } from 'react';
+import {
+  compressImageFile,
+  estimateBase64Size,
+  IMAGE_ERRORS,
+} from '@/lib/clientImageUtils';
+
+const EDITOR_MAX_WIDTH = 820;
+const EDITOR_QUALITY = 0.62;
+const MAX_EDITOR_BASE64_SIZE = 1 * 1024 * 1024; // ~1 MB per image to keep API payload small
 
 export default function RichTextEditor({ value = '', onChange = () => {} }) {
   const fileInput = useRef(null);
@@ -20,21 +29,39 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
     }
   }, [editor, value]);
 
-  const addImage = (file) => {
+  const prepareEditorImage = async (file) => {
+    const dataUrl = await compressImageFile(file, {
+      maxWidth: EDITOR_MAX_WIDTH,
+      quality: EDITOR_QUALITY,
+    });
+
+    if (estimateBase64Size(dataUrl) > MAX_EDITOR_BASE64_SIZE) {
+      const error = new Error(IMAGE_ERRORS.TOO_LARGE);
+      error.code = IMAGE_ERRORS.TOO_LARGE;
+      throw error;
+    }
+
+    return dataUrl;
+  };
+
+  const addImage = async (file) => {
     if (!editor) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      // Limit image size to prevent oversized images in the editor and saved content
+    try {
+      const dataUrl = await prepareEditorImage(file);
       editor
         .chain()
         .focus()
         .setImage({
-          src: reader.result,
+          src: dataUrl,
           style: 'max-width: 480px; width: 100%; height: auto; display: block; margin: 1.5rem auto; border-radius: 12px;'
         })
         .run();
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Impossible d’ajouter l’image dans le contenu :', error);
+      if (error?.code === IMAGE_ERRORS.TOO_LARGE && typeof window !== 'undefined') {
+        window.alert("Cette image est trop volumineuse pour être insérée dans l’article. Choisissez une image plus légère.");
+      }
+    }
   };
 
   return (
