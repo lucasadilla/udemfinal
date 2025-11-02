@@ -2,6 +2,66 @@ import { useState, useEffect } from 'react';
 import useUsers from '@/hooks/useUsers';
 import RichTextEditor from '@/components/RichTextEditor';
 
+const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6 MB (fits within the 8 MB API limit once encoded)
+const MAX_BASE64_SIZE = 7.5 * 1024 * 1024; // 7.5 MB safety margin
+const DEFAULT_MAX_WIDTH = 1200;
+const DEFAULT_QUALITY = 0.7;
+
+const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = reject;
+  reader.readAsDataURL(file);
+});
+
+const compressImageFile = (file, maxWidth = DEFAULT_MAX_WIDTH, quality = DEFAULT_QUALITY) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      let { width, height } = image;
+
+      if (width > maxWidth) {
+        const ratio = maxWidth / width;
+        width = maxWidth;
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        reject(new Error("Impossible d'obtenir le contexte du canvas"));
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(objectUrl);
+        if (!blob) {
+          reject(new Error("Échec de la compression de l'image"));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', quality);
+    };
+
+    image.onerror = (err) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(err);
+    };
+    image.src = objectUrl;
+  });
+
+const estimateBase64Size = (dataUrl = '') => {
+  const base64 = dataUrl.split(',')[1] || '';
+  return Math.ceil((base64.length * 3) / 4);
+};
+
 export default function ArticleForm({ article, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     title: '',
@@ -11,6 +71,7 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
     image: '',
     date: new Date().toISOString().split('T')[0]
   });
+  const [imageError, setImageError] = useState('');
   const { users } = useUsers();
 
   useEffect(() => {
@@ -49,14 +110,27 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData(prev => ({ ...prev, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+
+    setImageError('');
+
+    try {
+      const dataUrl = file.size > MAX_FILE_SIZE
+        ? await compressImageFile(file)
+        : await readFileAsDataURL(file);
+
+      if (estimateBase64Size(dataUrl) > MAX_BASE64_SIZE) {
+        setImageError("L’image sélectionnée est trop volumineuse. Choisissez une image plus petite (moins de 6 Mo).");
+        return;
+      }
+
+      setFormData(prev => ({ ...prev, image: dataUrl }));
+    } catch (error) {
+      console.error("Erreur lors du traitement de l'image :", error);
+      setImageError("Impossible d’utiliser cette image. Veuillez en choisir une autre.");
+    }
   };
 
   return (
@@ -117,6 +191,11 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             onChange={handleImageUpload}
             className="border border-dashed border-gray-300 w-full rounded-xl bg-white px-4 py-4 text-sm text-gray-600 hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
+          {imageError ? (
+            <p className="mt-2 text-sm text-red-600">{imageError}</p>
+          ) : (
+            <p className="mt-2 text-xs text-gray-500">Images jusqu’à 6&nbsp;Mo. Les fichiers volumineux sont automatiquement compressés.</p>
+          )}
           {/* Article preview removed as per new requirements */}
         </div>
 
