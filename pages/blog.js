@@ -7,6 +7,7 @@ import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 function mergeArticles(primary = [], secondary = []) {
     const map = new Map();
@@ -21,7 +22,7 @@ function mergeArticles(primary = [], secondary = []) {
 export default function Blog() {
     const { articles, addArticle, deleteArticle } = useArticles();
     const [posts, setPosts] = useState([]);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
 
     useEffect(() => {
@@ -35,7 +36,6 @@ export default function Blog() {
             }
         }
         load();
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
     }, [articles]);
 
     const handleDelete = async (id) => {

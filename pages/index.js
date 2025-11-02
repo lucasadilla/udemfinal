@@ -3,16 +3,17 @@ import Navbar from '../components/Navbar';
 import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
 import Head from 'next/head';
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 export default function Home() {
-    const { articles, loading: articlesLoading } = useArticles();
+    const { articles } = useArticles();
     const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = useAdminStatus();
     
     // Get dynamic content with fallbacks
     const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
@@ -27,10 +28,6 @@ export default function Home() {
     const pageKeywords = getTextContent('home', 'meta', 'page_keywords', 'féminisme, intersectionnalité, Université de Montréal, communauté, féminisme étudiant');
 
     const topThreeArticles = articles ? articles.slice(0, 3) : [];
-
-    useEffect(() => {
-        setIsAdmin(document.cookie.includes('admin-auth=true'));
-    }, []);
 
     // Show loading only for a reasonable time, then show content with fallbacks
     if (contentLoading && !contentError) {

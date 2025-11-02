@@ -1,9 +1,10 @@
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import { Indicator } from '@mantine/core';
 import LoadingSpinner from '../components/LoadingSpinner';
+import useAdminStatus from '../hooks/useAdminStatus';
 
 const normalizeToMonthStart = (value) => {
   const fallback = new Date();
@@ -21,7 +22,7 @@ const formatMonthKey = (date) =>
 
 export default function Evenements() {
   const { events, loading, addEvent, deleteEvent } = useEvents();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
   // Rename state variable to avoid confusion with Calendar's date parameter
@@ -79,10 +80,6 @@ export default function Evenements() {
       ),
     [eventsWithParsedDates]
   );
-
-  useEffect(() => {
-    setIsAdmin(document.cookie.includes('admin-auth=true'));
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
