@@ -93,7 +93,12 @@ export default function Navbar() {
                     className={`instagram-icon w-8 h-8 ${isOpen ? 'hidden' : ''}`}
                 />
             </a>
-            <button className="hamburger-icon" onClick={toggleMenu}>
+            <button
+                className={`hamburger-icon ${isOpen ? 'open' : ''}`}
+                onClick={toggleMenu}
+                aria-label="Toggle navigation menu"
+                aria-expanded={isOpen}
+            >
                 <div>
                     <span className="block w-6 h-0.5 bg-black mb-1"></span>
                     <span className="block w-6 h-0.5 bg-black mb-1"></span>
