@@ -12,7 +12,7 @@ export default function ArticleForm({ article, onSubmit, onCancel, errorMessage 
     title: '',
     content: '',
     author: '',
-    authorImage: '',
+    authorId: '',
     image: '',
     date: new Date().toISOString().split('T')[0]
   });
@@ -25,12 +25,24 @@ export default function ArticleForm({ article, onSubmit, onCancel, errorMessage 
         title: article.title || '',
         content: article.content || '',
         author: article.author || '',
-        authorImage: article.authorImage || '',
+        authorId: article.authorId || '',
         image: article.image || '',
         date: article.date || new Date().toISOString().split('T')[0]
       });
     }
   }, [article]);
+
+  useEffect(() => {
+    if (!formData.authorId && formData.author) {
+      const matchingUser = users.find((user) => user.name === formData.author);
+      if (matchingUser) {
+        setFormData((prev) => ({
+          ...prev,
+          authorId: matchingUser.id,
+        }));
+      }
+    }
+  }, [users, formData.authorId, formData.author]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -46,12 +58,12 @@ export default function ArticleForm({ article, onSubmit, onCancel, errorMessage 
   };
 
   const handleAuthorChange = (e) => {
-    const selectedName = e.target.value;
-    const selectedUser = users.find(u => u.name === selectedName);
-    setFormData(prev => ({
+    const selectedId = e.target.value;
+    const selectedUser = users.find((u) => u.id === selectedId);
+    setFormData((prev) => ({
       ...prev,
-      author: selectedName,
-      authorImage: selectedUser ? selectedUser.profilePicture : ''
+      author: selectedUser ? selectedUser.name : '',
+      authorId: selectedId,
     }));
   };
 
@@ -107,15 +119,15 @@ export default function ArticleForm({ article, onSubmit, onCancel, errorMessage 
               Autrice ou auteur *
             </label>
             <select
-              name="author"
-              value={formData.author}
+              name="authorId"
+              value={formData.authorId}
               onChange={handleAuthorChange}
               className="border border-gray-200 h-12 px-4 rounded-xl w-full text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
               required
             >
               <option value="">Sélectionnez une autrice ou un auteur</option>
               {users.map(user => (
-                <option key={user.id} value={user.name}>{user.name}</option>
+                <option key={user.id} value={user.id}>{user.name}</option>
               ))}
             </select>
             {/* Author preview removed as per new requirements */}
