@@ -55,6 +55,12 @@ export default async function handler(req, res) {
     return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
+    if (err?.code === 'FALLBACK_STORAGE_FAILED') {
+      return res.status(503).json({
+        error:
+          'Échec de l’enregistrement de l’article. Vérifiez la connexion à la base de données ou la configuration du stockage.',
+      });
+    }
     return res.status(500).json({ error: 'Échec du traitement des articles.' });
   }
 }

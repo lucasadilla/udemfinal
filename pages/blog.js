@@ -24,6 +24,7 @@ export default function Blog() {
     const [posts, setPosts] = useState([]);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
+    const [formError, setFormError] = useState('');
 
     useEffect(() => {
         async function load() {
@@ -80,11 +81,20 @@ export default function Blog() {
                         <div className="w-full max-w-5xl">
                             {showForm ? (
                                 <ArticleForm
+                                    errorMessage={formError}
                                     onSubmit={async (data) => {
-                                        await addArticle(data);
+                                        setFormError('');
+                                        try {
+                                            await addArticle(data);
+                                            setShowForm(false);
+                                        } catch (error) {
+                                            setFormError(error?.message || 'Impossible de publier l’article.');
+                                        }
+                                    }}
+                                    onCancel={() => {
+                                        setFormError('');
                                         setShowForm(false);
                                     }}
-                                    onCancel={() => setShowForm(false)}
                                 />
                             ) : (
                                 <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 border border-purple-100 rounded-3xl shadow-xl px-6 py-12 sm:px-12 text-center">
@@ -95,7 +105,10 @@ export default function Blog() {
                                     <div className="mt-8 flex justify-center">
                                         <button
                                             className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:from-green-600 hover:to-emerald-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                                            onClick={() => setShowForm(true)}
+                                            onClick={() => {
+                                                setFormError('');
+                                                setShowForm(true);
+                                            }}
                                         >
                                             Commencer à écrire
                                         </button>

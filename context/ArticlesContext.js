@@ -33,13 +33,16 @@ export function ArticlesProvider({ children }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(article),
             });
-            if (res.ok) {
-                await fetchArticles();
-            } else {
-                console.warn('Impossible d’ajouter un article :', res.status);
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                const message = payload?.error || `Impossible d’ajouter un article : ${res.status}`;
+                throw new Error(message);
             }
+            await fetchArticles();
+            return true;
         } catch (err) {
             console.error('Impossible d’ajouter un article :', err);
+            throw err;
         }
     };
 
