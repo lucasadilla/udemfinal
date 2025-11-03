@@ -1,5 +1,20 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
+const MAX_ARTICLE_PAYLOAD_SIZE = 3.5 * 1024 * 1024; // ~3.5 MB to stay under the server limit
+
+function getPayloadSize(article) {
+    try {
+        const json = JSON.stringify(article);
+        if (typeof TextEncoder !== 'undefined') {
+            return new TextEncoder().encode(json).length;
+        }
+        return json.length;
+    } catch (error) {
+        console.error('Impossible de calculer la taille du contenu de l’article :', error);
+        return Infinity;
+    }
+}
+
 const ArticlesContext = createContext({ articles: [], loading: true, addArticle: async () => {}, deleteArticle: async () => {} });
 
 export function ArticlesProvider({ children }) {
@@ -28,6 +43,12 @@ export function ArticlesProvider({ children }) {
 
     const addArticle = async (article) => {
         try {
+            const payloadSize = getPayloadSize(article);
+            if (payloadSize > MAX_ARTICLE_PAYLOAD_SIZE) {
+                throw new Error(
+                    "L’article est trop volumineux pour être publié. Réduisez la taille des images ou le contenu avant de réessayer."
+                );
+            }
             const res = await fetch('/api/articles', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
