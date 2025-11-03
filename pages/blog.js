@@ -27,7 +27,7 @@ export default function Blog() {
 
     useEffect(() => {
         async function load() {
-            const res = await fetch('/api/posts');
+            const res = await fetch('/api/articles');
             if (res.ok) {
                 const data = await res.json();
                 setPosts(mergeArticles(articles, data));
