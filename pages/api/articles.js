@@ -4,24 +4,72 @@ import {
   getArticleById,
   getArticles,
 } from '../../lib/articlesDatabase';
+import getMongoDb from '../../lib/mongoClient';
+import { ObjectId } from 'mongodb';
+
+async function resolveAuthorMetadata({ authorId, author, authorImage }) {
+  if (authorImage) {
+    return { authorImage, authorId: authorId || null };
+  }
+
+  try {
+    const db = await getMongoDb();
+    const collection = db.collection('users');
+
+    let authorObjectId = null;
+    if (authorId) {
+      try {
+        authorObjectId = new ObjectId(authorId);
+      } catch (conversionError) {
+        console.warn("Identifiant d’auteur invalide fourni :", conversionError);
+      }
+    }
+
+    const query = authorObjectId
+      ? { _id: authorObjectId }
+      : author
+        ? { name: author }
+        : null;
+
+    if (!query) {
+      return { authorImage: '', authorId: authorId || null };
+    }
+
+    const userDoc = await collection.findOne(query);
+    if (!userDoc) {
+      return { authorImage: '', authorId: authorId || null };
+    }
+
+    return {
+      authorImage: userDoc.profilePicture || '',
+      authorId: userDoc._id ? userDoc._id.toString() : authorId || null,
+    };
+  } catch (error) {
+    console.error("Impossible de récupérer l’image du profil auteur :", error);
+    return { authorImage: '', authorId: authorId || null };
+  }
+}
 
 /**
  * API route to manage blog articles.
- * Each article has { title, content, author, authorImage, image, date }.
+ * Each article has { title, content, author, authorId, authorImage, image, date }.
  */
 export default async function handler(req, res) {
   try {
     if (req.method === 'POST') {
-      const { title, content, author, authorImage, image, date } = req.body || {};
+      const { title, content, author, authorId, authorImage, image, date } = req.body || {};
       if (!title || !content || !author || !date) {
         return res.status(400).json({ error: 'Les champs title, content, author et date sont requis.' });
       }
+
+      const resolvedAuthor = await resolveAuthorMetadata({ authorId, author, authorImage });
 
       const savedArticle = await addArticle({
         title,
         content,
         author,
-        authorImage,
+        authorId: resolvedAuthor.authorId || authorId || null,
+        authorImage: resolvedAuthor.authorImage,
         image,
         date,
         createdAt: new Date().toISOString(),
