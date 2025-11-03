@@ -68,7 +68,8 @@ export default async function handler(req, res) {
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '8mb',
+      // Autorise des images encodées en base64 plus volumineuses lors de la création d’un article.
+      sizeLimit: '24mb',
     },
   },
 };
