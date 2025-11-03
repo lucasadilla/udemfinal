@@ -356,17 +356,6 @@ function EventsLayout({
             margin: 0 auto;
           }
           @media (min-width: 768px) {
-            #ev-wrap {
-              flex-direction: row;
-              align-items: flex-start;
-              justify-content: center;
-            }
-            #ev-wrap > .panel {
-              width: auto;
-            }
-            #ev-wrap > .panel.panel--events {
-              width: min(100%, 40rem);
-            }
             .panel--calendar {
               --calendar-day-height: 92px;
               max-width: 32rem;
