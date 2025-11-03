@@ -7,7 +7,7 @@ import {
   MAX_FORM_BASE64_SIZE,
 } from '@/lib/clientImageUtils';
 
-export default function ArticleForm({ article, onSubmit, onCancel }) {
+export default function ArticleForm({ article, onSubmit, onCancel, errorMessage = '' }) {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -171,6 +171,10 @@ export default function ArticleForm({ article, onSubmit, onCancel }) {
             {formData.content.replace(/<[^>]*>/g, '').length} caractères
           </p>
         </div>
+
+        {errorMessage ? (
+          <p className="text-sm text-red-600 text-center pt-2">{errorMessage}</p>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-6">
           <button
