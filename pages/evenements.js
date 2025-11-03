@@ -2,7 +2,6 @@ import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import { useCallback, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
-import { Indicator } from '@mantine/core';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
 
@@ -210,9 +209,8 @@ function EventsLayout({
   return (
     <div className="mt-8 flex w-full justify-center px-4">
       <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
-        <div className="w-full text-center">
-          <div id="ev-wrap">
-          <div className="panel w-full max-w-md md:max-w-xl">
+        <div id="ev-wrap">
+          <div className="panel panel--calendar">
             <div className="cal-header">
               <button
                 type="button"
@@ -257,7 +255,7 @@ function EventsLayout({
               })}
             </div>
           </div>
-          <div className="panel w-full max-w-lg md:max-w-xl">
+          <div className="panel panel--events">
             <div className="events-title mb-3 text-gray-800">
               {formattedMonthLabel || 'Événements'}
             </div>
@@ -327,27 +325,33 @@ function EventsLayout({
               )}
             </div>
           </div>
-          </div>
         </div>
         <style jsx>{`
           #ev-wrap {
-            display: grid;
-            grid-template-columns: 1fr;
-            justify-content: center;
-            justify-items: center;
-            align-items: start;
-            gap: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2.5rem;
             width: 100%;
             margin: 0 auto;
           }
-          @media (min-width: 1024px) {
-            #ev-wrap {
-              grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-              justify-items: stretch;
-            }
-          }
           #ev-wrap > .panel {
             width: 100%;
+          }
+          .panel--calendar {
+            max-width: 28rem;
+            width: 100%;
+            margin: 0 auto;
+          }
+          @media (min-width: 768px) {
+            .panel--calendar {
+              max-width: 32rem;
+            }
+          }
+          .panel--events {
+            max-width: 40rem;
+            width: 100%;
+            margin: 0 auto;
           }
           .cal-header {
             display: grid;
@@ -416,9 +420,10 @@ function EventsLayout({
             transform: translateY(-2px);
           }
           .day.empty {
-            background: transparent;
-            border-color: transparent;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(241, 245, 249, 0.75));
+            border-color: rgba(226, 232, 240, 0.5);
             box-shadow: none;
+            opacity: 0.6;
           }
           .date-number {
             font-weight: 700;
