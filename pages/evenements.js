@@ -101,7 +101,7 @@ export default function Evenements() {
       </Head>
       <div>
         <Navbar />
-        <main className="max-w-6xl mx-auto p-4">
+        <main className="events-page">
           <h1 className="text-3xl text-center mb-4">Événements</h1>
           {isAdmin && (
             <form onSubmit={handleSubmit} className="mb-8 space-y-2">
@@ -148,6 +148,21 @@ export default function Evenements() {
             />
           )}
         </main>
+        <style jsx>{`
+          .events-page {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 72rem;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 2rem;
+          }
+
+          @media (min-width: 768px) {
+            .events-page {
+              padding-inline: 2rem;
+            }
+          }
+        `}</style>
       </div>
     </>
   );
@@ -207,8 +222,8 @@ function EventsLayout({
   const hasMonthEvents = monthEvents.length > 0;
 
   return (
-    <div className="mt-8 flex w-full justify-center px-4">
-      <div className="w-full max-w-5xl rounded-2xl bg-white/80 p-6 shadow-md backdrop-blur">
+    <div className="events-layout">
+      <div className="events-layout__inner">
         <div id="ev-wrap">
           <div className="panel panel--calendar">
             <div className="cal-header">
@@ -327,6 +342,34 @@ function EventsLayout({
           </div>
         </div>
         <style jsx>{`
+          .events-layout {
+            margin-top: 2rem;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            padding: 0 1.25rem;
+          }
+
+          .events-layout__inner {
+            width: min(100%, 72rem);
+            border-radius: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1.5rem;
+            box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(6px);
+          }
+
+          @media (min-width: 768px) {
+            .events-layout {
+              padding: 0 2rem;
+            }
+
+            .events-layout__inner {
+              padding: 2rem;
+            }
+          }
+
           #ev-wrap {
             display: flex;
             flex-direction: column;
