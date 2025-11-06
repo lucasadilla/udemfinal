@@ -393,20 +393,20 @@ function EventsLayout({
             margin-right: auto;
           }
           .panel--calendar {
-            max-width: 36rem;
-            width: min(100%, 36rem);
+            max-width: 44rem;
+            width: min(100%, 44rem);
             margin: 0 auto;
           }
           @media (min-width: 768px) {
             .panel--calendar {
-              max-width: 42rem;
-              width: min(100%, 42rem);
+              max-width: 52rem;
+              width: min(100%, 52rem);
             }
           }
           @media (min-width: 1024px) {
             .panel--calendar {
-              max-width: 46rem;
-              width: min(100%, 46rem);
+              max-width: 60rem;
+              width: min(100%, 60rem);
             }
           }
           .panel--events {
@@ -416,20 +416,20 @@ function EventsLayout({
           }
           .cal-header {
             display: grid;
-            grid-template-columns: 40px 1fr 40px;
+            grid-template-columns: 48px 1fr 48px;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
           }
           .month-title {
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: #111827;
           }
           .nav-btn {
-            height: 40px;
-            width: 40px;
+            height: 48px;
+            width: 48px;
             border-radius: 9999px;
             border: 1px solid #e5e7eb;
             background: #fff;
@@ -447,19 +447,19 @@ function EventsLayout({
           .weekdays {
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
+            gap: 10px;
             text-align: center;
-            font-size: 0.875rem;
+            font-size: 0.95rem;
             color: #6b7280;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.04em;
           }
           .days {
-            margin-top: 8px;
+            margin-top: 12px;
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 8px;
+            gap: 12px;
           }
           .day {
             position: relative;
@@ -470,7 +470,7 @@ function EventsLayout({
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
             border: 1px solid rgba(226, 232, 240, 0.9);
             border-radius: 0.75rem;
-            padding: 12px;
+            padding: 16px;
             transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
           }
           .day:hover {
@@ -487,18 +487,18 @@ function EventsLayout({
           .date-number {
             font-weight: 700;
             color: #0f172a;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
           }
           .event-dot {
             position: absolute;
-            bottom: 10px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
-            width: 7px;
-            height: 7px;
+            width: 9px;
+            height: 9px;
             border-radius: 9999px;
             background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
+            box-shadow: 0 0 0 5px rgba(129, 140, 248, 0.15);
           }
           .events-title {
             font-size: 1.25rem;
