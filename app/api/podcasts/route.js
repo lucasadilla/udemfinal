@@ -360,11 +360,9 @@ export async function DELETE(request) {
   }
 }
 
-const sizeLimitInMb = Math.max(1, Math.ceil(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024)));
-
 export const config = {
   api: {
     bodyParser: false,
-    sizeLimit: `${sizeLimitInMb}mb`,
+    sizeLimit: '4096mb',
   },
 };
