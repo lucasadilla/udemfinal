@@ -217,6 +217,15 @@ nav a {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
+.loading-spinner__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 60vh;
+    padding: 2rem 0;
+}
+
 .loading-spinner {
     display: inline-flex;
     align-items: center;
