@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
+import Busboy from 'next/dist/compiled/busboy';
 import { NextResponse } from 'next/server';
 import {
   addPodcast,
@@ -15,12 +15,6 @@ const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
 const imageUploadsDirectory = path.join(baseUploadsDirectory, 'images');
 
 export const runtime = 'nodejs';
-export const config = {
-  api: {
-    bodyParser: false,
-    sizeLimit: '256mb',
-  },
-};
 
 function ensureUploadsDirectory(directory) {
   if (!fs.existsSync(directory)) {
@@ -57,12 +51,28 @@ function toPublicPath(absolutePath) {
   return path.posix.join('/', relativeDirectory.split(path.sep).join('/'));
 }
 
-async function persistUploadedFile(file, directory, fallbackBaseName) {
-  if (!file) {
-    throw new Error('Aucun fichier transmis.');
+class HttpError extends Error {
+  constructor(status, message, meta = {}) {
+    super(message);
+    this.status = status;
+    this.meta = meta;
+  }
+}
+
+async function streamToBuffer(stream) {
+  const chunks = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+async function persistUploadedStream(stream, info, directory, fallbackBaseName, truncatedRef, fieldName) {
+  if (!stream) {
+    throw new HttpError(400, 'Aucun fichier transmis.');
   }
 
-  const fileName = buildFileName(file.name, file.type, fallbackBaseName);
+  const fileName = buildFileName(info?.filename, info?.mimeType, fallbackBaseName);
   const targetPath = path.join(directory, fileName);
   ensureUploadsDirectory(directory);
 
@@ -71,16 +81,37 @@ async function persistUploadedFile(file, directory, fallbackBaseName) {
     writeStream = fs.createWriteStream(targetPath);
   } catch (error) {
     if (isReadOnlyFileSystemError(error)) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      return `data:${file.type || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
+      const buffer = await streamToBuffer(stream);
+      return `data:${info?.mimeType || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
     }
     throw error;
   }
 
+  const chunks = [];
+
   try {
-    const readable = Readable.fromWeb(file.stream());
-    await pipeline(readable, writeStream);
+    await new Promise((resolve, reject) => {
+      stream.on('data', (chunk) => {
+        chunks.push(Buffer.from(chunk));
+      });
+      stream.on('error', (error) => {
+        reject(error);
+      });
+      writeStream.on('error', (error) => {
+        reject(error);
+      });
+      writeStream.on('finish', resolve);
+      stream.pipe(writeStream);
+    });
+
+    if (truncatedRef?.value) {
+      if (fs.existsSync(targetPath)) {
+        fs.unlinkSync(targetPath);
+      }
+      throw new HttpError(413, 'Le fichier dépasse la taille maximale autorisée.', { field: fieldName });
+    }
+
+    chunks.length = 0;
     return toPublicPath(targetPath);
   } catch (error) {
     if (fs.existsSync(targetPath)) {
@@ -88,9 +119,8 @@ async function persistUploadedFile(file, directory, fallbackBaseName) {
     }
 
     if (isReadOnlyFileSystemError(error)) {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      return `data:${file.type || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
+      const buffer = Buffer.concat(chunks);
+      return `data:${info?.mimeType || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
     }
 
     throw error;
@@ -144,18 +174,109 @@ function getFieldValue(value) {
   return value;
 }
 
+const MAX_UPLOAD_SIZE_BYTES = 256 * 1024 * 1024;
+
+function ensureMultipartRequest(headers) {
+  const contentType = headers.get('content-type') || '';
+  if (!contentType.toLowerCase().includes('multipart/form-data')) {
+    throw new HttpError(400, 'Le téléchargement doit être envoyé en multipart/form-data.');
+  }
+}
+
 export async function POST(request) {
+  let storedMediaPath = null;
+  let storedImagePath = null;
+
   try {
-    const formData = await request.formData();
-    const title = getFieldValue(formData.get('title')).trim();
-    const date = getFieldValue(formData.get('date')).trim();
-    const bio = getFieldValue(formData.get('bio')).trim();
-    const mediaFile = formData.get('video');
-    const imageFile = formData.get('image');
+    ensureMultipartRequest(request.headers);
 
-    const isValidFile = (value) => value && typeof value === 'object' && typeof value.arrayBuffer === 'function';
+    const headers = Object.fromEntries(request.headers);
+    const busboy = Busboy({
+      headers,
+      limits: {
+        fields: 20,
+        files: 2,
+        fileSize: MAX_UPLOAD_SIZE_BYTES,
+      },
+    });
 
-    if (!title || !date || !isValidFile(mediaFile) || !isValidFile(imageFile)) {
+    const collectedFields = {};
+
+    const filePromises = [];
+
+    const parsingPromise = new Promise((resolve, reject) => {
+      busboy.on('finish', resolve);
+      busboy.on('error', reject);
+    });
+
+    busboy.on('field', (fieldName, value) => {
+      if (typeof collectedFields[fieldName] === 'undefined') {
+        collectedFields[fieldName] = value;
+      }
+    });
+
+    busboy.on('file', (fieldName, fileStream, info) => {
+      if (fieldName !== 'video' && fieldName !== 'image') {
+        fileStream.resume();
+        return;
+      }
+
+      const truncatedRef = { value: false };
+      fileStream.on('limit', () => {
+        truncatedRef.value = true;
+      });
+
+      const destinationDirectory = fieldName === 'video' ? videoUploadsDirectory : imageUploadsDirectory;
+      const fallbackBaseName = fieldName === 'video' ? 'balado-media' : 'balado-couverture';
+
+      const promise = persistUploadedStream(
+        fileStream,
+        info,
+        destinationDirectory,
+        fallbackBaseName,
+        truncatedRef,
+        fieldName,
+      )
+        .then((storedPath) => {
+          if (fieldName === 'video') {
+            storedMediaPath = storedPath;
+          } else {
+            storedImagePath = storedPath;
+          }
+        });
+
+      filePromises.push(
+        promise.catch((error) => {
+          if (fieldName === 'video' && storedMediaPath) {
+            deleteMediaFileIfExists(storedMediaPath);
+            storedMediaPath = null;
+          }
+          if (fieldName === 'image' && storedImagePath) {
+            deleteMediaFileIfExists(storedImagePath);
+            storedImagePath = null;
+          }
+          throw error;
+        }),
+      );
+    });
+
+    const nodeStream = request.body ? Readable.fromWeb(request.body) : null;
+    if (!nodeStream) {
+      throw new HttpError(400, 'Requête invalide.');
+    }
+
+    nodeStream.pipe(busboy);
+
+    await parsingPromise;
+    await Promise.all(filePromises);
+
+    const title = getFieldValue(collectedFields.title).trim();
+    const date = getFieldValue(collectedFields.date).trim();
+    const bio = getFieldValue(collectedFields.bio).trim();
+
+    if (!title || !date || !storedMediaPath || !storedImagePath) {
+      deleteMediaFileIfExists(storedMediaPath);
+      deleteMediaFileIfExists(storedImagePath);
       return NextResponse.json(
         {
           error:
@@ -163,18 +284,6 @@ export async function POST(request) {
         },
         { status: 400 },
       );
-    }
-
-    let storedMediaPath;
-    let storedImagePath;
-
-    try {
-      storedMediaPath = await persistUploadedFile(mediaFile, videoUploadsDirectory, 'balado-media');
-      storedImagePath = await persistUploadedFile(imageFile, imageUploadsDirectory, 'balado-couverture');
-    } catch (error) {
-      deleteMediaFileIfExists(storedMediaPath);
-      console.error("Impossible d’enregistrer les fichiers téléversés :", error);
-      return NextResponse.json({ error: "Impossible d’enregistrer les fichiers téléversés." }, { status: 500 });
     }
 
     const slug = await generateUniqueSlug(title);
@@ -190,6 +299,21 @@ export async function POST(request) {
 
     return NextResponse.json(podcast, { status: 201 });
   } catch (error) {
+    deleteMediaFileIfExists(storedMediaPath);
+    deleteMediaFileIfExists(storedImagePath);
+
+    if (error instanceof HttpError) {
+      const { status, meta } = error;
+      if (status === 413) {
+        const fieldLabel = meta?.field === 'image' ? 'image' : 'audio ou vidéo';
+        return NextResponse.json(
+          { error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de 256 Mo.` },
+          { status },
+        );
+      }
+      return NextResponse.json({ error: error.message }, { status });
+    }
+
     console.error('Échec du traitement de la requête POST /api/podcasts :', error);
     return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
   }
@@ -232,9 +356,6 @@ export async function DELETE(request) {
 
 export const config = {
   api: {
-    bodyParser: {
-      // Les fichiers audio et vidéo peuvent être volumineux; on augmente la limite de taille d’upload.
-      sizeLimit: '256mb',
-    },
+    bodyParser: false,
   },
 };
