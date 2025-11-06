@@ -144,29 +144,29 @@ export async function POST(request) {
     const title = getFieldValue(formData.get('title')).trim();
     const date = getFieldValue(formData.get('date')).trim();
     const bio = getFieldValue(formData.get('bio')).trim();
-    const videoFile = formData.get('video');
+    const mediaFile = formData.get('video');
     const imageFile = formData.get('image');
 
     const isValidFile = (value) => value && typeof value === 'object' && typeof value.arrayBuffer === 'function';
 
-    if (!title || !date || !isValidFile(videoFile) || !isValidFile(imageFile)) {
+    if (!title || !date || !isValidFile(mediaFile) || !isValidFile(imageFile)) {
       return NextResponse.json(
         {
           error:
-            'Les champs title, date, video et image sont requis pour créer un balado.',
+            'Les champs title, date, video (audio ou vidéo) et image sont requis pour créer un balado.',
         },
         { status: 400 },
       );
     }
 
-    let storedVideoPath;
+    let storedMediaPath;
     let storedImagePath;
 
     try {
-      storedVideoPath = await persistUploadedFile(videoFile, videoUploadsDirectory, 'video');
+      storedMediaPath = await persistUploadedFile(mediaFile, videoUploadsDirectory, 'balado-media');
       storedImagePath = await persistUploadedFile(imageFile, imageUploadsDirectory, 'balado-couverture');
     } catch (error) {
-      deleteMediaFileIfExists(storedVideoPath);
+      deleteMediaFileIfExists(storedMediaPath);
       console.error("Impossible d’enregistrer les fichiers téléversés :", error);
       return NextResponse.json({ error: "Impossible d’enregistrer les fichiers téléversés." }, { status: 500 });
     }
@@ -175,7 +175,7 @@ export async function POST(request) {
     const podcast = await addPodcast({
       title,
       date,
-      video: storedVideoPath,
+      video: storedMediaPath,
       image: storedImagePath,
       slug,
       bio,

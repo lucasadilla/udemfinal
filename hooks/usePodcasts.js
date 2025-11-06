@@ -24,10 +24,10 @@ export default function usePodcasts() {
     fetchPodcasts();
   }, []);
 
-  const addPodcast = async ({ title, date, video, image, bio }) => {
+  const addPodcast = async ({ title, date, media, image, bio }) => {
     try {
-      if (!video) {
-        throw new Error('Un fichier vidéo doit être fourni.');
+      if (!media) {
+        throw new Error('Un fichier audio ou vidéo doit être fourni.');
       }
 
       if (!image) {
@@ -38,7 +38,7 @@ export default function usePodcasts() {
       formData.append('title', title);
       formData.append('date', date);
       formData.append('bio', bio || '');
-      formData.append('video', video, video.name);
+      formData.append('video', media, media.name);
       formData.append('image', image, image.name);
 
       const res = await fetch('/api/podcasts', {

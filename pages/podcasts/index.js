@@ -10,19 +10,19 @@ export default function PodcastsPage() {
   const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [videoFile, setVideoFile] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [bio, setBio] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!title || !date || !videoFile || !imageFile) return;
+    if (!title || !date || !mediaFile || !imageFile) return;
 
-    await addPodcast({ title, date, bio, video: videoFile, image: imageFile });
+    await addPodcast({ title, date, bio, media: mediaFile, image: imageFile });
     setTitle('');
     setDate('');
     setBio('');
-    setVideoFile(null);
+    setMediaFile(null);
     setImageFile(null);
     event.target.reset();
   };
@@ -104,25 +104,25 @@ export default function PodcastsPage() {
                 </p>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="video">
-                  Fichier vidéo
+                <label className="mb-1 block text-sm font-medium" htmlFor="media">
+                  Fichier audio ou vidéo
                 </label>
                 <input
-                  id="video"
+                  id="media"
                   type="file"
-                  accept="video/*"
+                  accept="audio/*,video/*"
                   onChange={(event) => {
                     const file = event.target.files?.[0] || null;
-                    setVideoFile(file);
+                    setMediaFile(file);
                   }}
                   className="w-full rounded border border-gray-300 p-2"
                   required
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Sélectionnez un fichier vidéo présent sur votre ordinateur (format MP4, WebM, etc.).
+                  Sélectionnez un fichier média (audio ou vidéo) présent sur votre ordinateur.
                 </p>
-                {videoFile && (
-                  <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {videoFile.name}</p>
+                {mediaFile && (
+                  <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {mediaFile.name}</p>
                 )}
               </div>
               <div>
