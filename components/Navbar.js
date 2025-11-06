@@ -35,17 +35,6 @@ export default function Navbar() {
                 </a>
             </div>
             <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4 w-full md:w-auto`}>
-                {isOpen && (
-                    <li className="mobile-instagram">
-                        <a
-                            href="https://www.instagram.com/femmesetdroit/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <img src="/images/insta.png" alt="Instagram de Femmes et Droit" className="instagram-icon w-8 h-8" />
-                        </a>
-                    </li>
-                )}
                 <li>
                     <Link href="/">
                         <span className={`nav-link text-black ${isActive('/') ? 'font-bold' : ''}`}>Accueil</span>
