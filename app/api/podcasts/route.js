@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import Busboy from 'next/dist/compiled/busboy';
 import { NextResponse } from 'next/server';
 import {
@@ -87,22 +88,8 @@ async function persistUploadedStream(stream, info, directory, fallbackBaseName, 
     throw error;
   }
 
-  const chunks = [];
-
   try {
-    await new Promise((resolve, reject) => {
-      stream.on('data', (chunk) => {
-        chunks.push(Buffer.from(chunk));
-      });
-      stream.on('error', (error) => {
-        reject(error);
-      });
-      writeStream.on('error', (error) => {
-        reject(error);
-      });
-      writeStream.on('finish', resolve);
-      stream.pipe(writeStream);
-    });
+    await pipeline(stream, writeStream);
 
     if (truncatedRef?.value) {
       if (fs.existsSync(targetPath)) {
@@ -110,17 +97,10 @@ async function persistUploadedStream(stream, info, directory, fallbackBaseName, 
       }
       throw new HttpError(413, 'Le fichier dépasse la taille maximale autorisée.', { field: fieldName });
     }
-
-    chunks.length = 0;
     return toPublicPath(targetPath);
   } catch (error) {
     if (fs.existsSync(targetPath)) {
       fs.unlinkSync(targetPath);
-    }
-
-    if (isReadOnlyFileSystemError(error)) {
-      const buffer = Buffer.concat(chunks);
-      return `data:${info?.mimeType || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
     }
 
     throw error;
@@ -174,7 +154,29 @@ function getFieldValue(value) {
   return value;
 }
 
-const MAX_UPLOAD_SIZE_BYTES = 256 * 1024 * 1024;
+const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
+const parsedUploadLimit = Number(process.env.PODCAST_MAX_UPLOAD_BYTES);
+const MAX_UPLOAD_SIZE_BYTES = Number.isFinite(parsedUploadLimit) && parsedUploadLimit > 0
+  ? parsedUploadLimit
+  : DEFAULT_MAX_UPLOAD_SIZE_BYTES;
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return 'inconnue';
+  }
+
+  const units = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${size.toFixed(precision)} ${units[unitIndex]}`;
+}
 
 function ensureMultipartRequest(headers) {
   const contentType = headers.get('content-type') || '';
@@ -307,7 +309,11 @@ export async function POST(request) {
       if (status === 413) {
         const fieldLabel = meta?.field === 'image' ? 'image' : 'audio ou vidéo';
         return NextResponse.json(
-          { error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de 256 Mo.` },
+          {
+            error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de ${formatBytes(
+              MAX_UPLOAD_SIZE_BYTES,
+            )}.`,
+          },
           { status },
         );
       }
@@ -354,8 +360,11 @@ export async function DELETE(request) {
   }
 }
 
+const sizeLimitInMb = Math.max(1, Math.ceil(MAX_UPLOAD_SIZE_BYTES / (1024 * 1024)));
+
 export const config = {
   api: {
     bodyParser: false,
+    sizeLimit: `${sizeLimitInMb}mb`,
   },
 };

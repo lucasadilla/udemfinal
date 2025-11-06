@@ -5,6 +5,30 @@ import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
 import useAdminStatus from '../../hooks/useAdminStatus';
 
+const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
+const parsedLimit = Number(process.env.NEXT_PUBLIC_PODCAST_MAX_UPLOAD_BYTES);
+const maxUploadSizeBytes = Number.isFinite(parsedLimit) && parsedLimit > 0
+  ? parsedLimit
+  : DEFAULT_MAX_UPLOAD_SIZE_BYTES;
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return null;
+  }
+
+  const units = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+  let size = bytes;
+  let unitIndex = 0;
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${size.toFixed(precision)} ${units[unitIndex]}`;
+}
+
 export default function PodcastsPage() {
   const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts();
   const isAdmin = useAdminStatus();
@@ -13,18 +37,35 @@ export default function PodcastsPage() {
   const [mediaFile, setMediaFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [bio, setBio] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formattedUploadLimit = formatBytes(maxUploadSizeBytes);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!title || !date || !mediaFile || !imageFile) return;
 
-    await addPodcast({ title, date, bio, media: mediaFile, image: imageFile });
-    setTitle('');
-    setDate('');
-    setBio('');
-    setMediaFile(null);
-    setImageFile(null);
-    event.target.reset();
+    setSubmitError('');
+    setSubmitSuccess('');
+    setIsSubmitting(true);
+
+    const result = await addPodcast({ title, date, bio, media: mediaFile, image: imageFile });
+
+    if (result?.success) {
+      setSubmitSuccess('Le balado a été téléversé avec succès.');
+      setTitle('');
+      setDate('');
+      setBio('');
+      setMediaFile(null);
+      setImageFile(null);
+      event.target.reset();
+    } else {
+      setSubmitError(result?.error || "Impossible d’ajouter le balado.");
+    }
+
+    setIsSubmitting(false);
   };
 
   const sortedPodcasts = [...podcasts]
@@ -121,6 +162,11 @@ export default function PodcastsPage() {
                 <p className="mt-1 text-sm text-gray-500">
                   Sélectionnez un fichier média (audio ou vidéo) présent sur votre ordinateur.
                 </p>
+                {formattedUploadLimit && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Taille maximale autorisée : {formattedUploadLimit}.
+                  </p>
+                )}
                 {mediaFile && (
                   <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {mediaFile.name}</p>
                 )}
@@ -143,15 +189,31 @@ export default function PodcastsPage() {
                 <p className="mt-1 text-sm text-gray-500">
                   Téléversez une image qui sera affichée sur la carte du podcast.
                 </p>
+                {formattedUploadLimit && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Taille maximale autorisée : {formattedUploadLimit}.
+                  </p>
+                )}
                 {imageFile && (
                   <p className="mt-1 text-sm text-gray-600">Image sélectionnée : {imageFile.name}</p>
                 )}
               </div>
+              {submitError && (
+                <p className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-700">
+                  {submitError}
+                </p>
+              )}
+              {submitSuccess && (
+                <p className="rounded border border-green-200 bg-green-50 p-2 text-sm text-green-700">
+                  {submitSuccess}
+                </p>
+              )}
               <button
                 type="submit"
-                className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
+                disabled={isSubmitting}
+                className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Publier le podcast
+                {isSubmitting ? 'Téléversement en cours…' : 'Publier le podcast'}
               </button>
             </form>
           </section>
