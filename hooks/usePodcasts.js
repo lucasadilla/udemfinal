@@ -48,11 +48,25 @@ export default function usePodcasts() {
 
       if (res.ok) {
         await fetchPodcasts();
-      } else {
-        console.warn('Impossible d’ajouter le balado :', res.status);
+        return { success: true };
       }
+
+      let errorMessage = `Impossible d’ajouter le balado (code ${res.status}).`;
+      try {
+        const payload = await res.json();
+        if (payload?.error) {
+          errorMessage = payload.error;
+        }
+      } catch (parseError) {
+        // Ignore JSON parsing errors and use the default message.
+      }
+
+      console.warn('Impossible d’ajouter le balado :', errorMessage);
+      return { success: false, error: errorMessage };
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erreur inconnue lors de l’ajout du balado.';
       console.error('Impossible d’ajouter le balado :', err);
+      return { success: false, error: message };
     }
   };
 
