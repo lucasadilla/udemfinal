@@ -3,6 +3,20 @@ import { useRouter } from 'next/router';
 import Navbar from '../../components/Navbar';
 import { getPodcastBySlug } from '../../lib/podcastDatabase';
 
+function isAudioSource(source) {
+  if (!source || typeof source !== 'string') {
+    return false;
+  }
+
+  if (source.startsWith('data:')) {
+    return source.startsWith('data:audio/');
+  }
+
+  const lowerSource = source.toLowerCase();
+  const audioExtensions = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.oga', '.flac'];
+  return audioExtensions.some((extension) => lowerSource.endsWith(extension));
+}
+
 export default function PodcastDetail({ podcast }) {
   const router = useRouter();
 
@@ -50,12 +64,24 @@ export default function PodcastDetail({ podcast }) {
           )}
         </header>
         <div className="podcast-video-container">
-          <video
-            src={podcast.video}
-            controls
-            autoPlay
-            className="podcast-video-player"
-          />
+          {isAudioSource(podcast.video) ? (
+            <audio
+              src={podcast.video}
+              controls
+              className="podcast-audio-player"
+            >
+              Votre navigateur ne supporte pas la lecture audio.
+            </audio>
+          ) : (
+            <video
+              src={podcast.video}
+              controls
+              autoPlay
+              className="podcast-video-player"
+            >
+              Votre navigateur ne supporte pas la lecture vidéo.
+            </video>
+          )}
         </div>
       </main>
     </>

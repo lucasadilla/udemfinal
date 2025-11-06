@@ -757,6 +757,12 @@ button[type="submit"]:hover {
     display: block;
 }
 
+.podcast-audio-player {
+    width: 100%;
+    max-width: 720px;
+    display: block;
+}
+
 .article-box {
     border: 1px solid #b8b6b6;
     padding: 3rem;
