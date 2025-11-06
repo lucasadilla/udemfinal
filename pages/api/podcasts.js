@@ -50,7 +50,7 @@ function saveMediaFromDataUrl(dataUrl, originalName, directory, fallbackBaseName
 }
 
 function deleteMediaFileIfExists(filePath) {
-  if (!filePath) {
+  if (!filePath || typeof filePath !== 'string' || filePath.startsWith('data:')) {
     return;
   }
 
@@ -123,8 +123,24 @@ export default async function handler(req, res) {
           'balado-couverture'
         );
       } catch (error) {
-        console.error('Impossible d’enregistrer les fichiers téléversés :', error);
-        return res.status(500).json({ error: 'Impossible d’enregistrer les fichiers téléversés.' });
+        deleteMediaFileIfExists(storedVideoPath);
+
+        const isReadOnlyFileSystemError =
+          error?.code === 'EACCES' || error?.code === 'EROFS' || error?.code === 'EPERM';
+
+        if (!isReadOnlyFileSystemError) {
+          console.error('Impossible d’enregistrer les fichiers téléversés :', error);
+          return res
+            .status(500)
+            .json({ error: 'Impossible d’enregistrer les fichiers téléversés.' });
+        }
+
+        console.warn(
+          "Système de fichiers en lecture seule détecté, stockage des médias directement dans la base de données."
+        );
+
+        storedVideoPath = videoDataUrl;
+        storedImagePath = imageDataUrl;
       }
 
       const slug = await generateUniqueSlug(title);
