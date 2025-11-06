@@ -223,3 +223,12 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: {
+      // Les fichiers audio et vidéo peuvent être volumineux; on augmente la limite de taille d’upload.
+      sizeLimit: '256mb',
+    },
+  },
+};
