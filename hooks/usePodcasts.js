@@ -24,26 +24,6 @@ export default function usePodcasts() {
     fetchPodcasts();
   }, []);
 
-  const fileToDataUrl = (file) =>
-    new Promise((resolve, reject) => {
-      if (typeof window === 'undefined' || !window.FileReader) {
-        reject(new Error('Le téléversement de fichiers est seulement pris en charge dans le navigateur.'));
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const { result } = reader;
-        if (typeof result !== 'string') {
-          reject(new Error('Résultat de lecture de fichier inattendu.'));
-          return;
-        }
-        resolve(result);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
-
   const addPodcast = async ({ title, date, video, image, bio }) => {
     try {
       if (!video) {
@@ -54,23 +34,16 @@ export default function usePodcasts() {
         throw new Error('Un fichier image doit être fourni.');
       }
 
-      const [videoDataUrl, imageDataUrl] = await Promise.all([
-        fileToDataUrl(video),
-        fileToDataUrl(image),
-      ]);
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('date', date);
+      formData.append('bio', bio || '');
+      formData.append('video', video, video.name);
+      formData.append('image', image, image.name);
 
       const res = await fetch('/api/podcasts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          date,
-          bio,
-          videoDataUrl,
-          originalName: video.name,
-          imageDataUrl,
-          imageOriginalName: image.name,
-        }),
+        body: formData,
       });
 
       if (res.ok) {
