@@ -15,6 +15,12 @@ const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
 const imageUploadsDirectory = path.join(baseUploadsDirectory, 'images');
 
 export const runtime = 'nodejs';
+export const config = {
+  api: {
+    bodyParser: false,
+    sizeLimit: '256mb',
+  },
+};
 
 function ensureUploadsDirectory(directory) {
   if (!fs.existsSync(directory)) {
