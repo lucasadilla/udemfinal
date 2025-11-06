@@ -354,7 +354,7 @@ function EventsLayout({
           .events-layout__inner {
             width: min(100%, 72rem);
             border-radius: 1.5rem;
-            background: rgba(255, 255, 255, 0.8);
+            background: transparent;
             padding: 1.5rem;
             box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
             backdrop-filter: blur(6px);
@@ -393,16 +393,20 @@ function EventsLayout({
             margin-right: auto;
           }
           .panel--calendar {
-            --calendar-day-height: 78px;
-            max-width: 28rem;
-            width: min(100%, 28rem);
+            max-width: 36rem;
+            width: min(100%, 36rem);
             margin: 0 auto;
           }
           @media (min-width: 768px) {
             .panel--calendar {
-              --calendar-day-height: 92px;
-              max-width: 32rem;
-              width: min(100%, 32rem);
+              max-width: 42rem;
+              width: min(100%, 42rem);
+            }
+          }
+          @media (min-width: 1024px) {
+            .panel--calendar {
+              max-width: 46rem;
+              width: min(100%, 46rem);
             }
           }
           .panel--events {
@@ -452,19 +456,21 @@ function EventsLayout({
             letter-spacing: 0.04em;
           }
           .days {
-            margin-top: 6px;
+            margin-top: 8px;
             display: grid;
             grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 6px;
-            grid-auto-rows: var(--calendar-day-height);
+            gap: 8px;
           }
           .day {
             position: relative;
-            height: var(--calendar-day-height);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            aspect-ratio: 1 / 1;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
             border: 1px solid rgba(226, 232, 240, 0.9);
             border-radius: 0.75rem;
-            padding: 10px;
+            padding: 12px;
             transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
           }
           .day:hover {
@@ -473,7 +479,6 @@ function EventsLayout({
             transform: translateY(-2px);
           }
           .day.empty {
-            min-height: var(--calendar-day-height);
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(241, 245, 249, 0.75));
             border-color: rgba(226, 232, 240, 0.5);
             box-shadow: none;
