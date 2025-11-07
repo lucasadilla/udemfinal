@@ -1090,7 +1090,7 @@ button[type="submit"]:hover {
         grid-column: 3 / 4;
         grid-row: 1;
         justify-self: end;
-        align-self: start;
+        align-self: center;
         margin-left: 0;
     }
 
@@ -1210,7 +1210,7 @@ button[type="submit"]:hover {
         padding: 0;
         cursor: pointer;
         grid-row: 1;
-        align-self: start;
+        align-self: center;
     }
 
     .hamburger-icon div {
@@ -1259,7 +1259,7 @@ button[type="submit"]:hover {
         grid-column: 2 / 3;
         grid-row: 1;
         justify-self: center;
-        align-self: start;
+        align-self: center;
         display: inline-flex;
     }
 
