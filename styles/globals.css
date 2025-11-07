@@ -361,53 +361,175 @@ nav a {
 
 .article-cards-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem 1.35rem;
     justify-items: center;
     align-items: stretch;
     grid-auto-rows: 1fr;
+    padding-block: 0.75rem;
+}
+
+.article-card-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.article-card-link {
+    display: block;
+    width: min(100%, 240px);
+    text-decoration: none;
+    color: inherit;
+    transform-origin: center;
 }
 
 .article-card {
-    background-color: #ffffff;
+    position: relative;
+    min-height: clamp(220px, 28vh, 280px);
     display: flex;
     flex-direction: column;
-    box-sizing: border-box;
-    padding: 1.25rem;
-    gap: 1rem;
-    height: 100%;
-    border: 2px solid #b8b6b6;
     border-radius: 1rem;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(244, 246, 255, 0.92) 60%, rgba(230, 241, 255, 0.95) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(4px);
+    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
 }
 
-.article-card:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    border-color: #9ca3af;
+.article-card-link:hover .article-card,
+.article-card-link:focus-visible .article-card {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+    border-color: rgba(94, 129, 244, 0.45);
 }
 
 .article-card-media {
-    border-radius: 0.75rem;
+    height: 110px;
     overflow: hidden;
-    flex-shrink: 0;
+    position: relative;
+}
+
+.article-card-media::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 45px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.12) 100%);
+    pointer-events: none;
 }
 
 .article-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    flex-grow: 1;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 0.55rem;
+    padding: 0.95rem 1.1rem 1.15rem;
+    flex: 1 1 auto;
 }
 
 .article-card-image {
     width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
+    height: 100%;
     object-fit: cover;
-    margin: 0;
     display: block;
+    filter: saturate(1.05);
+    transition: transform 0.4s ease;
+}
+
+.article-card-link:hover .article-card-image,
+.article-card-link:focus-visible .article-card-image {
+    transform: scale(1.06);
+}
+
+.article-card-footer {
+    margin-top: auto;
+    padding: 0.75rem 1.1rem 1rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(244, 247, 254, 0.85);
+    backdrop-filter: blur(6px);
+}
+
+.article-card-admin-action {
+    width: 100%;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    background: linear-gradient(120deg, #ef4444 0%, #dc2626 100%);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.article-card-admin-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(220, 38, 38, 0.35);
+    filter: brightness(1.05);
+}
+
+.article-card-admin-action:focus-visible {
+    outline: 2px solid rgba(220, 38, 38, 0.6);
+    outline-offset: 2px;
+}
+
+.article-card-title {
+    font-size: 1.05rem;
+    line-height: 1.35;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.article-card-date {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.article-card-excerpt {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #334155;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-card-admin-fab {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.85rem;
+    z-index: 2;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    background: linear-gradient(125deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.9) 100%);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.32);
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.article-card-admin-fab:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+.article-card-admin-fab:focus-visible {
+    outline: 2px solid rgba(248, 113, 113, 0.65);
+    outline-offset: 2px;
 }
 
 /* Ensure images embedded in articles and the editor aren't oversized */
