@@ -554,10 +554,11 @@ nav a {
 .ProseMirror img,
 .prose img,
 .article-box img:not(.author-image) {
-    max-width: 100%;
+    max-width: min(100%, 320px);
     height: auto;
     display: block;
     margin: 0.5rem auto;
+    width: 100%;
 }
 
 .heart-button {
