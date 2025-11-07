@@ -506,9 +506,11 @@ button[type="submit"]:hover {
 /* Sponsor Gallery Grid */
 .sponsor-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Adjust minimum size to make images larger */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Allow columns to shrink on small screens */
     gap: 2rem; /* Adjust spacing between images */
     padding: 1.5rem;
+    justify-content: center; /* Center the grid within the container for narrow viewports */
+    justify-items: center; /* Center individual items on smaller screens */
 }
 
 .sponsor-image {
