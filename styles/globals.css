@@ -1067,6 +1067,7 @@ button[type="submit"]:hover {
     .nav-links {
         display: none; /* Hide nav links when the menu is closed */
         grid-column: 1 / -1;
+        grid-row: 2;
         width: 100%;
     }
 
@@ -1078,6 +1079,7 @@ button[type="submit"]:hover {
         gap: 0.75rem;
         padding-left: 0.5rem;
         box-sizing: border-box;
+        grid-row: 2;
     }
 
     nav.menu-open {
@@ -1086,7 +1088,9 @@ button[type="submit"]:hover {
 
     .hamburger-icon {
         grid-column: 3 / 4;
+        grid-row: 1;
         justify-self: end;
+        align-self: start;
         margin-left: 0;
     }
 
@@ -1205,6 +1209,8 @@ button[type="submit"]:hover {
         border: none;
         padding: 0;
         cursor: pointer;
+        grid-row: 1;
+        align-self: start;
     }
 
     .hamburger-icon div {
@@ -1251,7 +1257,9 @@ button[type="submit"]:hover {
 
     .instagram-link {
         grid-column: 2 / 3;
+        grid-row: 1;
         justify-self: center;
+        align-self: start;
         display: inline-flex;
     }
 
