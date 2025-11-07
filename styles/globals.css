@@ -207,6 +207,14 @@ nav a {
     margin-bottom: 1rem;
 }
 
+.article-content {
+    line-height: 1.7;
+}
+
+.article-content p {
+    margin-bottom: 1rem;
+}
+
 .editor-content img {
     width: 100%;
     max-width: 480px;
@@ -215,6 +223,16 @@ nav a {
     margin: 1.5rem auto;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.article-content img {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    display: block;
+    margin: 1.5rem auto;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
 }
 
 .loading-spinner__container {
