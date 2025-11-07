@@ -75,6 +75,7 @@ export default function Article() {
         </div>
 
         <div
+          className="article-content"
           dangerouslySetInnerHTML={{
             __html: currentArticle.content.replace(/\n/g, '<br />'),
           }}
