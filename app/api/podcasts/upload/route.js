@@ -202,6 +202,20 @@ async function handleChunk(request) {
         storage: 'inline',
       });
     }
+
+    if (error?.code === 'EXDEV') {
+      try {
+        fs.copyFileSync(tempFilePath, finalPath);
+        fs.unlinkSync(tempFilePath);
+      } catch (copyError) {
+        cleanupSession(uploadId);
+        throw copyError;
+      }
+      cleanupSession(uploadId);
+      const publicPath = toPublicPath(finalPath);
+      return NextResponse.json({ success: true, storedPath: publicPath, storage: 'filesystem' });
+    }
+
     cleanupSession(uploadId);
     throw error;
   }
