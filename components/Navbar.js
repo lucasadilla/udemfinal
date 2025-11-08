@@ -42,12 +42,12 @@ export default function Navbar() {
                 </li>
                 <li>
                     <Link href="/blog">
-                        <span className={`nav-link text-black ${isActive('/blog') ? 'font-bold' : ''}`}>Blogs</span>
+                        <span className={`nav-link text-black ${isActive('/blog') ? 'font-bold' : ''}`}>Blog</span>
                     </Link>
                 </li>
                 <li>
                     <Link href="/podcasts">
-                        <span className={`nav-link text-black ${isActive('/podcasts') ? 'font-bold' : ''}`}>podcasts</span>
+                        <span className={`nav-link text-black ${isActive('/podcasts') ? 'font-bold' : ''}`}>Podcasts</span>
                     </Link>
                 </li>
                 <li>
