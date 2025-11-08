@@ -29,7 +29,13 @@ export default function NotreComite() {
 
     const handleAddUser = async (e) => {
         e.preventDefault();
-        await addUser({ name, title, profilePicture });
+        const normalizedName = name.trim();
+        const normalizedTitle = title.trim();
+        if (!normalizedName || !normalizedTitle) {
+            alert('Veuillez remplir les champs Nom et Titre.');
+            return;
+        }
+        await addUser({ name: normalizedName, title: normalizedTitle, profilePicture });
         setName("");
         setTitle("");
         setProfilePicture("");
