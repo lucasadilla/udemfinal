@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import Busboy from 'next/dist/compiled/busboy';
+import Busboy from 'next/dist/compiled/busboy/index.js';
 import { NextResponse } from 'next/server';
 import {
   addPodcast,
