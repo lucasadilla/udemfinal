@@ -13,9 +13,11 @@ import {
   tempUploadsDirectory,
   toPublicPath,
   videoUploadsDirectory,
-} from '../../../../lib/podcastUploadUtils';
+} from '../../../../lib/podcastUploadUtils.js';
 
 export const runtime = 'nodejs';
+
+const inlineUploadSessions = new Map();
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -39,6 +41,10 @@ function getMetadataPath(uploadId) {
 }
 
 function readMetadata(uploadId) {
+  if (inlineUploadSessions.has(uploadId)) {
+    return inlineUploadSessions.get(uploadId);
+  }
+
   const metaPath = getMetadataPath(uploadId);
   if (!fs.existsSync(metaPath)) {
     throw new HttpError(404, "Session de téléversement introuvable ou expirée.");
@@ -48,11 +54,17 @@ function readMetadata(uploadId) {
 }
 
 function writeMetadata(uploadId, metadata) {
+  if (metadata?.storage === 'inline') {
+    inlineUploadSessions.set(uploadId, metadata);
+    return;
+  }
+
   const metaPath = getMetadataPath(uploadId);
   fs.writeFileSync(metaPath, JSON.stringify(metadata));
 }
 
 function cleanupSession(uploadId) {
+  inlineUploadSessions.delete(uploadId);
   const sessionDir = getSessionDirectory(uploadId);
   if (fs.existsSync(sessionDir)) {
     fs.rmSync(sessionDir, { recursive: true, force: true });
@@ -60,7 +72,7 @@ function cleanupSession(uploadId) {
 }
 
 function ensureTemporaryStorage() {
-  ensureUploadsDirectory(tempUploadsDirectory);
+  return ensureUploadsDirectory(tempUploadsDirectory);
 }
 
 function getDestinationDirectory(type) {
@@ -88,12 +100,7 @@ async function handleInit(request) {
     throw new HttpError(413, `Le fichier ne peut pas dépasser ${formatBytes(MAX_UPLOAD_SIZE_BYTES)}.`);
   }
 
-  ensureTemporaryStorage();
-
   const uploadId = crypto.randomUUID();
-  const sessionDir = getSessionDirectory(uploadId);
-  ensureUploadsDirectory(sessionDir);
-
   const metadata = {
     fileName,
     mimeType,
@@ -102,11 +109,33 @@ async function handleInit(request) {
     receivedBytes: 0,
     chunkCount: 0,
     createdAt: new Date().toISOString(),
+    storage: 'filesystem',
   };
+
+  const createInlineSession = () => {
+    const inlineMetadata = {
+      ...metadata,
+      storage: 'inline',
+      inlineBuffer: Buffer.alloc(0),
+    };
+    writeMetadata(uploadId, inlineMetadata);
+    return NextResponse.json({ uploadId, storage: 'inline' });
+  };
+
+  const tempStorageResult = ensureTemporaryStorage();
+  if (tempStorageResult?.readOnly) {
+    return createInlineSession();
+  }
+
+  const sessionDir = getSessionDirectory(uploadId);
+  const sessionDirectoryResult = ensureUploadsDirectory(sessionDir);
+  if (sessionDirectoryResult?.readOnly) {
+    return createInlineSession();
+  }
 
   writeMetadata(uploadId, metadata);
 
-  return NextResponse.json({ uploadId });
+  return NextResponse.json({ uploadId, storage: 'filesystem' });
 }
 
 async function handleChunk(request) {
@@ -153,6 +182,24 @@ async function handleChunk(request) {
     throw new HttpError(413, `Le fichier ne peut pas dépasser ${formatBytes(MAX_UPLOAD_SIZE_BYTES)}.`);
   }
 
+  if (metadata.storage === 'inline') {
+    const previousBuffer = metadata.inlineBuffer instanceof Buffer ? metadata.inlineBuffer : Buffer.alloc(0);
+    const combined = Buffer.concat([previousBuffer, buffer]);
+    metadata.receivedBytes = nextReceivedBytes;
+    metadata.chunkCount = chunkCount;
+    metadata.lastChunkIndex = chunkIndex;
+    metadata.inlineBuffer = combined;
+    writeMetadata(uploadId, metadata);
+
+    if (chunkIndex < chunkCount - 1) {
+      return NextResponse.json({ success: true, receivedBytes: metadata.receivedBytes, storage: 'inline' });
+    }
+
+    const dataUri = `data:${metadata.mimeType || 'application/octet-stream'};base64,${combined.toString('base64')}`;
+    cleanupSession(uploadId);
+    return NextResponse.json({ success: true, storedPath: dataUri, storage: 'inline' });
+  }
+
   const sessionDir = getSessionDirectory(uploadId);
   const tempFilePath = path.join(sessionDir, 'data.part');
   const writeFlag = chunkIndex === 0 ? 'w' : 'a';
@@ -177,11 +224,20 @@ async function handleChunk(request) {
   writeMetadata(uploadId, metadata);
 
   if (chunkIndex < chunkCount - 1) {
-    return NextResponse.json({ success: true, receivedBytes: metadata.receivedBytes });
+    return NextResponse.json({ success: true, receivedBytes: metadata.receivedBytes, storage: 'filesystem' });
   }
 
   const destinationDirectory = getDestinationDirectory(metadata.type);
-  ensureUploadsDirectory(destinationDirectory);
+  const destinationDirectoryResult = ensureUploadsDirectory(destinationDirectory);
+  if (destinationDirectoryResult?.readOnly) {
+    const data = fs.readFileSync(tempFilePath);
+    cleanupSession(uploadId);
+    return NextResponse.json({
+      success: true,
+      storedPath: `data:${metadata.mimeType || 'application/octet-stream'};base64,${data.toString('base64')}`,
+      storage: 'inline',
+    });
+  }
 
   const finalFileName = buildFileName(
     metadata.fileName,
