@@ -108,7 +108,13 @@ async function persistUploadedStream(stream, info, directory, fallbackBaseName, 
 }
 
 function deleteMediaFileIfExists(filePath) {
-  if (!filePath || typeof filePath !== 'string' || filePath.startsWith('data:')) {
+  if (
+    !filePath ||
+    typeof filePath !== 'string' ||
+    filePath.startsWith('data:') ||
+    filePath.startsWith('http://') ||
+    filePath.startsWith('https://')
+  ) {
     return;
   }
 
@@ -152,6 +158,19 @@ function getFieldValue(value) {
     return '';
   }
   return value;
+}
+
+function isValidHttpUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
 }
 
 const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
@@ -275,14 +294,26 @@ export async function POST(request) {
     const title = getFieldValue(collectedFields.title).trim();
     const date = getFieldValue(collectedFields.date).trim();
     const bio = getFieldValue(collectedFields.bio).trim();
+    const rawVideoUrl = getFieldValue(collectedFields.videoUrl).trim();
+    const rawImageUrl = getFieldValue(collectedFields.imageUrl).trim();
 
-    if (!title || !date || !storedMediaPath || !storedImagePath) {
+    const videoUrl = isValidHttpUrl(rawVideoUrl) ? rawVideoUrl : '';
+    if (rawVideoUrl && !videoUrl) {
+      throw new HttpError(400, "Le lien vidéo fourni n'est pas valide.");
+    }
+
+    const imageUrl = isValidHttpUrl(rawImageUrl) ? rawImageUrl : '';
+    if (rawImageUrl && !imageUrl) {
+      throw new HttpError(400, "Le lien d'image fourni n'est pas valide.");
+    }
+
+    if (!title || !date || (!storedMediaPath && !videoUrl) || (!storedImagePath && !imageUrl)) {
       deleteMediaFileIfExists(storedMediaPath);
       deleteMediaFileIfExists(storedImagePath);
       return NextResponse.json(
         {
           error:
-            'Les champs title, date, video (audio ou vidéo) et image sont requis pour créer un balado.',
+            'Les champs title, date et au moins une source vidéo et image sont requis pour créer un balado.',
         },
         { status: 400 },
       );
@@ -292,8 +323,10 @@ export async function POST(request) {
     const podcast = await addPodcast({
       title,
       date,
-      video: storedMediaPath,
-      image: storedImagePath,
+      video: storedMediaPath || videoUrl,
+      image: storedImagePath || imageUrl,
+      mediaSource: storedMediaPath ? 'upload' : 'external',
+      imageSource: storedImagePath ? 'upload' : 'external',
       slug,
       bio,
       createdAt: new Date().toISOString(),

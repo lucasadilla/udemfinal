@@ -24,22 +24,39 @@ export default function usePodcasts() {
     fetchPodcasts();
   }, []);
 
-  const addPodcast = async ({ title, date, media, image, bio }) => {
+  const addPodcast = async ({ title, date, media, mediaUrl, image, imageUrl, bio }) => {
     try {
-      if (!media) {
-        throw new Error('Un fichier audio ou vidéo doit être fourni.');
+      const trimmedMediaUrl = (mediaUrl || '').trim();
+      const trimmedImageUrl = (imageUrl || '').trim();
+
+      if (!media && !trimmedMediaUrl) {
+        throw new Error('Un fichier audio ou vidéo ou un lien externe doit être fourni.');
       }
 
-      if (!image) {
-        throw new Error('Un fichier image doit être fourni.');
+      if (!image && !trimmedImageUrl) {
+        throw new Error('Une image de couverture ou un lien d’image doit être fourni.');
       }
 
       const formData = new FormData();
       formData.append('title', title);
       formData.append('date', date);
       formData.append('bio', bio || '');
-      formData.append('video', media, media.name);
-      formData.append('image', image, image.name);
+
+      if (media) {
+        formData.append('video', media, media.name);
+      }
+
+      if (trimmedMediaUrl) {
+        formData.append('videoUrl', trimmedMediaUrl);
+      }
+
+      if (image) {
+        formData.append('image', image, image.name);
+      }
+
+      if (trimmedImageUrl) {
+        formData.append('imageUrl', trimmedImageUrl);
+      }
 
       const res = await fetch('/api/podcasts', {
         method: 'POST',
