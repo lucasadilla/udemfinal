@@ -1,18 +1,24 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
-import { Readable } from 'node:stream';
 import { NextResponse } from 'next/server';
 import {
+  buildFileName,
   ensureUploadsDirectory,
   isReadOnlyFileSystemError,
-  buildFileName,
   toPublicPath,
-} from '@/lib/podcastUploadUtils';
+} from '../../../lib/podcastUploadUtils.js';
 
-const userUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
+const userImageUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
 
-function isFile(value) {
+export const runtime = 'nodejs';
+
+function createHttpError(status, message) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function isFileLike(value) {
   return (
     value &&
     typeof value === 'object' &&
@@ -22,50 +28,58 @@ function isFile(value) {
   );
 }
 
-function jsonError(status, message) {
-  return NextResponse.json({ error: message }, { status });
-}
-
 export async function POST(request) {
   try {
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.toLowerCase().includes('multipart/form-data')) {
-      return jsonError(415, 'Le corps de la requête doit être envoyé en formulaire multipart.');
+      throw createHttpError(415, 'Le corps de la requête doit être envoyé en formulaire multipart.');
     }
 
     const formData = await request.formData();
-    const file = formData.get('file');
+    const uploadedFile = formData.get('file');
 
-    if (!isFile(file)) {
-      return jsonError(400, 'Aucun fichier valide fourni pour le téléversement.');
+    if (!isFileLike(uploadedFile)) {
+      throw createHttpError(400, 'Aucun fichier valide fourni.');
     }
 
-    const ensureResult = ensureUploadsDirectory(userUploadsDirectory);
+    const fileSize = Number(uploadedFile.size);
+    if (!Number.isFinite(fileSize) || fileSize <= 0) {
+      throw createHttpError(400, 'Le fichier téléversé est vide.');
+    }
+
+    const ensureResult = ensureUploadsDirectory(userImageUploadsDirectory);
     if (ensureResult?.readOnly) {
-      return jsonError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
+      throw createHttpError(500, 'Le serveur ne peut pas enregistrer la photo de profil pour le moment.');
     }
 
-    const fileName = buildFileName(file.name, file.type, 'user-image');
-    const destination = path.join(userUploadsDirectory, fileName);
+    const fileName = buildFileName(uploadedFile.name, uploadedFile.type, 'user-image');
+    const destination = path.join(userImageUploadsDirectory, fileName);
 
-    const readableStream = Readable.fromWeb(file.stream());
-    const writeStream = fs.createWriteStream(destination);
+    const arrayBuffer = await uploadedFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     try {
-      await pipeline(readableStream, writeStream);
+      await fs.writeFile(destination, buffer);
     } catch (error) {
       if (isReadOnlyFileSystemError(error)) {
-        return jsonError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
+        throw createHttpError(500, 'Le serveur ne peut pas enregistrer la photo de profil pour le moment.');
       }
       throw error;
     }
 
     const publicUrl = toPublicPath(destination);
-    return NextResponse.json({ url: publicUrl });
+    return NextResponse.json({ url: publicUrl }, { status: 200 });
   } catch (error) {
-    console.error('Erreur lors du téléversement de la photo de profil :', error);
-    return jsonError(500, "Échec du téléversement de la photo de profil.");
+    const status = error?.status && Number.isInteger(error.status) ? error.status : 500;
+    const message =
+      typeof error?.message === 'string' && error.message
+        ? error.message
+        : 'Une erreur est survenue lors du téléversement de la photo de profil.';
+
+    if (status >= 500) {
+      console.error('Erreur lors du téléversement de la photo de profil :', error);
+    }
+
+    return NextResponse.json({ error: message }, { status });
   }
 }
-
-export const runtime = 'nodejs';
