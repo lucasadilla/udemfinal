@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { NextResponse } from 'next/server';
 import {
-  MAX_UPLOAD_SIZE_BYTES,
   buildFileName,
   deleteMediaFileIfExists,
   ensureUploadsDirectory,
-  formatBytes,
   imageUploadsDirectory,
   isReadOnlyFileSystemError,
   toPublicPath,
@@ -75,10 +75,6 @@ async function persistUploadedFile(file, type) {
     throw new HttpError(400, 'Le fichier téléversé est vide.');
   }
 
-  if (fileSize > MAX_UPLOAD_SIZE_BYTES) {
-    throw new HttpError(413, 'Le fichier téléversé dépasse la taille maximale autorisée.');
-  }
-
   const targetDirectory = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
   const ensureResult = ensureUploadsDirectory(targetDirectory);
   if (ensureResult?.readOnly) {
@@ -87,10 +83,11 @@ async function persistUploadedFile(file, type) {
 
   const fileName = buildFileName(file.name, file.type, type === 'image' ? 'image' : 'media');
   const destination = path.join(targetDirectory, fileName);
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const readableStream = Readable.fromWeb(file.stream());
+  const writeStream = fs.createWriteStream(destination);
 
   try {
-    await fs.promises.writeFile(destination, buffer);
+    await pipeline(readableStream, writeStream);
   } catch (error) {
     if (isReadOnlyFileSystemError(error)) {
       throw new HttpError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
@@ -194,14 +191,6 @@ export async function POST(request) {
     cleanupPaths.forEach((filePath) => deleteMediaFileIfExists(filePath));
 
     if (error instanceof HttpError) {
-      if (error.status === 413) {
-        return NextResponse.json(
-          {
-            error: `Le fichier dépasse la taille maximale autorisée de ${formatBytes(MAX_UPLOAD_SIZE_BYTES)}.`,
-          },
-          { status: error.status },
-        );
-      }
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
