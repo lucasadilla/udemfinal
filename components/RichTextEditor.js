@@ -109,7 +109,7 @@ export default function RichTextEditor({ value = '', onChange = () => {} }) {
       </div>
       <EditorContent
         editor={editor}
-        className="editor-content p-4 min-h-[320px] bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="editor-content p-4 min-h-[480px] bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
   );
