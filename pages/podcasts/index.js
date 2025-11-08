@@ -5,30 +5,6 @@ import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
 import useAdminStatus from '../../hooks/useAdminStatus';
 
-const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
-const parsedLimit = Number(process.env.NEXT_PUBLIC_PODCAST_MAX_UPLOAD_BYTES);
-const maxUploadSizeBytes = Number.isFinite(parsedLimit) && parsedLimit > 0
-  ? parsedLimit
-  : DEFAULT_MAX_UPLOAD_SIZE_BYTES;
-
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return null;
-  }
-
-  const units = ['octets', 'Ko', 'Mo', 'Go', 'To'];
-  let size = bytes;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
-  return `${size.toFixed(precision)} ${units[unitIndex]}`;
-}
-
 function isValidHttpUrl(value) {
   if (typeof value !== 'string' || !value.trim()) {
     return false;
@@ -58,11 +34,6 @@ export default function PodcastsPage() {
   const [submitSuccess, setSubmitSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const formattedUploadLimit = formatBytes(maxUploadSizeBytes);
-
-  const isFileTooLarge = (file) =>
-    file && Number.isFinite(maxUploadSizeBytes) && file.size > maxUploadSizeBytes;
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!title || !date) return;
@@ -75,15 +46,6 @@ export default function PodcastsPage() {
         setSubmitError('Veuillez sélectionner un fichier audio ou vidéo à téléverser.');
         return;
       }
-
-      if (isFileTooLarge(mediaFile)) {
-        setSubmitError(
-          formattedUploadLimit
-            ? `Le fichier audio ou vidéo ne peut pas dépasser ${formattedUploadLimit}.`
-            : "Le fichier audio ou vidéo sélectionné est trop volumineux.",
-        );
-        return;
-      }
     } else if (!trimmedMediaUrl || !isValidHttpUrl(trimmedMediaUrl)) {
       setSubmitError('Veuillez fournir un lien vidéo valide (YouTube, Vimeo, fichier hébergé, etc.).');
       return;
@@ -92,15 +54,6 @@ export default function PodcastsPage() {
     if (imageMode === 'upload') {
       if (!imageFile) {
         setSubmitError("Veuillez sélectionner une image de couverture à téléverser.");
-        return;
-      }
-
-      if (isFileTooLarge(imageFile)) {
-        setSubmitError(
-          formattedUploadLimit
-            ? `L'image de couverture ne peut pas dépasser ${formattedUploadLimit}.`
-            : "L'image de couverture sélectionnée est trop volumineuse.",
-        );
         return;
       }
     } else if (!trimmedImageUrl || !isValidHttpUrl(trimmedImageUrl)) {
