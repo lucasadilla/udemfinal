@@ -3,9 +3,13 @@ import path from 'node:path';
 import { NextResponse } from 'next/server';
 import {
   MAX_UPLOAD_SIZE_BYTES,
+  buildFileName,
   deleteMediaFileIfExists,
+  ensureUploadsDirectory,
   formatBytes,
   imageUploadsDirectory,
+  isReadOnlyFileSystemError,
+  toPublicPath,
   videoUploadsDirectory,
 } from '../../../lib/podcastUploadUtils.js';
 import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../../lib/podcastDatabase';
@@ -51,47 +55,50 @@ async function generateUniqueSlug(title) {
   }
 }
 
-function resolveUploadedPath(value, type) {
-  const trimmed = typeof value === 'string' ? value.trim() : '';
-  if (!trimmed) {
-    return null;
-  }
-
-  if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return { publicPath: trimmed, cleanup: false };
-  }
-
-  if (!trimmed.startsWith('/')) {
-    throw new HttpError(400, 'Chemin de fichier téléversé invalide.');
-  }
-
-  const uploadsRoot = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
-  const absoluteRoot = path.resolve(uploadsRoot);
-  const absolutePath = path.resolve(path.join(process.cwd(), 'public', trimmed.slice(1)));
-
-  if (!absolutePath.startsWith(absoluteRoot)) {
-    throw new HttpError(400, 'Chemin de fichier téléversé invalide.');
-  }
-
-  if (!fs.existsSync(absolutePath)) {
-    throw new HttpError(400, 'Le fichier téléversé est introuvable ou expiré.');
-  }
-
-  return { publicPath: trimmed, cleanup: true };
+function isFile(value) {
+  return (
+    value &&
+    typeof value === 'object' &&
+    typeof value.arrayBuffer === 'function' &&
+    typeof value.name === 'string' &&
+    Number.isFinite(Number(value.size))
+  );
 }
 
-function validatePayload({ title, date, uploadedMediaPath, mediaUrl, uploadedImagePath, imageUrl }) {
-  if (!title || !date) {
-    throw new HttpError(400, 'Les champs title et date sont requis pour créer un balado.');
+async function persistUploadedFile(file, type) {
+  if (!isFile(file)) {
+    throw new HttpError(400, 'Le fichier téléversé est invalide.');
   }
 
-  if (!uploadedMediaPath && !mediaUrl) {
-    throw new HttpError(400, 'Une source média (téléversement ou lien externe) est requise.');
+  const fileSize = Number(file.size);
+  if (fileSize <= 0) {
+    throw new HttpError(400, 'Le fichier téléversé est vide.');
   }
 
-  if (!uploadedImagePath && !imageUrl) {
-    throw new HttpError(400, "Une image de couverture (téléversement ou lien externe) est requise.");
+  if (fileSize > MAX_UPLOAD_SIZE_BYTES) {
+    throw new HttpError(413, 'Le fichier téléversé dépasse la taille maximale autorisée.');
   }
+
+  const targetDirectory = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
+  const ensureResult = ensureUploadsDirectory(targetDirectory);
+  if (ensureResult?.readOnly) {
+    throw new HttpError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
+  }
+
+  const fileName = buildFileName(file.name, file.type, type === 'image' ? 'image' : 'media');
+  const destination = path.join(targetDirectory, fileName);
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  try {
+    await fs.promises.writeFile(destination, buffer);
+  } catch (error) {
+    if (isReadOnlyFileSystemError(error)) {
+      throw new HttpError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
+    }
+    throw error;
+  }
+
+  return toPublicPath(destination);
 }
 
 export async function POST(request) {
@@ -99,59 +106,87 @@ export async function POST(request) {
 
   try {
     const contentType = request.headers.get('content-type') || '';
-    if (!contentType.toLowerCase().includes('application/json')) {
-      throw new HttpError(415, 'Le corps de la requête doit être encodé en JSON.');
+    if (!contentType.toLowerCase().includes('multipart/form-data')) {
+      throw new HttpError(415, 'Le corps de la requête doit être envoyé en formulaire multipart.');
     }
 
-    const payload = await request.json();
-    const title = (payload.title || '').trim();
-    const date = (payload.date || '').trim();
-    const bio = (payload.bio || '').trim();
-    const rawMediaUrl = (payload.mediaUrl || '').trim();
-    const rawImageUrl = (payload.imageUrl || '').trim();
-    const uploadedMediaInput = (payload.uploadedMediaPath || '').trim();
-    const uploadedImageInput = (payload.uploadedImagePath || '').trim();
+    const formData = await request.formData();
 
-    const mediaUrl = isValidHttpUrl(rawMediaUrl) ? rawMediaUrl : '';
-    if (rawMediaUrl && !mediaUrl) {
-      throw new HttpError(400, "Le lien média fourni n'est pas valide.");
+    const title = (formData.get('title') || '').toString().trim();
+    const date = (formData.get('date') || '').toString().trim();
+    const bio = (formData.get('bio') || '').toString().trim();
+    const mediaMode = (formData.get('mediaMode') || 'upload').toString();
+    const imageMode = (formData.get('imageMode') || 'upload').toString();
+
+    if (!title || !date) {
+      throw new HttpError(400, 'Les champs title et date sont requis pour créer un balado.');
     }
 
-    const imageUrl = isValidHttpUrl(rawImageUrl) ? rawImageUrl : '';
-    if (rawImageUrl && !imageUrl) {
-      throw new HttpError(400, "Le lien d'image fourni n'est pas valide.");
+    if (mediaMode !== 'upload' && mediaMode !== 'link') {
+      throw new HttpError(400, "Le champ mediaMode doit être 'upload' ou 'link'.");
     }
 
-    const resolvedMedia = uploadedMediaInput ? resolveUploadedPath(uploadedMediaInput, 'video') : null;
-    const resolvedImage = uploadedImageInput ? resolveUploadedPath(uploadedImageInput, 'image') : null;
-
-    if (resolvedMedia?.cleanup) {
-      cleanupPaths.push(resolvedMedia.publicPath);
-    }
-    if (resolvedImage?.cleanup) {
-      cleanupPaths.push(resolvedImage.publicPath);
+    if (imageMode !== 'upload' && imageMode !== 'link') {
+      throw new HttpError(400, "Le champ imageMode doit être 'upload' ou 'link'.");
     }
 
-    validatePayload({
-      title,
-      date,
-      uploadedMediaPath: resolvedMedia?.publicPath,
-      mediaUrl,
-      uploadedImagePath: resolvedImage?.publicPath,
-      imageUrl,
-    });
+    const rawMediaUrl = (formData.get('mediaUrl') || '').toString().trim();
+    const rawImageUrl = (formData.get('imageUrl') || '').toString().trim();
+
+    let mediaUrl = '';
+    let imageUrl = '';
+
+    if (mediaMode === 'link') {
+      if (!isValidHttpUrl(rawMediaUrl)) {
+        throw new HttpError(400, "Le lien média fourni n'est pas valide.");
+      }
+      mediaUrl = rawMediaUrl;
+    }
+
+    if (imageMode === 'link') {
+      if (!isValidHttpUrl(rawImageUrl)) {
+        throw new HttpError(400, "Le lien d'image fourni n'est pas valide.");
+      }
+      imageUrl = rawImageUrl;
+    }
+
+    const mediaFile = formData.get('media');
+    const imageFile = formData.get('image');
+
+    let storedMediaPath = '';
+    let storedImagePath = '';
+
+    if (mediaMode === 'upload') {
+      if (!isFile(mediaFile)) {
+        throw new HttpError(400, 'Un fichier audio ou vidéo doit être fourni.');
+      }
+      storedMediaPath = await persistUploadedFile(mediaFile, 'video');
+      cleanupPaths.push(storedMediaPath);
+    } else {
+      storedMediaPath = mediaUrl;
+    }
+
+    if (imageMode === 'upload') {
+      if (!isFile(imageFile)) {
+        throw new HttpError(400, "Une image de couverture doit être fournie.");
+      }
+      storedImagePath = await persistUploadedFile(imageFile, 'image');
+      cleanupPaths.push(storedImagePath);
+    } else {
+      storedImagePath = imageUrl;
+    }
 
     const slug = await generateUniqueSlug(title);
     const podcast = await addPodcast({
       title,
       date,
-      video: resolvedMedia?.publicPath || mediaUrl,
-      image: resolvedImage?.publicPath || imageUrl,
-      mediaSource: resolvedMedia?.publicPath ? 'upload' : 'external',
-      imageSource: resolvedImage?.publicPath ? 'upload' : 'external',
+      video: storedMediaPath,
+      image: storedImagePath,
       slug,
       bio,
       createdAt: new Date().toISOString(),
+      mediaSource: mediaMode === 'upload' ? 'upload' : 'external',
+      imageSource: imageMode === 'upload' ? 'upload' : 'external',
     });
 
     return NextResponse.json(podcast, { status: 201 });
@@ -209,10 +244,3 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-    sizeLimit: '4096mb',
-  },
-};

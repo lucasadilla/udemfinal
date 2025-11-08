@@ -116,8 +116,10 @@ export default function PodcastsPage() {
       title,
       date,
       bio,
+      mediaMode,
       media: mediaMode === 'upload' ? mediaFile : null,
       mediaUrl: mediaMode === 'link' ? trimmedMediaUrl : '',
+      imageMode,
       image: imageMode === 'upload' ? imageFile : null,
       imageUrl: imageMode === 'link' ? trimmedImageUrl : '',
     });
