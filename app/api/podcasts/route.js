@@ -7,7 +7,7 @@ import {
   formatBytes,
   imageUploadsDirectory,
   videoUploadsDirectory,
-} from '../../../lib/podcastUploadUtils';
+} from '../../../lib/podcastUploadUtils.js';
 import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../../lib/podcastDatabase';
 
 export const runtime = 'nodejs';
