@@ -11,23 +11,91 @@ export default function NotreComite() {
     const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
     const [title, setTitle] = useState("");
-    const [profilePicturePreview, setProfilePicturePreview] = useState("");
     const [profilePictureFile, setProfilePictureFile] = useState(null);
     const fileInputRef = useRef(null);
 
-    const handleProfilePictureChange = (e) => {
+    const normalizeImageFile = async (file) => {
+        if (!file) {
+            return null;
+        }
+
+        if (typeof window === "undefined") {
+            return file;
+        }
+
+        return new Promise((resolve) => {
+            const imageUrl = URL.createObjectURL(file);
+            const image = new Image();
+
+            image.onload = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const targetSize = 512;
+                    canvas.width = targetSize;
+                    canvas.height = targetSize;
+                    const context = canvas.getContext("2d");
+
+                    if (!context) {
+                        URL.revokeObjectURL(imageUrl);
+                        resolve(file);
+                        return;
+                    }
+
+                    const minSide = Math.min(image.width, image.height);
+                    const sourceX = (image.width - minSide) / 2;
+                    const sourceY = (image.height - minSide) / 2;
+
+                    context.drawImage(
+                        image,
+                        sourceX,
+                        sourceY,
+                        minSide,
+                        minSide,
+                        0,
+                        0,
+                        targetSize,
+                        targetSize
+                    );
+
+                    canvas.toBlob(
+                        (blob) => {
+                            URL.revokeObjectURL(imageUrl);
+                            if (!blob) {
+                                resolve(file);
+                                return;
+                            }
+                            const normalizedFile = new File([blob], `${file.name.split(".").slice(0, -1).join(".") || "photo"}.jpg`, {
+                                type: "image/jpeg",
+                            });
+                            resolve(normalizedFile);
+                        },
+                        "image/jpeg",
+                        0.9
+                    );
+                } catch (error) {
+                    URL.revokeObjectURL(imageUrl);
+                    resolve(file);
+                }
+            };
+
+            image.onerror = () => {
+                URL.revokeObjectURL(imageUrl);
+                resolve(file);
+            };
+
+            image.src = imageUrl;
+        });
+    };
+
+    const handleProfilePictureChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) {
-            setProfilePicturePreview("");
             setProfilePictureFile(null);
             return;
         }
-        setProfilePictureFile(file);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setProfilePicturePreview(reader.result?.toString() ?? "");
-        };
-        reader.readAsDataURL(file);
+
+        const normalized = await normalizeImageFile(file);
+        setProfilePictureFile(normalized);
     };
 
     const uploadProfilePicture = async () => {
@@ -75,7 +143,6 @@ export default function NotreComite() {
         });
         setName("");
         setTitle("");
-        setProfilePicturePreview("");
         setProfilePictureFile(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -142,13 +209,6 @@ export default function NotreComite() {
                                 accept="image/*"
                                 onChange={handleProfilePictureChange}
                             />
-                            {profilePicturePreview && (
-                                <img
-                                    src={profilePicturePreview}
-                                    alt="Aperçu de la photo de profil"
-                                    className="w-32 h-32 object-cover rounded-full border self-center"
-                                />
-                            )}
                             <button className="bg-blue-500 text-white p-2" type="submit">
                                 Ajouter
                             </button>
