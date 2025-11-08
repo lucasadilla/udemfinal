@@ -271,6 +271,6 @@ export async function DELETE(request) {
 export const config = {
   api: {
     bodyParser: false,
-    sizeLimit: '32mb',
+    sizeLimit: '4096mb',
   },
 };
