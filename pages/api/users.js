@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import getMongoDb from '../../lib/mongoClient';
+import { deleteMediaFileIfExists } from '../../lib/podcastUploadUtils';
 
 /**
  * Retrieve or create users from the `users` collection.
@@ -87,7 +88,18 @@ export default async function handler(req, res) {
       if (!id) {
         return res.status(400).json({ error: "L’identifiant est requis." });
       }
-      await collection.deleteOne({ _id: new ObjectId(id) });
+
+      const objectId = new ObjectId(id);
+      const result = await collection.findOneAndDelete({ _id: objectId });
+
+      if (!result.value) {
+        return res.status(404).json({ error: 'Membre introuvable.' });
+      }
+
+      if (result.value.profilePicture) {
+        await deleteMediaFileIfExists(result.value.profilePicture);
+      }
+
       return res.status(200).json({ ok: true });
     }
 
