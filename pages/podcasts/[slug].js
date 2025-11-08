@@ -17,6 +17,77 @@ function isAudioSource(source) {
   return audioExtensions.some((extension) => lowerSource.endsWith(extension));
 }
 
+function isHttpUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+}
+
+function getEmbeddableVideoUrl(source) {
+  if (!isHttpUrl(source)) {
+    return null;
+  }
+
+  try {
+    const url = new URL(source);
+    const host = url.hostname.toLowerCase();
+
+    if (host.includes('youtube.com') || host.includes('youtu.be')) {
+      const pathSegments = url.pathname.split('/').filter(Boolean);
+      const searchId = url.searchParams.get('v') || '';
+
+      if (url.pathname.startsWith('/embed/')) {
+        return `https://www.youtube.com${url.pathname}${url.search}`;
+      }
+
+      if (url.pathname.startsWith('/shorts/') && pathSegments[1]) {
+        return `https://www.youtube.com/embed/${pathSegments[1]}`;
+      }
+
+      if (url.pathname.startsWith('/live/') && pathSegments[1]) {
+        return `https://www.youtube.com/embed/${pathSegments[1]}`;
+      }
+
+      if (searchId) {
+        return `https://www.youtube.com/embed/${searchId}`;
+      }
+
+      if (host.includes('youtu.be') && pathSegments[0]) {
+        return `https://www.youtube.com/embed/${pathSegments[0]}`;
+      }
+
+      const directId = pathSegments[pathSegments.length - 1];
+      if (directId && directId !== 'watch') {
+        return `https://www.youtube.com/embed/${directId}`;
+      }
+    }
+
+    if (host.includes('vimeo.com')) {
+      if (host === 'player.vimeo.com' && url.pathname.startsWith('/video/')) {
+        return source;
+      }
+
+      const pathSegments = url.pathname.split('/').filter(Boolean);
+      const videoId = [...pathSegments].reverse().find((segment) => /^(\d+)$/.test(segment));
+
+      if (videoId) {
+        return `https://player.vimeo.com/video/${videoId}`;
+      }
+    }
+  } catch (error) {
+    return null;
+  }
+
+  return null;
+}
+
 export default function PodcastDetail({ podcast }) {
   const router = useRouter();
 
@@ -42,6 +113,11 @@ export default function PodcastDetail({ podcast }) {
       })
     : '';
 
+  const mediaSource = podcast.video || '';
+  const audioSource = isAudioSource(mediaSource);
+  const embedUrl = getEmbeddableVideoUrl(mediaSource);
+  const hasMedia = Boolean(mediaSource);
+
   const handleBack = () => {
     router.back();
   };
@@ -64,23 +140,34 @@ export default function PodcastDetail({ podcast }) {
           )}
         </header>
         <div className="podcast-video-container">
-          {isAudioSource(podcast.video) ? (
-            <audio
-              src={podcast.video}
-              controls
-              className="podcast-audio-player"
-            >
-              Votre navigateur ne supporte pas la lecture audio.
-            </audio>
+          {hasMedia ? (
+            audioSource ? (
+              <audio src={mediaSource} controls className="podcast-audio-player">
+                Votre navigateur ne supporte pas la lecture audio.
+              </audio>
+            ) : embedUrl ? (
+              <div className="podcast-embed-wrapper">
+                <iframe
+                  src={embedUrl}
+                  title={`Lecture du balado ${podcast.title}`}
+                  className="podcast-embed-frame"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <video
+                src={mediaSource}
+                controls
+                autoPlay
+                className="podcast-video-player"
+                poster={podcast.image || undefined}
+              >
+                Votre navigateur ne supporte pas la lecture vidéo.
+              </video>
+            )
           ) : (
-            <video
-              src={podcast.video}
-              controls
-              autoPlay
-              className="podcast-video-player"
-            >
-              Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
+            <p className="text-center text-gray-600">Aucun média n’est associé à ce balado.</p>
           )}
         </div>
       </main>
