@@ -1,9 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import Busboy from 'next/dist/compiled/busboy/index.js';
-import { NextResponse } from 'next/server';
 import {
   addPodcast,
   deletePodcastById,
@@ -14,8 +12,6 @@ import {
 const baseUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'podcasts');
 const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
 const imageUploadsDirectory = path.join(baseUploadsDirectory, 'images');
-
-export const runtime = 'nodejs';
 
 function ensureUploadsDirectory(directory) {
   if (!fs.existsSync(directory)) {
@@ -155,10 +151,21 @@ function getFieldValue(value) {
 }
 
 const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
-const parsedUploadLimit = Number(process.env.PODCAST_MAX_UPLOAD_BYTES);
-const MAX_UPLOAD_SIZE_BYTES = Number.isFinite(parsedUploadLimit) && parsedUploadLimit > 0
-  ? parsedUploadLimit
-  : DEFAULT_MAX_UPLOAD_SIZE_BYTES;
+
+function resolveMaxUploadBytes() {
+  const candidates = [process.env.PODCAST_MAX_UPLOAD_BYTES, process.env.NEXT_PUBLIC_PODCAST_MAX_UPLOAD_BYTES];
+
+  for (const candidate of candidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_MAX_UPLOAD_SIZE_BYTES;
+}
+
+const MAX_UPLOAD_SIZE_BYTES = resolveMaxUploadBytes();
 
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -178,23 +185,44 @@ function formatBytes(bytes) {
   return `${size.toFixed(precision)} ${units[unitIndex]}`;
 }
 
+function formatSizeLimitForConfig(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return '4096mb';
+  }
+
+  const MEGABYTE = 1024 * 1024;
+  const sizeInMb = Math.max(1, Math.ceil(bytes / MEGABYTE));
+  return `${sizeInMb}mb`;
+}
+
 function ensureMultipartRequest(headers) {
-  const contentType = headers.get('content-type') || '';
-  if (!contentType.toLowerCase().includes('multipart/form-data')) {
+  const contentType = typeof headers.get === 'function' ? headers.get('content-type') : headers['content-type'];
+  const normalized = (contentType || '').toLowerCase();
+  if (!normalized.includes('multipart/form-data')) {
     throw new HttpError(400, 'Le téléchargement doit être envoyé en multipart/form-data.');
   }
 }
 
-export async function POST(request) {
+async function handlePost(req, res) {
   let storedMediaPath = null;
   let storedImagePath = null;
 
-  try {
-    ensureMultipartRequest(request.headers);
+  const cleanupUploadedFiles = () => {
+    if (storedMediaPath) {
+      deleteMediaFileIfExists(storedMediaPath);
+      storedMediaPath = null;
+    }
+    if (storedImagePath) {
+      deleteMediaFileIfExists(storedImagePath);
+      storedImagePath = null;
+    }
+  };
 
-    const headers = Object.fromEntries(request.headers);
+  try {
+    ensureMultipartRequest(req.headers);
+
     const busboy = Busboy({
-      headers,
+      headers: req.headers,
       limits: {
         fields: 20,
         files: 2,
@@ -203,7 +231,6 @@ export async function POST(request) {
     });
 
     const collectedFields = {};
-
     const filePromises = [];
 
     const parsingPromise = new Promise((resolve, reject) => {
@@ -238,36 +265,23 @@ export async function POST(request) {
         fallbackBaseName,
         truncatedRef,
         fieldName,
-      )
-        .then((storedPath) => {
-          if (fieldName === 'video') {
-            storedMediaPath = storedPath;
-          } else {
-            storedImagePath = storedPath;
-          }
-        });
+      ).then((storedPath) => {
+        if (fieldName === 'video') {
+          storedMediaPath = storedPath;
+        } else {
+          storedImagePath = storedPath;
+        }
+      });
 
       filePromises.push(
         promise.catch((error) => {
-          if (fieldName === 'video' && storedMediaPath) {
-            deleteMediaFileIfExists(storedMediaPath);
-            storedMediaPath = null;
-          }
-          if (fieldName === 'image' && storedImagePath) {
-            deleteMediaFileIfExists(storedImagePath);
-            storedImagePath = null;
-          }
+          cleanupUploadedFiles();
           throw error;
         }),
       );
     });
 
-    const nodeStream = request.body ? Readable.fromWeb(request.body) : null;
-    if (!nodeStream) {
-      throw new HttpError(400, 'Requête invalide.');
-    }
-
-    nodeStream.pipe(busboy);
+    req.pipe(busboy);
 
     await parsingPromise;
     await Promise.all(filePromises);
@@ -277,15 +291,11 @@ export async function POST(request) {
     const bio = getFieldValue(collectedFields.bio).trim();
 
     if (!title || !date || !storedMediaPath || !storedImagePath) {
-      deleteMediaFileIfExists(storedMediaPath);
-      deleteMediaFileIfExists(storedImagePath);
-      return NextResponse.json(
-        {
-          error:
-            'Les champs title, date, video (audio ou vidéo) et image sont requis pour créer un balado.',
-        },
-        { status: 400 },
-      );
+      cleanupUploadedFiles();
+      res.status(400).json({
+        error: 'Les champs title, date, video (audio ou vidéo) et image sont requis pour créer un balado.',
+      });
+      return;
     }
 
     const slug = await generateUniqueSlug(title);
@@ -299,70 +309,90 @@ export async function POST(request) {
       createdAt: new Date().toISOString(),
     });
 
-    return NextResponse.json(podcast, { status: 201 });
+    res.status(201).json(podcast);
   } catch (error) {
-    deleteMediaFileIfExists(storedMediaPath);
-    deleteMediaFileIfExists(storedImagePath);
+    cleanupUploadedFiles();
 
     if (error instanceof HttpError) {
       const { status, meta } = error;
       if (status === 413) {
         const fieldLabel = meta?.field === 'image' ? 'image' : 'audio ou vidéo';
-        return NextResponse.json(
-          {
-            error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de ${formatBytes(
-              MAX_UPLOAD_SIZE_BYTES,
-            )}.`,
-          },
-          { status },
-        );
+        res.status(status).json({
+          error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de ${formatBytes(
+            MAX_UPLOAD_SIZE_BYTES,
+          )}.`,
+        });
+        return;
       }
-      return NextResponse.json({ error: error.message }, { status });
+
+      res.status(status).json({ error: error.message });
+      return;
     }
 
     console.error('Échec du traitement de la requête POST /api/podcasts :', error);
-    return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
+    res.status(500).json({ error: 'Échec du traitement de la requête de balado.' });
   }
 }
 
-export async function GET() {
+async function handleGet(res) {
   try {
     const podcasts = await getPodcasts();
-    return NextResponse.json(podcasts, { status: 200 });
+    res.status(200).json(podcasts);
   } catch (error) {
     console.error('Échec du traitement de la requête GET /api/podcasts :', error);
-    return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
+    res.status(500).json({ error: 'Échec du traitement de la requête de balado.' });
   }
 }
 
-export async function DELETE(request) {
+async function handleDelete(req, res) {
   try {
-    const url = new URL(request.url);
-    const id = url.searchParams.get('id');
+    const { id } = req.query;
 
     if (!id) {
-      return NextResponse.json({ error: 'Un identifiant de balado est requis.' }, { status: 400 });
+      res.status(400).json({ error: 'Un identifiant de balado est requis.' });
+      return;
     }
 
     const deletedPodcast = await deletePodcastById(id);
 
     if (!deletedPodcast) {
-      return NextResponse.json({ error: 'Balado introuvable.' }, { status: 404 });
+      res.status(404).json({ error: 'Balado introuvable.' });
+      return;
     }
 
     deleteMediaFileIfExists(deletedPodcast.video);
     deleteMediaFileIfExists(deletedPodcast.image);
 
-    return NextResponse.json({ success: true }, { status: 200 });
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('Échec du traitement de la requête DELETE /api/podcasts :', error);
-    return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
+    res.status(500).json({ error: 'Échec du traitement de la requête de balado.' });
   }
+}
+
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    await handlePost(req, res);
+    return;
+  }
+
+  if (req.method === 'GET') {
+    await handleGet(res);
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    await handleDelete(req, res);
+    return;
+  }
+
+  res.setHeader('Allow', 'GET,POST,DELETE');
+  res.status(405).json({ error: 'Méthode non autorisée.' });
 }
 
 export const config = {
   api: {
     bodyParser: false,
-    sizeLimit: '4096mb',
+    sizeLimit: formatSizeLimitForConfig(MAX_UPLOAD_SIZE_BYTES),
   },
 };
