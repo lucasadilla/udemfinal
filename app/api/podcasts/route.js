@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { NextResponse } from 'next/server';
@@ -14,6 +12,9 @@ import {
 } from '../../../lib/podcastUploadUtils.js';
 import { formattedUploadLimit, isFileSizeTooLarge } from '../../../lib/podcastUploadLimits.js';
 import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../../lib/podcastDatabase';
+import { getPodcastMediaBucket, isGridFsUnavailable } from '../../../lib/podcastMediaStorage.js';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const runtime = 'nodejs';
 
@@ -85,13 +86,47 @@ async function persistUploadedFile(file, type) {
     );
   }
 
+  const fileName = buildFileName(file.name, file.type, type === 'image' ? 'image' : 'media');
+  let bucket = null;
+
+  try {
+    bucket = await getPodcastMediaBucket();
+  } catch (error) {
+    if (!isGridFsUnavailable(error)) {
+      throw error;
+    }
+    bucket = null;
+  }
+
+  if (bucket) {
+    try {
+      const readableStream = Readable.fromWeb(file.stream());
+      const uploadStream = bucket.openUploadStream(fileName, {
+        contentType: file.type || (type === 'image' ? 'image/*' : 'application/octet-stream'),
+        metadata: { mediaType: type },
+      });
+
+      await pipeline(readableStream, uploadStream);
+
+      const fileId = uploadStream.id?.toString?.() ?? String(uploadStream.id);
+      return { url: `/api/podcasts/media/${fileId}`, fileId };
+    } catch (error) {
+      if (!isGridFsUnavailable(error)) {
+        throw error;
+      }
+      console.warn(
+        "GridFS indisponible lors du téléversement; utilisation du système de fichiers local en repli.",
+        error,
+      );
+    }
+  }
+
   const targetDirectory = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
   const ensureResult = ensureUploadsDirectory(targetDirectory);
   if (ensureResult?.readOnly) {
     throw new HttpError(500, 'Le serveur ne peut pas enregistrer de fichiers pour le moment.');
   }
 
-  const fileName = buildFileName(file.name, file.type, type === 'image' ? 'image' : 'media');
   const destination = path.join(targetDirectory, fileName);
   const readableStream = Readable.fromWeb(file.stream());
   const writeStream = fs.createWriteStream(destination);
@@ -105,11 +140,11 @@ async function persistUploadedFile(file, type) {
     throw error;
   }
 
-  return toPublicPath(destination);
+  return { url: toPublicPath(destination), fileId: null };
 }
 
 export async function POST(request) {
-  const cleanupPaths = [];
+  const cleanupTargets = [];
 
   try {
     const contentType = request.headers.get('content-type') || '';
@@ -160,35 +195,37 @@ export async function POST(request) {
     const mediaFile = formData.get('media');
     const imageFile = formData.get('image');
 
-    let storedMediaPath = '';
-    let storedImagePath = '';
+    let storedMedia = { url: '', fileId: null };
+    let storedImage = { url: '', fileId: null };
 
     if (mediaMode === 'upload') {
       if (!isFile(mediaFile)) {
         throw new HttpError(400, 'Un fichier audio ou vidéo doit être fourni.');
       }
-      storedMediaPath = await persistUploadedFile(mediaFile, 'video');
-      cleanupPaths.push(storedMediaPath);
+      storedMedia = await persistUploadedFile(mediaFile, 'video');
+      cleanupTargets.push(storedMedia);
     } else {
-      storedMediaPath = mediaUrl;
+      storedMedia = { url: mediaUrl, fileId: null };
     }
 
     if (imageMode === 'upload') {
       if (!isFile(imageFile)) {
         throw new HttpError(400, "Une image de couverture doit être fournie.");
       }
-      storedImagePath = await persistUploadedFile(imageFile, 'image');
-      cleanupPaths.push(storedImagePath);
+      storedImage = await persistUploadedFile(imageFile, 'image');
+      cleanupTargets.push(storedImage);
     } else {
-      storedImagePath = imageUrl;
+      storedImage = { url: imageUrl, fileId: null };
     }
 
     const slug = await generateUniqueSlug(title);
     const podcast = await addPodcast({
       title,
       date,
-      video: storedMediaPath,
-      image: storedImagePath,
+      video: storedMedia.url,
+      image: storedImage.url,
+      videoFileId: storedMedia.fileId,
+      imageFileId: storedImage.fileId,
       slug,
       bio,
       createdAt: new Date().toISOString(),
@@ -196,9 +233,11 @@ export async function POST(request) {
       imageSource: imageMode === 'upload' ? 'upload' : 'external',
     });
 
+    cleanupTargets.length = 0;
+
     return NextResponse.json(podcast, { status: 201 });
   } catch (error) {
-    cleanupPaths.forEach((filePath) => deleteMediaFileIfExists(filePath));
+    await Promise.all(cleanupTargets.map((target) => deleteMediaFileIfExists(target)));
 
     if (error instanceof HttpError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
@@ -212,7 +251,8 @@ export async function POST(request) {
 export async function GET() {
   try {
     const podcasts = await getPodcasts();
-    return NextResponse.json(podcasts, { status: 200 });
+    const sanitized = podcasts.map(({ videoFileId, imageFileId, ...rest }) => rest);
+    return NextResponse.json(sanitized, { status: 200 });
   } catch (error) {
     console.error('Échec du traitement de la requête GET /api/podcasts :', error);
     return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });
@@ -234,8 +274,10 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Balado introuvable.' }, { status: 404 });
     }
 
-    deleteMediaFileIfExists(deletedPodcast.video);
-    deleteMediaFileIfExists(deletedPodcast.image);
+    await Promise.all([
+      deleteMediaFileIfExists({ url: deletedPodcast.video, fileId: deletedPodcast.videoFileId }),
+      deleteMediaFileIfExists({ url: deletedPodcast.image, fileId: deletedPodcast.imageFileId }),
+    ]);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
