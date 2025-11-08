@@ -43,9 +43,30 @@ export default function PodcastsPage() {
 
   const formattedUploadLimit = formatBytes(maxUploadSizeBytes);
 
+  const isFileTooLarge = (file) =>
+    file && Number.isFinite(maxUploadSizeBytes) && file.size > maxUploadSizeBytes;
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!title || !date || !mediaFile || !imageFile) return;
+
+    if (isFileTooLarge(mediaFile)) {
+      setSubmitError(
+        formattedUploadLimit
+          ? `Le fichier audio ou vidéo ne peut pas dépasser ${formattedUploadLimit}.`
+          : "Le fichier audio ou vidéo sélectionné est trop volumineux.",
+      );
+      return;
+    }
+
+    if (isFileTooLarge(imageFile)) {
+      setSubmitError(
+        formattedUploadLimit
+          ? `L'image de couverture ne peut pas dépasser ${formattedUploadLimit}.`
+          : "L'image de couverture sélectionnée est trop volumineuse.",
+      );
+      return;
+    }
 
     setSubmitError('');
     setSubmitSuccess('');
@@ -154,6 +175,19 @@ export default function PodcastsPage() {
                   accept="audio/*,video/*"
                   onChange={(event) => {
                     const file = event.target.files?.[0] || null;
+
+                    if (file && isFileTooLarge(file)) {
+                      setSubmitError(
+                        formattedUploadLimit
+                          ? `Le fichier audio ou vidéo ne peut pas dépasser ${formattedUploadLimit}.`
+                          : "Le fichier audio ou vidéo sélectionné est trop volumineux.",
+                      );
+                      event.target.value = '';
+                      setMediaFile(null);
+                      return;
+                    }
+
+                    setSubmitError('');
                     setMediaFile(file);
                   }}
                   className="w-full rounded border border-gray-300 p-2"
@@ -181,6 +215,19 @@ export default function PodcastsPage() {
                   accept="image/*"
                   onChange={(event) => {
                     const file = event.target.files?.[0] || null;
+
+                    if (file && isFileTooLarge(file)) {
+                      setSubmitError(
+                        formattedUploadLimit
+                          ? `L'image de couverture ne peut pas dépasser ${formattedUploadLimit}.`
+                          : "L'image de couverture sélectionnée est trop volumineuse.",
+                      );
+                      event.target.value = '';
+                      setImageFile(null);
+                      return;
+                    }
+
+                    setSubmitError('');
                     setImageFile(file);
                   }}
                   className="w-full rounded border border-gray-300 p-2"
