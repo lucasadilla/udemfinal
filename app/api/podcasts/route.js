@@ -1,133 +1,34 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import Busboy from 'next/dist/compiled/busboy/index.js';
 import { NextResponse } from 'next/server';
 import {
-  addPodcast,
-  deletePodcastById,
-  getPodcastBySlug,
-  getPodcasts,
-} from '../../../lib/podcastDatabase';
-
-const baseUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'podcasts');
-const videoUploadsDirectory = path.join(baseUploadsDirectory, 'videos');
-const imageUploadsDirectory = path.join(baseUploadsDirectory, 'images');
+  MAX_UPLOAD_SIZE_BYTES,
+  deleteMediaFileIfExists,
+  formatBytes,
+  imageUploadsDirectory,
+  videoUploadsDirectory,
+} from '../../../lib/podcastUploadUtils';
+import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../../lib/podcastDatabase';
 
 export const runtime = 'nodejs';
 
-function ensureUploadsDirectory(directory) {
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, { recursive: true });
-  }
-}
-
-function isReadOnlyFileSystemError(error) {
-  return error?.code === 'EACCES' || error?.code === 'EROFS' || error?.code === 'EPERM';
-}
-
-function sanitizeBaseName(name, fallback) {
-  const base = (name || fallback || 'file').toLowerCase();
-  const sanitized = base
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '');
-  return sanitized || fallback || 'file';
-}
-
-function buildFileName(originalName, mimeType, fallbackBaseName) {
-  const originalExt = (originalName && path.extname(originalName)) || '';
-  const baseName = sanitizeBaseName(
-    originalName ? path.basename(originalName, originalExt) : '',
-    fallbackBaseName,
-  );
-  const fallbackExt =
-    originalExt || (mimeType && mimeType.includes('/') ? `.${mimeType.split('/')[1].split(/[+;]/)[0]}` : '');
-  const safeExt = fallbackExt || '';
-  return `${Date.now()}-${baseName}${safeExt}`;
-}
-
-function toPublicPath(absolutePath) {
-  const relativeDirectory = path.relative(path.join(process.cwd(), 'public'), absolutePath);
-  return path.posix.join('/', relativeDirectory.split(path.sep).join('/'));
-}
-
 class HttpError extends Error {
-  constructor(status, message, meta = {}) {
+  constructor(status, message) {
     super(message);
     this.status = status;
-    this.meta = meta;
   }
 }
 
-async function streamToBuffer(stream) {
-  const chunks = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
-
-async function persistUploadedStream(stream, info, directory, fallbackBaseName, truncatedRef, fieldName) {
-  if (!stream) {
-    throw new HttpError(400, 'Aucun fichier transmis.');
-  }
-
-  const fileName = buildFileName(info?.filename, info?.mimeType, fallbackBaseName);
-  const targetPath = path.join(directory, fileName);
-  ensureUploadsDirectory(directory);
-
-  let writeStream;
-  try {
-    writeStream = fs.createWriteStream(targetPath);
-  } catch (error) {
-    if (isReadOnlyFileSystemError(error)) {
-      const buffer = await streamToBuffer(stream);
-      return `data:${info?.mimeType || 'application/octet-stream'};base64,${buffer.toString('base64')}`;
-    }
-    throw error;
+function isValidHttpUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return false;
   }
 
   try {
-    await pipeline(stream, writeStream);
-
-    if (truncatedRef?.value) {
-      if (fs.existsSync(targetPath)) {
-        fs.unlinkSync(targetPath);
-      }
-      throw new HttpError(413, 'Le fichier dépasse la taille maximale autorisée.', { field: fieldName });
-    }
-    return toPublicPath(targetPath);
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch (error) {
-    if (fs.existsSync(targetPath)) {
-      fs.unlinkSync(targetPath);
-    }
-
-    throw error;
-  }
-}
-
-function deleteMediaFileIfExists(filePath) {
-  if (
-    !filePath ||
-    typeof filePath !== 'string' ||
-    filePath.startsWith('data:') ||
-    filePath.startsWith('http://') ||
-    filePath.startsWith('https://')
-  ) {
-    return;
-  }
-
-  const sanitizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-  const absolutePath = path.join(process.cwd(), 'public', sanitizedPath);
-
-  try {
-    const stats = fs.statSync(absolutePath);
-    if (stats.isFile()) {
-      fs.unlinkSync(absolutePath);
-    }
-  } catch (error) {
-    // Ignore missing files.
+    return false;
   }
 }
 
@@ -150,156 +51,70 @@ async function generateUniqueSlug(title) {
   }
 }
 
-function getFieldValue(value) {
-  if (Array.isArray(value)) {
-    return value[0];
+function resolveUploadedPath(value, type) {
+  const trimmed = typeof value === 'string' ? value.trim() : '';
+  if (!trimmed) {
+    return null;
   }
-  if (typeof value === 'undefined' || value === null) {
-    return '';
+
+  if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return { publicPath: trimmed, cleanup: false };
   }
-  return value;
+
+  if (!trimmed.startsWith('/')) {
+    throw new HttpError(400, 'Chemin de fichier téléversé invalide.');
+  }
+
+  const uploadsRoot = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
+  const absoluteRoot = path.resolve(uploadsRoot);
+  const absolutePath = path.resolve(path.join(process.cwd(), 'public', trimmed.slice(1)));
+
+  if (!absolutePath.startsWith(absoluteRoot)) {
+    throw new HttpError(400, 'Chemin de fichier téléversé invalide.');
+  }
+
+  if (!fs.existsSync(absolutePath)) {
+    throw new HttpError(400, 'Le fichier téléversé est introuvable ou expiré.');
+  }
+
+  return { publicPath: trimmed, cleanup: true };
 }
 
-function isValidHttpUrl(value) {
-  if (typeof value !== 'string' || !value.trim()) {
-    return false;
+function validatePayload({ title, date, uploadedMediaPath, mediaUrl, uploadedImagePath, imageUrl }) {
+  if (!title || !date) {
+    throw new HttpError(400, 'Les champs title et date sont requis pour créer un balado.');
   }
 
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch (error) {
-    return false;
-  }
-}
-
-const DEFAULT_MAX_UPLOAD_SIZE_BYTES = 4 * 1024 * 1024 * 1024; // 4 GB
-const parsedUploadLimit = Number(process.env.PODCAST_MAX_UPLOAD_BYTES);
-const MAX_UPLOAD_SIZE_BYTES = Number.isFinite(parsedUploadLimit) && parsedUploadLimit > 0
-  ? parsedUploadLimit
-  : DEFAULT_MAX_UPLOAD_SIZE_BYTES;
-
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return 'inconnue';
+  if (!uploadedMediaPath && !mediaUrl) {
+    throw new HttpError(400, 'Une source média (téléversement ou lien externe) est requise.');
   }
 
-  const units = ['octets', 'Ko', 'Mo', 'Go', 'To'];
-  let size = bytes;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  const precision = size >= 10 || unitIndex === 0 ? 0 : 1;
-  return `${size.toFixed(precision)} ${units[unitIndex]}`;
-}
-
-function ensureMultipartRequest(headers) {
-  const contentType = headers.get('content-type') || '';
-  if (!contentType.toLowerCase().includes('multipart/form-data')) {
-    throw new HttpError(400, 'Le téléchargement doit être envoyé en multipart/form-data.');
+  if (!uploadedImagePath && !imageUrl) {
+    throw new HttpError(400, "Une image de couverture (téléversement ou lien externe) est requise.");
   }
 }
 
 export async function POST(request) {
-  let storedMediaPath = null;
-  let storedImagePath = null;
+  const cleanupPaths = [];
 
   try {
-    ensureMultipartRequest(request.headers);
-
-    const headers = Object.fromEntries(request.headers);
-    const busboy = Busboy({
-      headers,
-      limits: {
-        fields: 20,
-        files: 2,
-        fileSize: MAX_UPLOAD_SIZE_BYTES,
-      },
-    });
-
-    const collectedFields = {};
-
-    const filePromises = [];
-
-    const parsingPromise = new Promise((resolve, reject) => {
-      busboy.on('finish', resolve);
-      busboy.on('error', reject);
-    });
-
-    busboy.on('field', (fieldName, value) => {
-      if (typeof collectedFields[fieldName] === 'undefined') {
-        collectedFields[fieldName] = value;
-      }
-    });
-
-    busboy.on('file', (fieldName, fileStream, info) => {
-      if (fieldName !== 'video' && fieldName !== 'image') {
-        fileStream.resume();
-        return;
-      }
-
-      const truncatedRef = { value: false };
-      fileStream.on('limit', () => {
-        truncatedRef.value = true;
-      });
-
-      const destinationDirectory = fieldName === 'video' ? videoUploadsDirectory : imageUploadsDirectory;
-      const fallbackBaseName = fieldName === 'video' ? 'balado-media' : 'balado-couverture';
-
-      const promise = persistUploadedStream(
-        fileStream,
-        info,
-        destinationDirectory,
-        fallbackBaseName,
-        truncatedRef,
-        fieldName,
-      )
-        .then((storedPath) => {
-          if (fieldName === 'video') {
-            storedMediaPath = storedPath;
-          } else {
-            storedImagePath = storedPath;
-          }
-        });
-
-      filePromises.push(
-        promise.catch((error) => {
-          if (fieldName === 'video' && storedMediaPath) {
-            deleteMediaFileIfExists(storedMediaPath);
-            storedMediaPath = null;
-          }
-          if (fieldName === 'image' && storedImagePath) {
-            deleteMediaFileIfExists(storedImagePath);
-            storedImagePath = null;
-          }
-          throw error;
-        }),
-      );
-    });
-
-    const nodeStream = request.body ? Readable.fromWeb(request.body) : null;
-    if (!nodeStream) {
-      throw new HttpError(400, 'Requête invalide.');
+    const contentType = request.headers.get('content-type') || '';
+    if (!contentType.toLowerCase().includes('application/json')) {
+      throw new HttpError(415, 'Le corps de la requête doit être encodé en JSON.');
     }
 
-    nodeStream.pipe(busboy);
+    const payload = await request.json();
+    const title = (payload.title || '').trim();
+    const date = (payload.date || '').trim();
+    const bio = (payload.bio || '').trim();
+    const rawMediaUrl = (payload.mediaUrl || '').trim();
+    const rawImageUrl = (payload.imageUrl || '').trim();
+    const uploadedMediaInput = (payload.uploadedMediaPath || '').trim();
+    const uploadedImageInput = (payload.uploadedImagePath || '').trim();
 
-    await parsingPromise;
-    await Promise.all(filePromises);
-
-    const title = getFieldValue(collectedFields.title).trim();
-    const date = getFieldValue(collectedFields.date).trim();
-    const bio = getFieldValue(collectedFields.bio).trim();
-    const rawVideoUrl = getFieldValue(collectedFields.videoUrl).trim();
-    const rawImageUrl = getFieldValue(collectedFields.imageUrl).trim();
-
-    const videoUrl = isValidHttpUrl(rawVideoUrl) ? rawVideoUrl : '';
-    if (rawVideoUrl && !videoUrl) {
-      throw new HttpError(400, "Le lien vidéo fourni n'est pas valide.");
+    const mediaUrl = isValidHttpUrl(rawMediaUrl) ? rawMediaUrl : '';
+    if (rawMediaUrl && !mediaUrl) {
+      throw new HttpError(400, "Le lien média fourni n'est pas valide.");
     }
 
     const imageUrl = isValidHttpUrl(rawImageUrl) ? rawImageUrl : '';
@@ -307,26 +122,33 @@ export async function POST(request) {
       throw new HttpError(400, "Le lien d'image fourni n'est pas valide.");
     }
 
-    if (!title || !date || (!storedMediaPath && !videoUrl) || (!storedImagePath && !imageUrl)) {
-      deleteMediaFileIfExists(storedMediaPath);
-      deleteMediaFileIfExists(storedImagePath);
-      return NextResponse.json(
-        {
-          error:
-            'Les champs title, date et au moins une source vidéo et image sont requis pour créer un balado.',
-        },
-        { status: 400 },
-      );
+    const resolvedMedia = uploadedMediaInput ? resolveUploadedPath(uploadedMediaInput, 'video') : null;
+    const resolvedImage = uploadedImageInput ? resolveUploadedPath(uploadedImageInput, 'image') : null;
+
+    if (resolvedMedia?.cleanup) {
+      cleanupPaths.push(resolvedMedia.publicPath);
     }
+    if (resolvedImage?.cleanup) {
+      cleanupPaths.push(resolvedImage.publicPath);
+    }
+
+    validatePayload({
+      title,
+      date,
+      uploadedMediaPath: resolvedMedia?.publicPath,
+      mediaUrl,
+      uploadedImagePath: resolvedImage?.publicPath,
+      imageUrl,
+    });
 
     const slug = await generateUniqueSlug(title);
     const podcast = await addPodcast({
       title,
       date,
-      video: storedMediaPath || videoUrl,
-      image: storedImagePath || imageUrl,
-      mediaSource: storedMediaPath ? 'upload' : 'external',
-      imageSource: storedImagePath ? 'upload' : 'external',
+      video: resolvedMedia?.publicPath || mediaUrl,
+      image: resolvedImage?.publicPath || imageUrl,
+      mediaSource: resolvedMedia?.publicPath ? 'upload' : 'external',
+      imageSource: resolvedImage?.publicPath ? 'upload' : 'external',
       slug,
       bio,
       createdAt: new Date().toISOString(),
@@ -334,23 +156,18 @@ export async function POST(request) {
 
     return NextResponse.json(podcast, { status: 201 });
   } catch (error) {
-    deleteMediaFileIfExists(storedMediaPath);
-    deleteMediaFileIfExists(storedImagePath);
+    cleanupPaths.forEach((filePath) => deleteMediaFileIfExists(filePath));
 
     if (error instanceof HttpError) {
-      const { status, meta } = error;
-      if (status === 413) {
-        const fieldLabel = meta?.field === 'image' ? 'image' : 'audio ou vidéo';
+      if (error.status === 413) {
         return NextResponse.json(
           {
-            error: `Le fichier ${fieldLabel} dépasse la taille maximale autorisée de ${formatBytes(
-              MAX_UPLOAD_SIZE_BYTES,
-            )}.`,
+            error: `Le fichier dépasse la taille maximale autorisée de ${formatBytes(MAX_UPLOAD_SIZE_BYTES)}.`,
           },
-          { status },
+          { status: error.status },
         );
       }
-      return NextResponse.json({ error: error.message }, { status });
+      return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
     console.error('Échec du traitement de la requête POST /api/podcasts :', error);
