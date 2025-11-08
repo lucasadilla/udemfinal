@@ -1,12 +1,15 @@
-import fs from 'node:fs/promises';
+import fs from 'node:fs';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import {
   buildFileName,
   ensureUploadsDirectory,
   isReadOnlyFileSystemError,
   toPublicPath,
 } from '../../../lib/podcastUploadUtils.js';
+import { getPodcastMediaBucket, isGridFsUnavailable } from '../../../lib/podcastMediaStorage.js';
 
 const userImageUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
 
@@ -47,19 +50,52 @@ export async function POST(request) {
       throw createHttpError(400, 'Le fichier téléversé est vide.');
     }
 
+    const fileName = buildFileName(uploadedFile.name, uploadedFile.type, 'user-image');
+    let bucket = null;
+
+    try {
+      bucket = await getPodcastMediaBucket();
+    } catch (error) {
+      if (!isGridFsUnavailable(error)) {
+        throw error;
+      }
+      bucket = null;
+    }
+
+    if (bucket) {
+      try {
+        const readableStream = Readable.fromWeb(uploadedFile.stream());
+        const uploadStream = bucket.openUploadStream(fileName, {
+          contentType: uploadedFile.type || 'application/octet-stream',
+          metadata: { mediaType: 'user-image' },
+        });
+
+        await pipeline(readableStream, uploadStream);
+
+        const fileId = uploadStream.id?.toString?.() ?? String(uploadStream.id);
+        return NextResponse.json({ url: `/api/podcasts/media/${fileId}` }, { status: 200 });
+      } catch (error) {
+        if (!isGridFsUnavailable(error)) {
+          throw error;
+        }
+        console.warn(
+          "GridFS indisponible lors du téléversement d'une photo de profil; utilisation du système de fichiers local.",
+          error,
+        );
+      }
+    }
+
     const ensureResult = ensureUploadsDirectory(userImageUploadsDirectory);
     if (ensureResult?.readOnly) {
       throw createHttpError(500, 'Le serveur ne peut pas enregistrer la photo de profil pour le moment.');
     }
 
-    const fileName = buildFileName(uploadedFile.name, uploadedFile.type, 'user-image');
     const destination = path.join(userImageUploadsDirectory, fileName);
-
-    const arrayBuffer = await uploadedFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const readableStream = Readable.fromWeb(uploadedFile.stream());
+    const writeStream = fs.createWriteStream(destination);
 
     try {
-      await fs.writeFile(destination, buffer);
+      await pipeline(readableStream, writeStream);
     } catch (error) {
       if (isReadOnlyFileSystemError(error)) {
         throw createHttpError(500, 'Le serveur ne peut pas enregistrer la photo de profil pour le moment.');

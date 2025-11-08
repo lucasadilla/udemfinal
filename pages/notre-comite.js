@@ -14,88 +14,13 @@ export default function NotreComite() {
     const [profilePictureFile, setProfilePictureFile] = useState(null);
     const fileInputRef = useRef(null);
 
-    const normalizeImageFile = async (file) => {
-        if (!file) {
-            return null;
-        }
-
-        if (typeof window === "undefined") {
-            return file;
-        }
-
-        return new Promise((resolve) => {
-            const imageUrl = URL.createObjectURL(file);
-            const image = new Image();
-
-            image.onload = () => {
-                try {
-                    const canvas = document.createElement("canvas");
-                    const targetSize = 512;
-                    canvas.width = targetSize;
-                    canvas.height = targetSize;
-                    const context = canvas.getContext("2d");
-
-                    if (!context) {
-                        URL.revokeObjectURL(imageUrl);
-                        resolve(file);
-                        return;
-                    }
-
-                    const minSide = Math.min(image.width, image.height);
-                    const sourceX = (image.width - minSide) / 2;
-                    const sourceY = (image.height - minSide) / 2;
-
-                    context.drawImage(
-                        image,
-                        sourceX,
-                        sourceY,
-                        minSide,
-                        minSide,
-                        0,
-                        0,
-                        targetSize,
-                        targetSize
-                    );
-
-                    canvas.toBlob(
-                        (blob) => {
-                            URL.revokeObjectURL(imageUrl);
-                            if (!blob) {
-                                resolve(file);
-                                return;
-                            }
-                            const normalizedFile = new File([blob], `${file.name.split(".").slice(0, -1).join(".") || "photo"}.jpg`, {
-                                type: "image/jpeg",
-                            });
-                            resolve(normalizedFile);
-                        },
-                        "image/jpeg",
-                        0.9
-                    );
-                } catch (error) {
-                    URL.revokeObjectURL(imageUrl);
-                    resolve(file);
-                }
-            };
-
-            image.onerror = () => {
-                URL.revokeObjectURL(imageUrl);
-                resolve(file);
-            };
-
-            image.src = imageUrl;
-        });
-    };
-
-    const handleProfilePictureChange = async (e) => {
+    const handleProfilePictureChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) {
             setProfilePictureFile(null);
             return;
         }
-
-        const normalized = await normalizeImageFile(file);
-        setProfilePictureFile(normalized);
+        setProfilePictureFile(file);
     };
 
     const uploadProfilePicture = async () => {
@@ -112,7 +37,16 @@ export default function NotreComite() {
         });
 
         if (!response.ok) {
-            throw new Error("Échec du téléversement de la photo de profil.");
+            let errorMessage = "Échec du téléversement de la photo de profil.";
+            try {
+                const data = await response.json();
+                if (typeof data?.error === "string" && data.error.trim()) {
+                    errorMessage = data.error;
+                }
+            } catch (error) {
+                // Ignore JSON parsing errors and use default message.
+            }
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -132,7 +66,7 @@ export default function NotreComite() {
             uploadedProfilePicture = await uploadProfilePicture();
         } catch (error) {
             console.error(error);
-            alert("Impossible de téléverser la photo de profil sélectionnée.");
+            alert(error.message || "Impossible de téléverser la photo de profil sélectionnée.");
             return;
         }
 
@@ -161,60 +95,60 @@ export default function NotreComite() {
                 <main className="p-8">
                     <h1 className="page-title text-center mb-8">NOTRE COMITÉ</h1>
 
-                {loading ? (
-                    <LoadingSpinner />
-                ) : (
-                    <div className="committee-grid">
-                        {users.map((member) => (
-                            <div key={member.id} className="committee-card">
-                                <img
-                                    src={member.profilePicture}
-                                    alt={member.name}
-                                    className="committee-avatar border-image mb-1"
-                                />
-                                <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
-                                <p className="text-gray-600 leading-snug">{member.title}</p>
-                                {isAdmin && (
-                                    <button onClick={() => deleteUser(member.id)} className="committee-delete">
-                                        Supprimer
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : (
+                        <div className="committee-grid">
+                            {users.map((member) => (
+                                <div key={member.id} className="committee-card">
+                                    <img
+                                        src={member.profilePicture}
+                                        alt={member.name}
+                                        className="committee-avatar border-image mb-1"
+                                    />
+                                    <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
+                                    <p className="text-gray-600 leading-snug">{member.title}</p>
+                                    {isAdmin && (
+                                        <button onClick={() => deleteUser(member.id)} className="committee-delete">
+                                            Supprimer
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                {isAdmin && (
-                    <div className="mt-12">
-                        <h2 className="text-xl font-semibold text-center mb-4">Ajouter un membre</h2>
-                        <form onSubmit={handleAddUser} className="flex flex-col space-y-2 max-w-md mx-auto">
-                            <input
-                                className="border p-2"
-                                type="text"
-                                placeholder="Nom"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                            <input
-                                className="border p-2"
-                                type="text"
-                                placeholder="Titre"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                            />
-                            <input
-                                ref={fileInputRef}
-                                className="border p-2"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleProfilePictureChange}
-                            />
-                            <button className="bg-blue-500 text-white p-2" type="submit">
-                                Ajouter
-                            </button>
-                        </form>
-                    </div>
-                )}
+                    {isAdmin && (
+                        <div className="mt-12">
+                            <h2 className="text-xl font-semibold text-center mb-4">Ajouter un membre</h2>
+                            <form onSubmit={handleAddUser} className="flex flex-col space-y-2 max-w-md mx-auto">
+                                <input
+                                    className="border p-2"
+                                    type="text"
+                                    placeholder="Nom"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                                <input
+                                    className="border p-2"
+                                    type="text"
+                                    placeholder="Titre"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                />
+                                <input
+                                    ref={fileInputRef}
+                                    className="border p-2"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleProfilePictureChange}
+                                />
+                                <button className="bg-blue-500 text-white p-2" type="submit">
+                                    Ajouter
+                                </button>
+                            </form>
+                        </div>
+                    )}
                 </main>
             </div>
         </>
