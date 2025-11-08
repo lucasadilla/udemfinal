@@ -166,6 +166,7 @@ function resolveMaxUploadBytes() {
 }
 
 const MAX_UPLOAD_SIZE_BYTES = resolveMaxUploadBytes();
+const SIZE_LIMIT_FOR_CONFIG = formatSizeLimitForConfig(MAX_UPLOAD_SIZE_BYTES);
 
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -393,6 +394,6 @@ export default async function handler(req, res) {
 export const config = {
   api: {
     bodyParser: false,
-    sizeLimit: formatSizeLimitForConfig(MAX_UPLOAD_SIZE_BYTES),
+    sizeLimit: SIZE_LIMIT_FOR_CONFIG,
   },
 };
