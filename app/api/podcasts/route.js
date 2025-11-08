@@ -12,6 +12,7 @@ import {
   toPublicPath,
   videoUploadsDirectory,
 } from '../../../lib/podcastUploadUtils.js';
+import { formattedUploadLimit, isFileSizeTooLarge } from '../../../lib/podcastUploadLimits.js';
 import { addPodcast, deletePodcastById, getPodcastBySlug, getPodcasts } from '../../../lib/podcastDatabase';
 
 export const runtime = 'nodejs';
@@ -73,6 +74,15 @@ async function persistUploadedFile(file, type) {
   const fileSize = Number(file.size);
   if (fileSize <= 0) {
     throw new HttpError(400, 'Le fichier téléversé est vide.');
+  }
+
+  if (isFileSizeTooLarge(fileSize)) {
+    throw new HttpError(
+      413,
+      formattedUploadLimit
+        ? `Le fichier sélectionné dépasse la taille maximale autorisée (${formattedUploadLimit}).`
+        : 'Le fichier sélectionné dépasse la taille maximale autorisée.',
+    );
   }
 
   const targetDirectory = type === 'image' ? imageUploadsDirectory : videoUploadsDirectory;
