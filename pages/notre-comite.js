@@ -11,20 +11,44 @@ export default function NotreComite() {
     const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
     const [title, setTitle] = useState("");
-    const [profilePicture, setProfilePicture] = useState("");
+    const [profilePicturePreview, setProfilePicturePreview] = useState("");
+    const [profilePictureFile, setProfilePictureFile] = useState(null);
     const fileInputRef = useRef(null);
 
     const handleProfilePictureChange = (e) => {
         const file = e.target.files?.[0];
         if (!file) {
-            setProfilePicture("");
+            setProfilePicturePreview("");
+            setProfilePictureFile(null);
             return;
         }
+        setProfilePictureFile(file);
         const reader = new FileReader();
         reader.onloadend = () => {
-            setProfilePicture(reader.result.toString());
+            setProfilePicturePreview(reader.result?.toString() ?? "");
         };
         reader.readAsDataURL(file);
+    };
+
+    const uploadProfilePicture = async () => {
+        if (!profilePictureFile) {
+            return "";
+        }
+
+        const formData = new FormData();
+        formData.append("file", profilePictureFile);
+
+        const response = await fetch("/api/user-images", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error("Échec du téléversement de la photo de profil.");
+        }
+
+        const data = await response.json();
+        return typeof data?.url === "string" ? data.url : "";
     };
 
     const handleAddUser = async (e) => {
@@ -35,10 +59,24 @@ export default function NotreComite() {
             alert('Veuillez remplir les champs Nom et Titre.');
             return;
         }
-        await addUser({ name: normalizedName, title: normalizedTitle, profilePicture });
+        let uploadedProfilePicture = "";
+        try {
+            uploadedProfilePicture = await uploadProfilePicture();
+        } catch (error) {
+            console.error(error);
+            alert("Impossible de téléverser la photo de profil sélectionnée.");
+            return;
+        }
+
+        await addUser({
+            name: normalizedName,
+            title: normalizedTitle,
+            profilePicture: uploadedProfilePicture,
+        });
         setName("");
         setTitle("");
-        setProfilePicture("");
+        setProfilePicturePreview("");
+        setProfilePictureFile(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -104,6 +142,13 @@ export default function NotreComite() {
                                 accept="image/*"
                                 onChange={handleProfilePictureChange}
                             />
+                            {profilePicturePreview && (
+                                <img
+                                    src={profilePicturePreview}
+                                    alt="Aperçu de la photo de profil"
+                                    className="w-32 h-32 object-cover rounded-full border self-center"
+                                />
+                            )}
                             <button className="bg-blue-500 text-white p-2" type="submit">
                                 Ajouter
                             </button>
