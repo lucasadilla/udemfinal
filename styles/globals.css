@@ -203,6 +203,11 @@ nav a {
     line-height: 1.6;
 }
 
+.editor-content .ProseMirror {
+    min-height: 20rem;
+    padding: 1rem;
+}
+
 .editor-content p {
     margin-bottom: 1rem;
 }
