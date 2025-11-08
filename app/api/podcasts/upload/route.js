@@ -268,12 +268,9 @@ export async function DELETE(request) {
   }
 }
 
-const MEGABYTE_IN_BYTES = 1024 * 1024;
-const uploadSizeLimitMb = Math.max(1, Math.ceil(MAX_UPLOAD_SIZE_BYTES / MEGABYTE_IN_BYTES));
-
 export const config = {
   api: {
     bodyParser: false,
-    sizeLimit: `${uploadSizeLimitMb}mb`,
+    sizeLimit: '4096mb',
   },
 };
