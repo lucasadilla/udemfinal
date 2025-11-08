@@ -1070,7 +1070,7 @@ button[type="submit"]:hover {
 
 .committee-avatar {
     width: 100%;
-    max-width: 260px;
+    max-width: none;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 50%;
@@ -1271,7 +1271,7 @@ button[type="submit"]:hover {
     }
 
     .committee-avatar {
-        max-width: 200px;
+        max-width: none;
     }
 
     .rounded-full {
