@@ -5,8 +5,16 @@ import React, { useRef, useState } from "react";
 import useUsers from "../hooks/useUsers";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useAdminStatus from "../hooks/useAdminStatus";
+import {
+    createCoverImageDataUrl,
+    dataUrlToFile,
+    IMAGE_ERRORS,
+    MAX_FORM_BASE64_SIZE,
+    MAX_FORM_FILE_SIZE,
+} from "../lib/clientImageUtils";
 
 export default function NotreComite() {
+    const PROFILE_IMAGE_COMPRESSION_THRESHOLD = 2.5 * 1024 * 1024; // 2.5 MB
     const { users, loading, addUser, deleteUser } = useUsers();
     const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
@@ -28,8 +36,49 @@ export default function NotreComite() {
             return "";
         }
 
+        let fileToUpload = profilePictureFile;
+
+        if (
+            profilePictureFile.size > PROFILE_IMAGE_COMPRESSION_THRESHOLD ||
+            (profilePictureFile.type && !profilePictureFile.type.includes("jpeg"))
+        ) {
+            try {
+                const optimizedDataUrl = await createCoverImageDataUrl(profilePictureFile, {
+                    maxFileSize: MAX_FORM_FILE_SIZE,
+                    maxBase64Size: MAX_FORM_BASE64_SIZE,
+                    maxWidth: 900,
+                    quality: 0.75,
+                    mimeType: "image/jpeg",
+                });
+                const originalName =
+                    typeof profilePictureFile.name === "string" && profilePictureFile.name.trim()
+                        ? profilePictureFile.name.trim()
+                        : "profile-picture";
+                const optimizedFileName = /\.[^./]+$/.test(originalName)
+                    ? originalName.replace(/\.[^./]+$/, ".jpg")
+                    : `${originalName}.jpg`;
+                const optimizedFile = await dataUrlToFile(optimizedDataUrl, {
+                    name: optimizedFileName,
+                    type: "image/jpeg",
+                    lastModified: profilePictureFile.lastModified,
+                });
+
+                if (optimizedFile?.size && optimizedFile.size < profilePictureFile.size) {
+                    fileToUpload = optimizedFile;
+                }
+            } catch (error) {
+                if (error?.code === IMAGE_ERRORS.TOO_LARGE) {
+                    throw new Error(
+                        "L’image sélectionnée est trop volumineuse. Choisissez une image plus petite (moins de 6 Mo).",
+                    );
+                }
+
+                console.warn("Impossible de compresser l’image du profil sélectionnée.", error);
+            }
+        }
+
         const formData = new FormData();
-        formData.append("file", profilePictureFile);
+        formData.append("file", fileToUpload);
 
         const response = await fetch("/api/user-images", {
             method: "POST",
