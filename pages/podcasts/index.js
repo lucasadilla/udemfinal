@@ -24,12 +24,8 @@ export default function PodcastsPage() {
   const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [mediaMode, setMediaMode] = useState('upload');
-  const [mediaFile, setMediaFile] = useState(null);
   const [mediaUrl, setMediaUrl] = useState('');
-  const [imageMode, setImageMode] = useState('upload');
   const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState('');
   const [bio, setBio] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
@@ -40,25 +36,14 @@ export default function PodcastsPage() {
     if (!title || !date) return;
 
     const trimmedMediaUrl = mediaUrl.trim();
-    const trimmedImageUrl = imageUrl.trim();
 
-    if (mediaMode === 'upload') {
-      if (!mediaFile) {
-        setSubmitError('Veuillez sélectionner un fichier audio ou vidéo à téléverser.');
-        return;
-      }
-    } else if (!trimmedMediaUrl || !isValidHttpUrl(trimmedMediaUrl)) {
+    if (!trimmedMediaUrl || !isValidHttpUrl(trimmedMediaUrl)) {
       setSubmitError('Veuillez fournir un lien vidéo valide (YouTube, Vimeo, fichier hébergé, etc.).');
       return;
     }
 
-    if (imageMode === 'upload') {
-      if (!imageFile) {
-        setSubmitError("Veuillez sélectionner une image de couverture à téléverser.");
-        return;
-      }
-    } else if (!trimmedImageUrl || !isValidHttpUrl(trimmedImageUrl)) {
-      setSubmitError("Veuillez fournir un lien d'image de couverture valide.");
+    if (!imageFile) {
+      setSubmitError("Veuillez sélectionner une image de couverture à téléverser.");
       return;
     }
 
@@ -70,12 +55,12 @@ export default function PodcastsPage() {
       title,
       date,
       bio,
-      mediaMode,
-      media: mediaMode === 'upload' ? mediaFile : null,
-      mediaUrl: mediaMode === 'link' ? trimmedMediaUrl : '',
-      imageMode,
-      image: imageMode === 'upload' ? imageFile : null,
-      imageUrl: imageMode === 'link' ? trimmedImageUrl : '',
+      mediaMode: 'link',
+      media: null,
+      mediaUrl: trimmedMediaUrl,
+      imageMode: 'upload',
+      image: imageFile,
+      imageUrl: '',
     });
 
     if (result?.success) {
@@ -83,12 +68,8 @@ export default function PodcastsPage() {
       setTitle('');
       setDate('');
       setBio('');
-      setMediaMode('upload');
-      setMediaFile(null);
       setMediaUrl('');
-      setImageMode('upload');
       setImageFile(null);
-      setImageUrl('');
       event.target.reset();
     } else {
       setSubmitError(result?.error || "Impossible d’ajouter le balado.");
@@ -174,195 +155,63 @@ export default function PodcastsPage() {
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-sm font-medium">Source du média</p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="radio"
-                      name="media-source"
-                      value="upload"
-                      checked={mediaMode === 'upload'}
-                      onChange={() => {
-                        setMediaMode('upload');
-                        setMediaUrl('');
-                        setSubmitError('');
-                      }}
-                    />
-                    Téléverser un fichier
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="radio"
-                      name="media-source"
-                      value="link"
-                      checked={mediaMode === 'link'}
-                      onChange={() => {
-                        setMediaMode('link');
-                        setMediaFile(null);
-                        setSubmitError('');
-                      }}
-                    />
-                    Utiliser un lien vidéo externe
-                  </label>
-                </div>
-                {mediaMode === 'upload' ? (
-                  <div className="mt-3">
-                    <label className="mb-1 block text-sm font-medium" htmlFor="media">
-                      Fichier audio ou vidéo
-                    </label>
-                    <input
-                      id="media"
-                      type="file"
-                      accept="audio/*,video/*"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0] || null;
-
-                        if (file && isFileTooLarge(file)) {
-                          setSubmitError(
-                            formattedUploadLimit
-                              ? `Le fichier audio ou vidéo ne peut pas dépasser ${formattedUploadLimit}.`
-                              : "Le fichier audio ou vidéo sélectionné est trop volumineux.",
-                          );
-                          event.target.value = '';
-                          setMediaFile(null);
-                          return;
-                        }
-
-                        setSubmitError('');
-                        setMediaFile(file);
-                      }}
-                      className="w-full rounded border border-gray-300 p-2"
-                      required={mediaMode === 'upload'}
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Sélectionnez un fichier média (audio ou vidéo) présent sur votre ordinateur.
-                    </p>
-                    {formattedUploadLimit && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Taille maximale autorisée : {formattedUploadLimit}.
-                      </p>
-                    )}
-                    {mediaFile && (
-                      <p className="mt-1 text-sm text-gray-600">Fichier sélectionné : {mediaFile.name}</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <label className="mb-1 block text-sm font-medium" htmlFor="mediaUrl">
-                      Lien vidéo externe
-                    </label>
-                    <input
-                      id="mediaUrl"
-                      type="url"
-                      value={mediaUrl}
-                      onChange={(event) => {
-                        setSubmitError('');
-                        setMediaUrl(event.target.value);
-                      }}
-                      className="w-full rounded border border-gray-300 p-2"
-                      placeholder="https://www.youtube.com/watch?v=..."
-                      required={mediaMode === 'link'}
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Collez un lien vers une vidéo déjà hébergée (YouTube, Vimeo, fichier mp4, etc.).
-                    </p>
-                  </div>
-                )}
+                <label className="mb-1 block text-sm font-medium" htmlFor="mediaUrl">
+                  Lien vidéo externe
+                </label>
+                <input
+                  id="mediaUrl"
+                  type="url"
+                  value={mediaUrl}
+                  onChange={(event) => {
+                    setSubmitError('');
+                    setMediaUrl(event.target.value);
+                  }}
+                  className="w-full rounded border border-gray-300 p-2"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Collez un lien vers une vidéo déjà hébergée (YouTube, Vimeo, fichier mp4, etc.).
+                </p>
               </div>
               <div>
-                <p className="mb-1 text-sm font-medium">Source de l'image de couverture</p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="radio"
-                      name="image-source"
-                      value="upload"
-                      checked={imageMode === 'upload'}
-                      onChange={() => {
-                        setImageMode('upload');
-                        setImageUrl('');
-                        setSubmitError('');
-                      }}
-                    />
-                    Téléverser une image
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="radio"
-                      name="image-source"
-                      value="link"
-                      checked={imageMode === 'link'}
-                      onChange={() => {
-                        setImageMode('link');
-                        setImageFile(null);
-                        setSubmitError('');
-                      }}
-                    />
-                    Utiliser un lien d'image externe
-                  </label>
-                </div>
-                {imageMode === 'upload' ? (
-                  <div className="mt-3">
-                    <label className="mb-1 block text-sm font-medium" htmlFor="image">
-                      Image de couverture
-                    </label>
-                    <input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0] || null;
+                <label className="mb-1 block text-sm font-medium" htmlFor="image">
+                  Image de couverture
+                </label>
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
 
-                        if (file && isFileTooLarge(file)) {
-                          setSubmitError(
-                            formattedUploadLimit
-                              ? `L'image de couverture ne peut pas dépasser ${formattedUploadLimit}.`
-                              : "L'image de couverture sélectionnée est trop volumineuse.",
-                          );
-                          event.target.value = '';
-                          setImageFile(null);
-                          return;
-                        }
+                    if (file && isFileTooLarge(file)) {
+                      setSubmitError(
+                        formattedUploadLimit
+                          ? `L'image de couverture ne peut pas dépasser ${formattedUploadLimit}.`
+                          : "L'image de couverture sélectionnée est trop volumineuse.",
+                      );
+                      event.target.value = '';
+                      setImageFile(null);
+                      return;
+                    }
 
-                        setSubmitError('');
-                        setImageFile(file);
-                      }}
-                      className="w-full rounded border border-gray-300 p-2"
-                      required={imageMode === 'upload'}
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Téléversez une image qui sera affichée sur la carte du podcast.
-                    </p>
-                    {formattedUploadLimit && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        Taille maximale autorisée : {formattedUploadLimit}.
-                      </p>
-                    )}
-                    {imageFile && (
-                      <p className="mt-1 text-sm text-gray-600">Image sélectionnée : {imageFile.name}</p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-3">
-                    <label className="mb-1 block text-sm font-medium" htmlFor="imageUrl">
-                      Lien de l'image de couverture
-                    </label>
-                    <input
-                      id="imageUrl"
-                      type="url"
-                      value={imageUrl}
-                      onChange={(event) => {
-                        setSubmitError('');
-                        setImageUrl(event.target.value);
-                      }}
-                      className="w-full rounded border border-gray-300 p-2"
-                      placeholder="https://exemple.com/visuel.jpg"
-                      required={imageMode === 'link'}
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Collez un lien vers une image déjà hébergée (JPEG, PNG, etc.).
-                    </p>
-                  </div>
+                    setSubmitError('');
+                    setImageFile(file);
+                  }}
+                  className="w-full rounded border border-gray-300 p-2"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Téléversez une image qui sera affichée sur la carte du podcast.
+                </p>
+                {formattedUploadLimit && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    Taille maximale autorisée : {formattedUploadLimit}.
+                  </p>
+                )}
+                {imageFile && (
+                  <p className="mt-1 text-sm text-gray-600">Image sélectionnée : {imageFile.name}</p>
                 )}
               </div>
               {submitError && (
