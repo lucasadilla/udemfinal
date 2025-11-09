@@ -9,7 +9,8 @@ import {
   isReadOnlyFileSystemError,
   toPublicPath,
 } from '../../../lib/podcastUploadUtils.js';
-import { getPodcastMediaBucket, isGridFsUnavailable } from '../../../lib/podcastMediaStorage.js';
+import { isGridFsUnavailable } from '../../../lib/podcastMediaStorage.js';
+import { getUserImageBucket } from '../../../lib/userImageStorage.js';
 
 const userImageUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
 
@@ -54,7 +55,7 @@ export async function POST(request) {
     let bucket = null;
 
     try {
-      bucket = await getPodcastMediaBucket();
+      bucket = await getUserImageBucket();
     } catch (error) {
       if (!isGridFsUnavailable(error)) {
         throw error;
@@ -73,7 +74,7 @@ export async function POST(request) {
         await pipeline(readableStream, uploadStream);
 
         const fileId = uploadStream.id?.toString?.() ?? String(uploadStream.id);
-        return NextResponse.json({ url: `/api/podcasts/media/${fileId}` }, { status: 200 });
+        return NextResponse.json({ url: `/api/user-images/${fileId}` }, { status: 200 });
       } catch (error) {
         if (!isGridFsUnavailable(error)) {
           throw error;
