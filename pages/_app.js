@@ -14,8 +14,7 @@ export default function MyApp({ Component, pageProps }) {
     <MantineProvider>
       <ArticlesProvider>
           <Head>
-            <link rel="icon" href="/images/favicon.PNG" sizes="any" type="image/png" />
-            <link rel="apple-touch-icon" href="/images/favicon.PNG" sizes="180x180" />
+              <link rel="icon" href="/favicon.PNG"/>
           </Head>
           <Analytics />
           <div className="flex-wrapper">
