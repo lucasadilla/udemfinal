@@ -69,14 +69,15 @@ main {
 
 .banner-text-box {
     position: absolute;
-    bottom: 15%; /* Adjust position as needed */
-    left: 0; /* Adjust position as needed */
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Dark background for text box */
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 55%, rgba(0, 0, 0, 0.8) 100%);
     color: #ffffff; /* White text */
-    padding: 1rem;
+    padding: 2rem 1rem 2.5rem;
     text-align: center;
-    border-radius: 0.25rem;
+    border-radius: 0.25rem 0.25rem 0 0;
 }
 
 .banner-text-box h1 {
