@@ -1089,102 +1089,182 @@ button[type="submit"]:hover {
 /* Sponsors section container */
 .sponsors-section {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(230, 222, 222, 0.3) 100%);
-    padding: 2rem 0;
+    padding: 3rem 0;
     margin-top: 2rem;
     position: relative;
     overflow: hidden;
-}
-
-/* Scroller container */
-.scroller {
-    overflow: hidden;
-    position: relative;
     width: 100%;
-    -webkit-mask: linear-gradient(
-            90deg,
-            transparent 0%,
-            white 10%,
-            white 90%,
-            transparent 100%
+}
+
+/* Scroller container with fade edges */
+.sponsor-scroller {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 5%,
+        black 95%,
+        transparent 100%
     );
-    mask: linear-gradient(90deg, transparent 0%, white 10%, white 90%, transparent 100%);
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 5%,
+        black 95%,
+        transparent 100%
+    );
 }
 
-/* Scrolling inner content */
-.scroller__inner {
+/* Scrolling content container */
+.sponsor-scroll-content {
     display: flex;
-    width: max-content;
     gap: 4rem;
-    padding: 0 2rem;
-    animation: scroll var(--_animation-duration, 40s) var(--_animation-direction, forwards) linear infinite;
+    width: fit-content;
+    animation: sponsor-scroll 40s linear infinite;
     will-change: transform;
+    padding: 0 2rem;
 }
 
-/* Scrolling direction and speed */
-.scroller[data-direction="right"] {
-    --_animation-direction: reverse;
-}
-.scroller[data-direction="left"] {
-    --_animation-direction: forwards;
-}
-.scroller[data-speed="fast"] {
-    --_animation-duration: 20s;
-}
-.scroller[data-speed="slow"] {
-    --_animation-duration: 60s;
-}
-
-/* Scroller item wrapper */
-.scroller-item-wrapper {
+/* Sponsor item wrapper */
+.sponsor-item {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem;
+}
+
+/* Logo wrapper with consistent sizing */
+.sponsor-logo-wrapper {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
     transition: transform 0.2s ease;
 }
 
-.scroller-item-wrapper:hover {
+.sponsor-logo-wrapper:hover {
     transform: scale(1.05);
 }
 
-/* Scroller item (logo) */
-.scroller-item {
-    flex-shrink: 0;
-    width: 120px;
-    height: 80px;
+/* Sponsor logo - normalized size */
+.sponsor-logo {
+    width: 200px;
+    height: 120px;
+    min-width: 200px;
+    min-height: 120px;
+    max-width: 200px;
+    max-height: 120px;
     object-fit: contain;
-    filter: grayscale(20%) opacity(0.9);
+    object-position: center;
+    display: block;
+    filter: grayscale(20%) opacity(0.85);
     transition: filter 0.3s ease;
+    pointer-events: none;
 }
 
-.scroller-item-wrapper:hover .scroller-item {
+.sponsor-logo-wrapper:hover .sponsor-logo {
     filter: grayscale(0%) opacity(1);
 }
 
-/* Keyframes for seamless scrolling */
-@keyframes scroll {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(calc(-50% - 2rem));
-    }
+/* Delete button for admin */
+.delete-button {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    z-index: 10;
+    pointer-events: auto;
 }
 
-/* Pause animation on hover for better UX */
-.scroller:hover .scroller__inner {
-    animation-play-state: paused;
+.sponsor-logo-wrapper:hover .delete-button {
+    opacity: 1;
+}
+
+.delete-button:hover {
+    background: rgba(220, 38, 38, 1);
+}
+
+/* Infinite scroll animation */
+/* Moves by exactly 50% of the original content width (before duplication) */
+/* This ensures seamless looping when animation resets */
+@keyframes sponsor-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-    .scroller__inner {
+    .sponsor-scroll-content {
         animation: none;
     }
-    .scroller {
+    .sponsor-scroller {
         overflow-x: auto;
-        -webkit-mask: none;
-        mask: none;
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sponsor-logo-wrapper {
+        width: 150px;
+        height: 90px;
+    }
+    
+    .sponsor-logo {
+        width: 150px;
+        height: 90px;
+        min-width: 150px;
+        min-height: 90px;
+        max-width: 150px;
+        max-height: 90px;
+    }
+    
+    .sponsor-scroll-content {
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sponsor-logo-wrapper {
+        width: 120px;
+        height: 72px;
+    }
+    
+    .sponsor-logo {
+        width: 120px;
+        height: 72px;
+        min-width: 120px;
+        min-height: 72px;
+        max-width: 120px;
+        max-height: 72px;
+    }
+    
+    .sponsor-scroll-content {
+        gap: 2rem;
     }
 }
 
