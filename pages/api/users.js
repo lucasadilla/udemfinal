@@ -1,6 +1,18 @@
+import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import getMongoDb from '../../lib/mongoClient';
 import { deleteMediaFileIfExists } from '../../lib/podcastUploadUtils';
+import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
+
+const FALLBACK_FILE = 'users.json';
+
+function readFallbackUsers() {
+  return readJsonFile(FALLBACK_FILE, []);
+}
+
+function writeFallbackUsers(users) {
+  writeJsonFile(FALLBACK_FILE, users);
+}
 
 /**
  * Retrieve or create users from the `users` collection.
@@ -55,10 +67,19 @@ function parseRequestBody(req) {
 }
 
 export default async function handler(req, res) {
+  let collection = null;
+
   try {
     const db = await getMongoDb();
-    const collection = db.collection('users');
+    collection = db.collection('users');
+  } catch (connectionError) {
+    console.warn(
+      'Connexion à MongoDB indisponible pour /api/users; basculement vers le stockage JSON.',
+      connectionError,
+    );
+  }
 
+  try {
     if (req.method === 'POST') {
       let body;
       try {
@@ -75,6 +96,20 @@ export default async function handler(req, res) {
       if (!title || !name) {
         return res.status(400).json({ error: 'Les champs title et name sont requis.' });
       }
+
+      if (!collection) {
+        const users = readFallbackUsers();
+        const newUser = {
+          id: crypto.randomUUID(),
+          title,
+          name,
+          profilePicture,
+        };
+        users.push(newUser);
+        writeFallbackUsers(users);
+        return res.status(201).json({ id: newUser.id });
+      }
+
       const result = await collection.insertOne({
         title,
         name,
@@ -89,6 +124,20 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "L’identifiant est requis." });
       }
 
+      if (!collection) {
+        const users = readFallbackUsers();
+        const index = users.findIndex((user) => user.id === id);
+        if (index === -1) {
+          return res.status(404).json({ error: 'Membre introuvable.' });
+        }
+        const [deletedUser] = users.splice(index, 1);
+        writeFallbackUsers(users);
+        if (deletedUser?.profilePicture) {
+          await deleteMediaFileIfExists(deletedUser.profilePicture);
+        }
+        return res.status(200).json({ ok: true });
+      }
+
       const objectId = new ObjectId(id);
       const result = await collection.findOneAndDelete({ _id: objectId });
 
@@ -101,6 +150,11 @@ export default async function handler(req, res) {
       }
 
       return res.status(200).json({ ok: true });
+    }
+
+    if (!collection) {
+      const users = readFallbackUsers();
+      return res.status(200).json(users);
     }
 
     const docs = await collection.find({}).toArray();

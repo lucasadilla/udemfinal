@@ -1,5 +1,17 @@
+import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import getMongoDb from '../../lib/mongoClient';
+import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
+
+const FALLBACK_FILE = 'home_sponsors.json';
+
+function readFallbackSponsors() {
+    return readJsonFile(FALLBACK_FILE, []);
+}
+
+function writeFallbackSponsors(items) {
+    writeJsonFile(FALLBACK_FILE, items);
+}
 
 /**
  * Retrieve sponsor logos for the home page carousel from the
@@ -11,15 +23,32 @@ import getMongoDb from '../../lib/mongoClient';
  * database name.
  */
 export default async function handler(req, res) {
+    let collection = null;
     try {
         const db = await getMongoDb();
-        const collection = db.collection('home_sponsors');
+        collection = db.collection('home_sponsors');
+    } catch (connectionError) {
+        console.warn(
+            'Connexion à MongoDB indisponible pour /api/sponsors; basculement vers le stockage JSON.',
+            connectionError,
+        );
+    }
 
+    try {
         if (req.method === 'POST') {
             const { image } = req.body || {};
             if (!image) {
                 return res.status(400).json({ error: 'Le champ image est requis.' });
             }
+
+            if (!collection) {
+                const sponsors = readFallbackSponsors();
+                const newSponsor = { id: crypto.randomUUID(), image };
+                sponsors.push(newSponsor);
+                writeFallbackSponsors(sponsors);
+                return res.status(201).json({ id: newSponsor.id });
+            }
+
             const result = await collection.insertOne({ image });
             return res.status(201).json({ id: result.insertedId.toString() });
         }
@@ -29,8 +58,24 @@ export default async function handler(req, res) {
             if (!id) {
                 return res.status(400).json({ error: "L’identifiant est requis." });
             }
+
+            if (!collection) {
+                const sponsors = readFallbackSponsors();
+                const index = sponsors.findIndex((item) => item.id === id);
+                if (index === -1) {
+                    return res.status(404).json({ error: 'Commanditaire introuvable.' });
+                }
+                sponsors.splice(index, 1);
+                writeFallbackSponsors(sponsors);
+                return res.status(200).json({ ok: true });
+            }
+
             await collection.deleteOne({ _id: new ObjectId(id) });
             return res.status(200).json({ ok: true });
+        }
+
+        if (!collection) {
+            return res.status(200).json(readFallbackSponsors());
         }
 
         const sponsorDocs = await collection.find({}).toArray();
