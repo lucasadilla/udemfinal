@@ -26,6 +26,8 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const events = await getEvents();
+      // Cache for 60 seconds, allow stale-while-revalidate
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
       return res.status(200).json(events);
     } catch (err) {
       console.error('Impossible de récupérer les événements :', err);

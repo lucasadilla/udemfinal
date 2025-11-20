@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 import useAdminStatus from '../hooks/useAdminStatus';
+import { getArticles } from '../lib/articlesDatabase';
 
 function mergeArticles(primary = [], secondary = []) {
     const map = new Map();
@@ -19,25 +20,31 @@ function mergeArticles(primary = [], secondary = []) {
     return Array.from(map.values());
 }
 
-export default function Blog() {
+export default function Blog({ initialArticles }) {
     const { articles, addArticle, deleteArticle } = useArticles();
-    const [posts, setPosts] = useState([]);
+    const [posts, setPosts] = useState(initialArticles || []);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
     const [formError, setFormError] = useState('');
 
     useEffect(() => {
-        async function load() {
-            const res = await fetch('/api/articles');
-            if (res.ok) {
-                const data = await res.json();
-                setPosts(mergeArticles(articles, data));
-            } else {
-                setPosts(articles);
+        // Only fetch if we don't have initial data or if articles context has updated
+        if (!initialArticles || initialArticles.length === 0) {
+            async function load() {
+                const res = await fetch('/api/articles');
+                if (res.ok) {
+                    const data = await res.json();
+                    setPosts(mergeArticles(articles, data));
+                } else {
+                    setPosts(articles);
+                }
             }
+            load();
+        } else {
+            // Merge with context articles if they exist
+            setPosts(mergeArticles(articles, initialArticles));
         }
-        load();
-    }, [articles]);
+    }, [articles, initialArticles]);
 
     const handleDelete = async (id) => {
         if (!id) {
@@ -122,5 +129,26 @@ export default function Blog() {
             </div>
         </>
     );
+}
+
+export async function getStaticProps() {
+    try {
+        const articles = await getArticles().catch(() => []);
+        return {
+            props: {
+                initialArticles: articles || [],
+            },
+            // Revalidate every 60 seconds
+            revalidate: 60,
+        };
+    } catch (error) {
+        console.error('Error in getStaticProps for blog:', error);
+        return {
+            props: {
+                initialArticles: [],
+            },
+            revalidate: 60,
+        };
+    }
 }
 

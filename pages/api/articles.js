@@ -100,6 +100,8 @@ export default async function handler(req, res) {
     }
 
     const articles = await getArticles();
+    // Cache for 60 seconds, allow stale-while-revalidate
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
     return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
