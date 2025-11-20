@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "article-femmes-droit-1",
+    "title": "Construire une communauté féministe inclusive",
+    "content": "<p>Le comité Femmes &amp; Droit s’engage à créer des espaces d’apprentissage accessibles pour toutes les personnes étudiantes. Nos ateliers couvrent l’auto-représentation, les ressources juridiques gratuites et les stratégies de plaidoyer collectif.</p><p>Chaque rencontre est l’occasion de tisser des liens solidaires et de célébrer les voix qui façonnent la Faculté de droit.</p>",
+    "author": "Comité Femmes & Droit",
+    "authorImage": "https://placehold.co/120x120",
+    "image": "https://placehold.co/800x520",
+    "date": "2024-11-12",
+    "createdAt": "2024-11-12T10:00:00.000Z"
+  },
+  {
+    "id": "article-femmes-droit-2",
+    "title": "Trois ressources gratuites à découvrir",
+    "content": "<p>Nous recensons régulièrement des ressources pour soutenir les projets étudiants : cliniques juridiques, guides de rédaction et banques de mentorat. Partagez-les avec vos collègues et faites-nous savoir ce qui manque!</p>",
+    "author": "Équipe Editoriale",
+    "authorImage": "https://placehold.co/120x120",
+    "image": "https://placehold.co/800x520/8A2BE2/FFFFFF?text=Femmes+%26+Droit",
+    "date": "2024-10-05",
+    "createdAt": "2024-10-05T09:30:00.000Z"
+  }
+]
