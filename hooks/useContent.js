@@ -1,29 +1,26 @@
-import { useEffect, useState } from 'react';
+import useSWRLite from '../lib/useSWRLite';
 
-export default function useContent() {
-  const [content, setContent] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const fetcher = async (url) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error('Impossible de récupérer le contenu');
+  }
+  return res.json();
+};
 
-  useEffect(() => {
-    async function fetchContent() {
-      try {
-        const res = await fetch('/api/content');
-        if (res.ok) {
-          const data = await res.json();
-          setContent(data);
-        } else {
-          setError(new Error('Impossible de récupérer le contenu'));
-        }
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    }
+export default function useContent(initialData = {}) {
+  const {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWRLite('/api/content', fetcher, {
+    fallbackData: initialData,
+    revalidateOnFocus: false,
+  });
 
-    fetchContent();
-  }, []);
+  const content = data || {};
 
   const getNested = (keys, fallback) => {
     let result = content;
@@ -54,7 +51,7 @@ export default function useContent() {
       });
       if (res.ok) {
         const data = await res.json();
-        setContent(data);
+        mutate(data, { revalidate: false });
       } else {
         console.warn('Impossible de mettre à jour le contenu :', res.status);
       }
@@ -63,5 +60,13 @@ export default function useContent() {
     }
   };
 
-  return { getTextContent, getImageContent, loading, error, updateContent };
+  return {
+    getTextContent,
+    getImageContent,
+    loading: isLoading && !data,
+    revalidating: isValidating,
+    error,
+    updateContent,
+    content,
+  };
 }
