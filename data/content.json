@@ -1,0 +1,17 @@
+{
+  "home": {
+    "hero": {
+      "hero_title": "FEMMES & DROIT",
+      "hero_subtitle": "Promotion du féminisme intersectionnel auprès de la communauté étudiante de l'Université de Montréal",
+      "hero_banner": "/images/front.jpg"
+    },
+    "articles": {
+      "recent_articles_title": "Articles Récents"
+    },
+    "meta": {
+      "page_title": "Accueil",
+      "page_description": "Femme & Droit - Promotion du féminisme intersectionnel auprès de la communauté étudiante de l'Université de Montréal.",
+      "page_keywords": "féminisme, intersectionnalité, Université de Montréal, communauté, féminisme étudiant"
+    }
+  }
+}

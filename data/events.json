@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "atelier-plaidoirie-2025",
+    "title": "Atelier de plaidoirie inclusive",
+    "bio": "Une séance pratique pour découvrir les bases de la plaidoirie et tester des outils de prise de parole sécuritaires.",
+    "date": "2025-01-22",
+    "createdAt": "2025-01-05T15:00:00.000Z"
+  },
+  {
+    "id": "cercle-lecture-mars-2025",
+    "title": "Cercle de lecture féministe",
+    "bio": "Discussion autour d’essais courts sur le droit et l’intersectionnalité. Aucune préparation obligatoire, venez comme vous êtes!",
+    "date": "2025-03-14",
+    "createdAt": "2025-02-20T14:00:00.000Z"
+  }
+]

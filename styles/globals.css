@@ -69,14 +69,15 @@ main {
 
 .banner-text-box {
     position: absolute;
-    bottom: 15%; /* Adjust position as needed */
-    left: 0; /* Adjust position as needed */
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Dark background for text box */
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.6) 55%, rgba(0, 0, 0, 0.8) 100%);
     color: #ffffff; /* White text */
-    padding: 1rem;
+    padding: 2rem 1rem 2.5rem;
     text-align: center;
-    border-radius: 0.25rem;
+    border-radius: 0.25rem 0.25rem 0 0;
 }
 
 .banner-text-box h1 {
@@ -1068,10 +1069,14 @@ button[type="submit"]:hover {
     gap: 0.5rem;
 }
 
-.committee-avatar {
+.committee-avatar-wrapper {
+    position: relative;
     width: 100%;
-    max-width: none;
+    max-width: 360px;
     aspect-ratio: 1 / 1;
+}
+
+.committee-avatar {
     object-fit: cover;
     border-radius: 50%;
 }
@@ -1081,53 +1086,219 @@ button[type="submit"]:hover {
     color: #dc2626;
 }
 
-/* Scroller container */
-.scroller {
+/* Sponsors section container */
+.sponsors-section {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(230, 222, 222, 0.3) 100%);
+    padding: 3rem 0;
+    margin-top: 2rem;
+    position: relative;
     overflow: hidden;
-    -webkit-mask: linear-gradient(
-            90deg,
-            transparent,
-            white 20%,
-            white 80%,
-            transparent
+    width: 100%;
+}
+
+/* Scroller container with fade edges */
+.sponsor-scroller {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 5%,
+        black 95%,
+        transparent 100%
     );
-    mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        black 5%,
+        black 95%,
+        transparent 100%
+    );
 }
 
-/* Scrolling inner content */
-.scroller__inner {
+/* Scrolling content container */
+.sponsor-scroll-content {
     display: flex;
-    width: max-content;
-    gap: 8rem;
-    animation: scroll var(--_animation-duration, 40s) linear infinite;
+    gap: 4rem;
+    width: fit-content;
+    animation: sponsor-scroll 40s linear infinite;
+    will-change: transform;
+    padding: 0 2rem;
 }
 
-/* Scrolling direction and speed */
-.scroller[data-direction="right"] {
-    --_animation-direction: reverse;
-}
-.scroller[data-direction="left"] {
-    --_animation-direction: forwards;
-}
-.scroller[data-speed="fast"] {
-    --_animation-duration: 20s;
-}
-.scroller[data-speed="slow"] {
-    --_animation-duration: 60s;
+/* Pause animation on hover when admin is logged in */
+.sponsors-section.admin-mode .sponsor-scroll-content {
+    animation-play-state: running;
 }
 
-/* Scroller item (logo) */
-.scroller-item {
+.sponsors-section.admin-mode .sponsor-scroller:hover .sponsor-scroll-content {
+    animation-play-state: paused;
+}
+
+/* Sponsor item wrapper */
+.sponsor-item {
     flex-shrink: 0;
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Keyframes for smooth scrolling */
-@keyframes scroll {
-    to {
-        transform: translateX(calc(-50% - 0.5rem));
+/* Logo wrapper with consistent sizing */
+.sponsor-logo-wrapper {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: transform 0.2s ease;
+}
+
+.sponsor-logo-wrapper:hover {
+    transform: scale(1.05);
+}
+
+/* In admin mode, make items easier to interact with */
+.admin-mode .sponsor-logo-wrapper {
+    cursor: pointer;
+}
+
+/* Sponsor logo - normalized size */
+.sponsor-logo {
+    width: 200px;
+    height: 120px;
+    min-width: 200px;
+    min-height: 120px;
+    max-width: 200px;
+    max-height: 120px;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    filter: grayscale(20%) opacity(0.85);
+    transition: filter 0.3s ease;
+    pointer-events: none;
+}
+
+.sponsor-logo-wrapper:hover .sponsor-logo {
+    filter: grayscale(0%) opacity(1);
+}
+
+/* Delete button for admin - always visible and larger */
+.admin-mode .delete-button {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: rgba(239, 68, 68, 1);
+    color: white;
+    border: 3px solid white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    opacity: 1;
+    transition: all 0.2s ease;
+    z-index: 100;
+    pointer-events: auto;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Even more prominent on hover */
+.admin-mode .sponsor-logo-wrapper:hover .delete-button {
+    transform: scale(1.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+    background: rgba(220, 38, 38, 1);
+}
+
+.admin-mode .delete-button:hover {
+    background: rgba(185, 28, 28, 1);
+    transform: scale(1.25);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+.admin-mode .delete-button:active {
+    transform: scale(1.1);
+}
+
+/* Make button even larger on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .admin-mode .delete-button {
+        width: 44px;
+        height: 44px;
+        font-size: 26px;
+    }
+}
+
+/* Infinite scroll animation */
+/* Moves by exactly 50% of the original content width (before duplication) */
+/* This ensures seamless looping when animation resets */
+@keyframes sponsor-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .sponsor-scroll-content {
+        animation: none;
+    }
+    .sponsor-scroller {
+        overflow-x: auto;
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sponsor-logo-wrapper {
+        width: 150px;
+        height: 90px;
+    }
+    
+    .sponsor-logo {
+        width: 150px;
+        height: 90px;
+        min-width: 150px;
+        min-height: 90px;
+        max-width: 150px;
+        max-height: 90px;
+    }
+    
+    .sponsor-scroll-content {
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .sponsor-logo-wrapper {
+        width: 120px;
+        height: 72px;
+    }
+    
+    .sponsor-logo {
+        width: 120px;
+        height: 72px;
+        min-width: 120px;
+        min-height: 72px;
+        max-width: 120px;
+        max-height: 72px;
+    }
+    
+    .sponsor-scroll-content {
+        gap: 2rem;
     }
 }
 

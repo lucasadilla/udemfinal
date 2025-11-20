@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "podcast-saison-1-episode-1",
+    "title": "Parcours de juristes engagées",
+    "date": "2024-09-15",
+    "video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "image": "https://placehold.co/900x540/1E3A8A/FFFFFF?text=Podcast+Femmes+Droit",
+    "slug": "parcours-juristes-engagees",
+    "bio": "Un échange chaleureux avec deux anciennes étudiantes qui partagent leurs conseils pour naviguer les premières années de pratique.",
+    "createdAt": "2024-09-15T08:00:00.000Z",
+    "mediaSource": "link",
+    "imageSource": "upload"
+  },
+  {
+    "id": "podcast-saison-1-episode-2",
+    "title": "Bâtir des réseaux solidaires",
+    "date": "2024-10-10",
+    "video": "https://www.youtube.com/watch?v=oHg5SJYRHA0",
+    "image": "https://placehold.co/900x540/F97316/FFFFFF?text=Solidarit%C3%A9",
+    "slug": "batir-reseaux-solidaires",
+    "bio": "Comment créer des réseaux d’entraide à la faculté ? On discute mentorat, groupes de révision et entraide communautaire.",
+    "createdAt": "2024-10-10T08:00:00.000Z",
+    "mediaSource": "link",
+    "imageSource": "upload"
+  }
+]
