@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6d365" />
+      <stop offset="100%" stop-color="#fda085" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#gradient)" />
+  <circle cx="200" cy="160" r="90" fill="#fff" opacity="0.85" />
+  <rect x="80" y="240" width="240" height="120" rx="40" fill="#fff" opacity="0.9" />
+  <text x="200" y="245" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="26" fill="#d66d75">
+    Comité
+  </text>
+</svg>
