@@ -1127,6 +1127,15 @@ button[type="submit"]:hover {
     padding: 0 2rem;
 }
 
+/* Pause animation on hover when admin is logged in */
+.sponsors-section.admin-mode .sponsor-scroll-content {
+    animation-play-state: running;
+}
+
+.sponsors-section.admin-mode .sponsor-scroller:hover .sponsor-scroll-content {
+    animation-play-state: paused;
+}
+
 /* Sponsor item wrapper */
 .sponsor-item {
     flex-shrink: 0;
@@ -1152,6 +1161,11 @@ button[type="submit"]:hover {
     transform: scale(1.05);
 }
 
+/* In admin mode, make items easier to interact with */
+.admin-mode .sponsor-logo-wrapper {
+    cursor: pointer;
+}
+
 /* Sponsor logo - normalized size */
 .sponsor-logo {
     width: 200px;
@@ -1172,35 +1186,55 @@ button[type="submit"]:hover {
     filter: grayscale(0%) opacity(1);
 }
 
-/* Delete button for admin */
-.delete-button {
+/* Delete button for admin - always visible and larger */
+.admin-mode .delete-button {
     position: absolute;
     top: 0.25rem;
     right: 0.25rem;
-    background: rgba(239, 68, 68, 0.9);
+    background: rgba(239, 68, 68, 1);
     color: white;
-    border: none;
+    border: 3px solid white;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 24px;
+    font-weight: bold;
     line-height: 1;
-    opacity: 0;
-    transition: opacity 0.2s ease, background 0.2s ease;
-    z-index: 10;
-    pointer-events: auto;
-}
-
-.sponsor-logo-wrapper:hover .delete-button {
     opacity: 1;
+    transition: all 0.2s ease;
+    z-index: 100;
+    pointer-events: auto;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
-.delete-button:hover {
+/* Even more prominent on hover */
+.admin-mode .sponsor-logo-wrapper:hover .delete-button {
+    transform: scale(1.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
     background: rgba(220, 38, 38, 1);
+}
+
+.admin-mode .delete-button:hover {
+    background: rgba(185, 28, 28, 1);
+    transform: scale(1.25);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+.admin-mode .delete-button:active {
+    transform: scale(1.1);
+}
+
+/* Make button even larger on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .admin-mode .delete-button {
+        width: 44px;
+        height: 44px;
+        font-size: 26px;
+    }
 }
 
 /* Infinite scroll animation */

@@ -23,6 +23,12 @@ export default function SponsorsBar() {
         setImage('');
     };
 
+    const handleDelete = async (id) => {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce logo de commanditaire ?')) {
+            await deleteSponsor(id);
+        }
+    };
+
     // Setup infinite scroll with proper duplication
     useEffect(() => {
         if (sponsors.length === 0 || !scrollerRef.current) return;
@@ -88,7 +94,7 @@ export default function SponsorsBar() {
                 </form>
             )}
             {sponsors.length > 0 && (
-                <div className="sponsors-section">
+                <div className={`sponsors-section ${isAdmin ? 'admin-mode' : ''}`}>
                     <div className="sponsor-scroller" ref={scrollerRef}>
                         <div className="sponsor-scroll-content">
                             {sponsors.map((sponsor) => (
@@ -102,9 +108,13 @@ export default function SponsorsBar() {
                                         />
                                         {isAdmin && (
                                             <button
-                                                onClick={() => deleteSponsor(sponsor.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDelete(sponsor.id);
+                                                }}
                                                 className="delete-button"
                                                 aria-label="Supprimer le logo"
+                                                title="Supprimer ce logo"
                                             >
                                                 &times;
                                             </button>
