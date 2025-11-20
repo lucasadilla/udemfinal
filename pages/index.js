@@ -9,6 +9,7 @@ import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
 import useAdminStatus from '../hooks/useAdminStatus';
 import { fetchContentFromDb } from '../lib/contentService';
+import { getArticles } from '../lib/articlesDatabase';
 
 export default function Home({ initialContent }) {
     const { articles } = useArticles();
@@ -78,10 +79,12 @@ export default function Home({ initialContent }) {
 export async function getStaticProps() {
     try {
         const initialContent = await fetchContentFromDb();
+        const initialArticles = await getArticles();
 
         return {
             props: {
                 initialContent,
+                initialArticles,
             },
             revalidate: 300,
         };
@@ -90,6 +93,7 @@ export async function getStaticProps() {
         return {
             props: {
                 initialContent: {},
+                initialArticles: [],
             },
             revalidate: 300,
         };

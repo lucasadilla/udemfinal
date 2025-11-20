@@ -1,27 +1,32 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import { useArticles } from '../../context/ArticlesContext';
+import { getArticleById } from '../../lib/articlesDatabase';
 
 export default function Article() {
   const router = useRouter();
   const { id } = router.query;
-  const { articles } = useArticles();
+  const { articles, loading } = useArticles();
   const [post, setPost] = useState(null);
-  const article = articles.find((a) => String(a.id) === id);
+  const article = useMemo(() => articles.find((a) => String(a.id) === id), [articles, id]);
 
   useEffect(() => {
-    if (!article && id) {
+    if (!article && id && !loading) {
       fetch(`/api/articles?id=${id}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data) setPost(data);
         });
     }
-  }, [article, id]);
+  }, [article, id, loading]);
 
   const currentArticle = article || post;
+
+  if (!currentArticle && loading) {
+    return <p>Chargement de l’article...</p>;
+  }
 
   if (!currentArticle) {
     return <p>Article introuvable</p>;
@@ -87,4 +92,22 @@ export default function Article() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  try {
+    const article = await getArticleById(params?.id);
+    return {
+      props: {
+        initialArticles: article ? [article] : [],
+      },
+    };
+  } catch (err) {
+    console.error('Impossible de charger l’article côté serveur :', err);
+    return {
+      props: {
+        initialArticles: [],
+      },
+    };
+  }
 }
