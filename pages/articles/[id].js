@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import { useArticles } from '../../context/ArticlesContext';
-import { getArticleById } from '../../lib/articlesDatabase';
+import { getArticleById, getArticles } from '../../lib/articlesDatabase';
 
 export default function Article() {
   const router = useRouter();
@@ -94,20 +94,46 @@ export default function Article() {
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getStaticPaths() {
   try {
-    const article = await getArticleById(params?.id);
+    const articles = await getArticles();
+    const paths = articles.map((article) => ({
+      params: { id: String(article.id || article._id) },
+    }));
     return {
-      props: {
-        initialArticles: article ? [article] : [],
-      },
+      paths,
+      fallback: 'blocking',
     };
   } catch (err) {
-    console.error('Impossible de charger l’article côté serveur :', err);
+    console.error('Impossible de générer les chemins statiques pour les articles :', err);
+    return {
+      paths: [],
+      fallback: 'blocking',
+    };
+  }
+}
+
+export async function getStaticProps({ params }) {
+  try {
+    const article = await getArticleById(params?.id);
+    if (!article) {
+      return {
+        notFound: true,
+      };
+    }
+    return {
+      props: {
+        initialArticles: [article],
+      },
+      revalidate: 300,
+    };
+  } catch (err) {
+    console.error('Impossible de charger l\'article côté serveur :', err);
     return {
       props: {
         initialArticles: [],
       },
+      revalidate: 300,
     };
   }
 }
