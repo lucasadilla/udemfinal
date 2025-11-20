@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "1758831261067",
+    "title": "test",
+    "date": "2025-09-25",
+    "video": "/uploads/podcasts/1758831261066-mail-green-screen-animation.mp4",
+    "slug": "test",
+    "createdAt": "2025-09-25T20:14:21.067Z"
+  },
+  {
+    "id": "1758834396623",
+    "title": "test2",
+    "date": "2025-09-26",
+    "video": "/uploads/podcasts/videos/1758834396621-coincidence.mp4",
+    "image": "/uploads/podcasts/images/1758834396622-dfa-5b-last-two-different.png",
+    "slug": "test2",
+    "createdAt": "2025-09-25T21:06:36.623Z",
+    "bio": "something"
+  },
+  {
+    "id": "1758835171275",
+    "title": "dsa",
+    "date": "2025-10-11",
+    "video": "/uploads/podcasts/videos/1758835171270-img-0358-mov.mov",
+    "image": "/uploads/podcasts/images/1758835171274-chatgpt-image-apr-9-2025-11-33-06-pm.png",
+    "slug": "dsa",
+    "createdAt": "2025-09-25T21:19:31.275Z",
+    "bio": "dsdasd"
+  }
+]

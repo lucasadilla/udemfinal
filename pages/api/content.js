@@ -8,6 +8,8 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const doc = await collection.findOne({ _id: 'content' }) || {};
       const { _id, ...data } = doc;
+      // Cache for 60 seconds, allow stale-while-revalidate
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
       return res.status(200).json(data);
     }
 

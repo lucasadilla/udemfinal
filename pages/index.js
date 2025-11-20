@@ -9,28 +9,38 @@ import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
+import { getArticles } from '../lib/articlesDatabase';
+import getMongoDb from '../lib/mongoClient';
 
-export default function Home() {
+export default function Home({ initialArticles, initialContent }) {
     const { articles } = useArticles();
     const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
     const isAdmin = useAdminStatus();
     
-    // Get dynamic content with fallbacks
-    const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
-    const heroSubtitle = getTextContent('home', 'hero', 'hero_subtitle', 'Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal');
-    const heroBanner = getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
-    const recentArticlesTitle = getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
+    // Use initial data if available, otherwise fall back to context/hooks
+    const displayArticles = initialArticles && initialArticles.length > 0 ? initialArticles : articles;
+    const topThreeArticles = displayArticles ? displayArticles.slice(0, 3) : [];
     
+    // Use initial content if available
+    const content = initialContent || {};
+    const getInitialTextContent = (section, subsection, key, fallback = '') => {
+        return content?.[section]?.[subsection]?.[key] ?? fallback;
+    };
+    const getInitialImageContent = (section, subsection, key, fallback = '') => {
+        return content?.[section]?.[subsection]?.[key] ?? fallback;
+    };
     
-    // Meta information
-    const pageTitle = getTextContent('home', 'meta', 'page_title', 'Accueil');
-    const pageDescription = getTextContent('home', 'meta', 'page_description', 'Femme & Droit - Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal.');
-    const pageKeywords = getTextContent('home', 'meta', 'page_keywords', 'féminisme, intersectionnalité, Université de Montréal, communauté, féminisme étudiant');
+    // Prefer initial content, fall back to hook
+    const heroTitle = getInitialTextContent('home', 'hero', 'hero_title') || getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
+    const heroSubtitle = getInitialTextContent('home', 'hero', 'hero_subtitle') || getTextContent('home', 'hero', 'hero_subtitle', 'Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal');
+    const heroBanner = getInitialImageContent('home', 'hero', 'hero_banner') || getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
+    const recentArticlesTitle = getInitialTextContent('home', 'articles', 'recent_articles_title') || getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
+    const pageTitle = getInitialTextContent('home', 'meta', 'page_title') || getTextContent('home', 'meta', 'page_title', 'Accueil');
+    const pageDescription = getInitialTextContent('home', 'meta', 'page_description') || getTextContent('home', 'meta', 'page_description', 'Femme & Droit - Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal.');
+    const pageKeywords = getInitialTextContent('home', 'meta', 'page_keywords') || getTextContent('home', 'meta', 'page_keywords', 'féminisme, intersectionnalité, Université de Montréal, communauté, féminisme étudiant');
 
-    const topThreeArticles = articles ? articles.slice(0, 3) : [];
-
-    // Show loading only for a reasonable time, then show content with fallbacks
-    if (contentLoading && !contentError) {
+    // Show loading only if we don't have initial data and content is still loading
+    if (!initialContent && contentLoading && !contentError) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <LoadingSpinner />
@@ -79,5 +89,44 @@ export default function Home() {
             </div>
         </>
     );
+}
+
+export async function getStaticProps() {
+    try {
+        // Fetch articles and content in parallel
+        const [articles, contentDoc] = await Promise.all([
+            getArticles().catch(() => []),
+            (async () => {
+                try {
+                    const db = await getMongoDb();
+                    const collection = db.collection('content');
+                    const doc = await collection.findOne({ _id: 'content' }) || {};
+                    const { _id, ...data } = doc;
+                    return data;
+                } catch (err) {
+                    console.error('Error fetching content:', err);
+                    return {};
+                }
+            })()
+        ]);
+
+        return {
+            props: {
+                initialArticles: articles || [],
+                initialContent: contentDoc || {},
+            },
+            // Revalidate every 60 seconds - page will be regenerated in background if data changes
+            revalidate: 60,
+        };
+    } catch (error) {
+        console.error('Error in getStaticProps:', error);
+        return {
+            props: {
+                initialArticles: [],
+                initialContent: {},
+            },
+            revalidate: 60,
+        };
+    }
 }
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
+import { getEvents } from '../lib/eventDatabase';
 
 const normalizeToMonthStart = (value) => {
   const fallback = new Date();
@@ -19,8 +20,10 @@ const normalizeToMonthStart = (value) => {
 const formatMonthKey = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
-export default function Evenements() {
-  const { events, loading, addEvent, deleteEvent } = useEvents();
+export default function Evenements({ initialEvents }) {
+  const { events: hookEvents, loading, addEvent, deleteEvent } = useEvents();
+  // Use initial events if available, otherwise fall back to hook
+  const events = (initialEvents && initialEvents.length > 0) ? initialEvents : hookEvents;
   const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
@@ -132,7 +135,7 @@ export default function Evenements() {
             </form>
           )}
 
-          {loading ? (
+          {!initialEvents && loading ? (
             <div className="flex justify-center py-8">
               <LoadingSpinner />
             </div>
@@ -630,4 +633,25 @@ function EventsLayout({
       </div>
     </div>
   );
+}
+
+export async function getStaticProps() {
+    try {
+        const events = await getEvents().catch(() => []);
+        return {
+            props: {
+                initialEvents: events || [],
+            },
+            // Revalidate every 60 seconds
+            revalidate: 60,
+        };
+    } catch (error) {
+        console.error('Error in getStaticProps for events:', error);
+        return {
+            props: {
+                initialEvents: [],
+            },
+            revalidate: 60,
+        };
+    }
 }
