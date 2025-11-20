@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-export default function usePodcasts(initialPodcasts = []) {
-  const [podcasts, setPodcasts] = useState(initialPodcasts);
-  const [loading, setLoading] = useState(initialPodcasts.length === 0);
+export default function usePodcasts() {
+  const [podcasts, setPodcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchPodcasts = async () => {
     try {
@@ -21,10 +21,6 @@ export default function usePodcasts(initialPodcasts = []) {
   };
 
   useEffect(() => {
-    if (initialPodcasts.length > 0) {
-      setPodcasts(initialPodcasts);
-      setLoading(false);
-    }
     fetchPodcasts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

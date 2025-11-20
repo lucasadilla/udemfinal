@@ -30,12 +30,8 @@ export default function useAdminStatus() {
       setIsAdmin(hasAdminCookie() || hasAdminStorage());
     };
 
-    // Initial evaluation
     evaluate();
-    
-    // Listen for storage changes (localStorage)
     window.addEventListener('storage', evaluate);
-    
     return () => {
       window.removeEventListener('storage', evaluate);
     };

@@ -12,7 +12,7 @@ import Head from 'next/head';
 export default function MyApp({ Component, pageProps }) {
   return (
     <MantineProvider>
-      <ArticlesProvider initialArticles={pageProps?.initialArticles}>
+      <ArticlesProvider>
           <Head>
               <link rel="icon" href="/favicon.PNG"/>
           </Head>

@@ -7,13 +7,12 @@ import React from "react";
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
+import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
-import { fetchContentFromDb } from '../lib/contentService';
-import { getArticles } from '../lib/articlesDatabase';
 
-export default function Home({ initialContent }) {
+export default function Home() {
     const { articles } = useArticles();
-    const { getTextContent, getImageContent, error: contentError, updateContent, revalidating } = useContent(initialContent);
+    const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
     const isAdmin = useAdminStatus();
     
     // Get dynamic content with fallbacks
@@ -29,6 +28,15 @@ export default function Home({ initialContent }) {
     const pageKeywords = getTextContent('home', 'meta', 'page_keywords', 'féminisme, intersectionnalité, Université de Montréal, communauté, féminisme étudiant');
 
     const topThreeArticles = articles ? articles.slice(0, 3) : [];
+
+    // Show loading only for a reasonable time, then show content with fallbacks
+    if (contentLoading && !contentError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
+    }
 
     // If there's an error, still show the page with fallback content
     if (contentError) {
@@ -60,21 +68,10 @@ export default function Home({ initialContent }) {
                     )}
                     <section className="recent-articles">
                         <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
-                        <div className="revalidating-message" style={{ minHeight: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {revalidating && (
-                                <p className="text-center text-sm text-gray-600">Mise à jour du contenu...</p>
-                            )}
-                        </div>
                         <div className="article-cards-container">
-                            {topThreeArticles.length > 0 ? (
-                                topThreeArticles.map((article) => (
-                                    <ArticleCard key={article._id || article.id} article={article} />
-                                ))
-                            ) : (
-                                <div style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gridColumn: '1 / -1' }}>
-                                    <p className="text-center text-gray-500">Aucun article disponible pour le moment.</p>
-                                </div>
-                            )}
+                            {topThreeArticles.map((article) => (
+                                <ArticleCard key={article._id || article.id} article={article} />
+                            ))}
                         </div>
                     </section>
                     <ContactCard />
@@ -82,29 +79,5 @@ export default function Home({ initialContent }) {
             </div>
         </>
     );
-}
-
-export async function getStaticProps() {
-    try {
-        const initialContent = await fetchContentFromDb();
-        const initialArticles = await getArticles();
-
-        return {
-            props: {
-                initialContent,
-                initialArticles,
-            },
-            revalidate: 300,
-        };
-    } catch (err) {
-        console.error('Échec du chargement du contenu statique :', err);
-        return {
-            props: {
-                initialContent: {},
-                initialArticles: [],
-            },
-            revalidate: 300,
-        };
-    }
 }
 

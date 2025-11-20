@@ -91,20 +91,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    if (req.method === 'GET') {
-      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
-
-      if (req.query?.id) {
-        const article = await getArticleById(req.query.id);
-        if (!article) {
-          return res.status(404).json({ error: 'Article introuvable.' });
-        }
-        return res.status(200).json(article);
+    if (req.method === 'GET' && req.query?.id) {
+      const article = await getArticleById(req.query.id);
+      if (!article) {
+        return res.status(404).json({ error: 'Article introuvable.' });
       }
-
-      const articles = await getArticles();
-      return res.status(200).json(articles);
+      return res.status(200).json(article);
     }
+
+    const articles = await getArticles();
+    return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
     if (err?.code === 'FALLBACK_STORAGE_FAILED') {

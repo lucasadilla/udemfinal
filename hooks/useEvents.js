@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-export default function useEvents(initialEvents = []) {
-  const [events, setEvents] = useState(initialEvents);
-  const [loading, setLoading] = useState(initialEvents.length === 0);
+export default function useEvents() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchEvents = async () => {
     try {
@@ -21,10 +21,6 @@ export default function useEvents(initialEvents = []) {
   };
 
   useEffect(() => {
-    if (initialEvents.length > 0) {
-      setEvents(initialEvents);
-      setLoading(false);
-    }
     fetchEvents();
   }, []);
 
