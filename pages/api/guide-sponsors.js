@@ -1,17 +1,8 @@
-import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import getMongoDb from '../../lib/mongoClient';
-import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
+import { deleteJsonFile } from '../../lib/jsonStorage';
 
 const FALLBACK_FILE = 'guide_sponsors.json';
-
-function readFallbackSponsors() {
-    return readJsonFile(FALLBACK_FILE, []);
-}
-
-function writeFallbackSponsors(items) {
-    writeJsonFile(FALLBACK_FILE, items);
-}
 
 /**
  * Retrieve sponsors for the Guide des Commanditaires page from the
@@ -20,18 +11,22 @@ function writeFallbackSponsors(items) {
  *
  * This API route expects environment variables `MONGODB_URI` and
  * `MONGODB_DB_NAME` to be defined with the connection string and
- * database name.
+ * database name. JSON fallback storage has been removed; the MongoDB
+ * collection is now required so local files like `guide_sponsors.json`
+ * should be cleaned up to avoid confusion.
  */
 export default async function handler(req, res) {
     let collection = null;
     try {
         const db = await getMongoDb();
         collection = db.collection('guide_sponsors');
+        deleteJsonFile(FALLBACK_FILE);
     } catch (connectionError) {
-        console.warn(
-            'Connexion à MongoDB indisponible pour /api/guide-sponsors; basculement vers le stockage JSON.',
+        console.error(
+            'Connexion à MongoDB requise pour /api/guide-sponsors.',
             connectionError,
         );
+        return res.status(503).json({ error: 'Connexion MongoDB requise pour charger les commanditaires.' });
     }
 
     try {
@@ -39,14 +34,6 @@ export default async function handler(req, res) {
             const { image } = req.body || {};
             if (!image) {
                 return res.status(400).json({ error: 'Le champ image est requis.' });
-            }
-
-            if (!collection) {
-                const sponsors = readFallbackSponsors();
-                const newSponsor = { id: crypto.randomUUID(), image };
-                sponsors.push(newSponsor);
-                writeFallbackSponsors(sponsors);
-                return res.status(201).json({ id: newSponsor.id });
             }
 
             const result = await collection.insertOne({ image });
@@ -59,23 +46,8 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: "L’identifiant est requis." });
             }
 
-            if (!collection) {
-                const sponsors = readFallbackSponsors();
-                const index = sponsors.findIndex((item) => item.id === id);
-                if (index === -1) {
-                    return res.status(404).json({ error: 'Commanditaire introuvable.' });
-                }
-                sponsors.splice(index, 1);
-                writeFallbackSponsors(sponsors);
-                return res.status(200).json({ ok: true });
-            }
-
             await collection.deleteOne({ _id: new ObjectId(id) });
             return res.status(200).json({ ok: true });
-        }
-
-        if (!collection) {
-            return res.status(200).json(readFallbackSponsors());
         }
 
         const sponsorDocs = await collection.find({}).toArray();
