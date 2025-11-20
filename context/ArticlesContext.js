@@ -1,7 +1,14 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { estimateBase64Size, MAX_FORM_BASE64_SIZE } from '../lib/clientImageUtils';
 
 const MAX_ARTICLE_PAYLOAD_SIZE = 6 * 1024 * 1024; // Allow larger payloads while staying under server-side 24 MB cap
+const DEDUPING_INTERVAL = 2 * 60 * 1000; // 2 minutes between identical fetches
+
+const ARTICLES_CACHE = {
+    data: null,
+    timestamp: 0,
+    inFlight: null,
+};
 
 function sanitizeArticleForSubmission(article) {
     if (!article || typeof article !== 'object') {
@@ -41,29 +48,116 @@ function getPayloadSize(article) {
 
 const ArticlesContext = createContext({ articles: [], loading: true, addArticle: async () => {}, deleteArticle: async () => {} });
 
-export function ArticlesProvider({ children }) {
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
+function updateArticleCache(nextArticles) {
+    ARTICLES_CACHE.data = nextArticles;
+    ARTICLES_CACHE.timestamp = Date.now();
+}
 
-    const fetchArticles = async () => {
-        try {
-            const res = await fetch('/api/articles');
-            if (res.ok) {
-                const data = await res.json();
-                setArticles(data);
-            } else {
-                console.warn('Impossible de récupérer les articles :', res.status);
+async function fetchArticlesFromApi(signal) {
+    const res = await fetch('/api/articles', { signal });
+    if (!res.ok) {
+        throw new Error(`Impossible de récupérer les articles : ${res.status}`);
+    }
+    return res.json();
+}
+
+async function getCachedArticles({ force = false, signal } = {}) {
+    const now = Date.now();
+    if (!force && ARTICLES_CACHE.data && now - ARTICLES_CACHE.timestamp < DEDUPING_INTERVAL) {
+        return ARTICLES_CACHE.data;
+    }
+
+    if (ARTICLES_CACHE.inFlight) {
+        return ARTICLES_CACHE.inFlight;
+    }
+
+    ARTICLES_CACHE.inFlight = fetchArticlesFromApi(signal)
+        .then((data) => {
+            updateArticleCache(data);
+            return data;
+        })
+        .catch((error) => {
+            if (ARTICLES_CACHE.data) {
+                return ARTICLES_CACHE.data;
             }
-        } catch (err) {
-            console.error('Impossible de récupérer les articles :', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+            throw error;
+        })
+        .finally(() => {
+            ARTICLES_CACHE.inFlight = null;
+        });
+
+    return ARTICLES_CACHE.inFlight;
+}
+
+export function ArticlesProvider({ children, initialArticles = [] }) {
+    const [articles, setArticles] = useState(initialArticles);
+    const [loading, setLoading] = useState(!initialArticles || initialArticles.length === 0);
+    const abortController = useRef(null);
 
     useEffect(() => {
-        fetchArticles();
-    }, []);
+        if (initialArticles?.length) {
+            updateArticleCache(initialArticles);
+        }
+    }, [initialArticles]);
+
+    useEffect(() => {
+        let isMounted = true;
+        abortController.current = new AbortController();
+
+        const loadArticles = async () => {
+            try {
+                const data = await getCachedArticles({ force: !initialArticles?.length, signal: abortController.current.signal });
+                if (isMounted) {
+                    setArticles(data);
+                }
+            } catch (err) {
+                console.error('Impossible de récupérer les articles :', err);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        const revalidateInBackground = async () => {
+            try {
+                const data = await getCachedArticles({ force: true, signal: abortController.current.signal });
+                if (isMounted) {
+                    setArticles(data);
+                }
+            } catch (err) {
+                console.error('Impossible de revalider les articles :', err);
+            }
+        };
+
+        loadArticles();
+        const revalidationTimer = setInterval(revalidateInBackground, DEDUPING_INTERVAL);
+
+        return () => {
+            isMounted = false;
+            if (abortController.current) {
+                abortController.current.abort();
+            }
+            clearInterval(revalidationTimer);
+        };
+    }, [initialArticles]);
+
+    const applyMutationToCache = (updater) => {
+        setArticles((current) => {
+            const updated = updater(current || []);
+            updateArticleCache(updated);
+            return updated;
+        });
+    };
+
+    const revalidateArticles = async () => {
+        try {
+            const data = await getCachedArticles({ force: true, signal: abortController.current?.signal });
+            setArticles(data);
+        } catch (err) {
+            console.error('Impossible de mettre à jour le cache des articles :', err);
+        }
+    };
 
     const addArticle = async (article) => {
         try {
@@ -100,7 +194,24 @@ export function ArticlesProvider({ children }) {
                 const message = payload?.error || `Impossible d’ajouter un article : ${res.status}`;
                 throw new Error(message);
             }
-            await fetchArticles();
+            const payload = await res.json().catch(() => ({}));
+            const newArticle = {
+                ...sanitizedArticle,
+                id: payload?.id || sanitizedArticle.id || String(Date.now()),
+            };
+
+            applyMutationToCache((current) => {
+                const merged = [newArticle, ...(current || [])];
+                const deduped = new Map();
+                merged.forEach((item) => {
+                    const key = item?.id || item?._id;
+                    if (!key) return;
+                    deduped.set(String(key), item);
+                });
+                return Array.from(deduped.values());
+            });
+
+            revalidateArticles();
             return true;
         } catch (err) {
             console.error('Impossible d’ajouter un article :', err);
@@ -112,7 +223,11 @@ export function ArticlesProvider({ children }) {
         try {
             const res = await fetch(`/api/articles?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
-                await fetchArticles();
+                applyMutationToCache((current) => (current || []).filter((article) => {
+                    const articleId = article?.id || article?._id;
+                    return String(articleId) !== String(id);
+                }));
+                revalidateArticles();
             } else {
                 console.warn('Impossible de supprimer l’article :', res.status);
             }
@@ -131,4 +246,3 @@ export function ArticlesProvider({ children }) {
 export function useArticles() {
     return useContext(ArticlesContext);
 }
-
