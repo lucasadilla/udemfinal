@@ -18,7 +18,7 @@ export default function Home() {
     // Get dynamic content with fallbacks
     const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
     const heroSubtitle = getTextContent('home', 'hero', 'hero_subtitle', 'Promotion du féminisme intersectionnel auprès de la communauté étudiante de l\'Université de Montréal');
-    const heroBanner = getImageContent('home', 'hero', 'hero_banner', '/images/front.jpg');
+    const heroBanner = getImageContent('home', 'hero', 'hero_banner', '');
     const recentArticlesTitle = getTextContent('home', 'articles', 'recent_articles_title', 'Articles Récents');
     
     
@@ -54,8 +54,13 @@ export default function Home() {
                 <Navbar/>
 
                 <main className="relative">
-                    <div className="banner">
-                        <img src={heroBanner} alt="Bannière" className="w-full h-auto"/>
+                    <div
+                        className="banner"
+                        style={heroBanner
+                            ? { backgroundImage: `url(${heroBanner})` }
+                            : { background: 'linear-gradient(135deg, #1f2937, #4b5563)' }
+                        }
+                    >
                         <div className="banner-text-box">
                             <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
                             <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
