@@ -1,13 +1,9 @@
-import getMongoDb from '../../lib/mongoClient';
+import { fetchContentFromDb, updateContentField } from '../../lib/contentService';
 
 export default async function handler(req, res) {
   try {
-    const db = await getMongoDb();
-    const collection = db.collection('content');
-
     if (req.method === 'GET') {
-      const doc = await collection.findOne({ _id: 'content' }) || {};
-      const { _id, ...data } = doc;
+      const data = await fetchContentFromDb();
       return res.status(200).json(data);
     }
 
@@ -16,14 +12,7 @@ export default async function handler(req, res) {
       if (!section || !subsection || !key) {
         return res.status(400).json({ error: 'Les champs section, subsection et key sont requis.' });
       }
-      const path = `${section}.${subsection}.${key}`;
-      await collection.updateOne(
-        { _id: 'content' },
-        { $set: { [path]: value } },
-        { upsert: true }
-      );
-      const doc = await collection.findOne({ _id: 'content' }) || {};
-      const { _id, ...data } = doc;
+      const data = await updateContentField(section, subsection, key, value);
       return res.status(200).json(data);
     }
 
