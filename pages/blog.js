@@ -1,27 +1,53 @@
 // Blog page displaying recent articles. Administrators can add new posts
 // directly via the `ArticleForm`; removing the obsolete `AdminLoginForm`
 // resolves prior build errors.
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useArticles } from '../context/ArticlesContext';
 import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 import useAdminStatus from '../hooks/useAdminStatus';
-import { getArticles } from '../lib/articlesDatabase';
+
+function mergeArticles(primary = [], secondary = []) {
+    const map = new Map();
+    [...secondary, ...primary].forEach((item) => {
+        const id = item?.id || item?._id;
+        if (!id) return;
+        map.set(id, item);
+    });
+    return Array.from(map.values());
+}
 
 export default function Blog() {
-    const { articles, loading, addArticle, deleteArticle } = useArticles();
-    const posts = useMemo(() => articles || [], [articles]);
+    const { articles, addArticle, deleteArticle } = useArticles();
+    const [posts, setPosts] = useState([]);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
     const [formError, setFormError] = useState('');
+
+    useEffect(() => {
+        async function load() {
+            const res = await fetch('/api/articles');
+            if (res.ok) {
+                const data = await res.json();
+                setPosts(mergeArticles(articles, data));
+            } else {
+                setPosts(articles);
+            }
+        }
+        load();
+    }, [articles]);
 
     const handleDelete = async (id) => {
         if (!id) {
             return;
         }
         await deleteArticle(id);
+        setPosts((prev) => prev.filter((article) => {
+            const articleId = article?.id || article?._id;
+            return articleId !== id;
+        }));
     };
 
     return (
@@ -37,7 +63,7 @@ export default function Blog() {
                 <section className="recent-articles">
                     <div className="article-cards-container">
                         {posts.length === 0 ? (
-                            loading ? <p>Chargement des articles...</p> : <p>Aucun article trouvé</p>
+                            <p>Aucun article trouvé</p>
                         ) : (
                             posts.map((article) => (
                                 <ArticleCard
@@ -96,26 +122,5 @@ export default function Blog() {
             </div>
         </>
     );
-}
-
-export async function getStaticProps() {
-    try {
-        const initialArticles = await getArticles();
-
-        return {
-            props: {
-                initialArticles,
-            },
-            revalidate: 300,
-        };
-    } catch (err) {
-        console.error('Impossible de précharger les articles du blogue :', err);
-        return {
-            props: {
-                initialArticles: [],
-            },
-            revalidate: 300,
-        };
-    }
 }
 

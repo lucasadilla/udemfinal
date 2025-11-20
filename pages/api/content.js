@@ -1,10 +1,13 @@
-import { fetchContentFromDb, updateContentField } from '../../lib/contentService';
+import getMongoDb from '../../lib/mongoClient';
 
 export default async function handler(req, res) {
   try {
+    const db = await getMongoDb();
+    const collection = db.collection('content');
+
     if (req.method === 'GET') {
-      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
-      const data = await fetchContentFromDb();
+      const doc = await collection.findOne({ _id: 'content' }) || {};
+      const { _id, ...data } = doc;
       return res.status(200).json(data);
     }
 
@@ -13,7 +16,14 @@ export default async function handler(req, res) {
       if (!section || !subsection || !key) {
         return res.status(400).json({ error: 'Les champs section, subsection et key sont requis.' });
       }
-      const data = await updateContentField(section, subsection, key, value);
+      const path = `${section}.${subsection}.${key}`;
+      await collection.updateOne(
+        { _id: 'content' },
+        { $set: { [path]: value } },
+        { upsert: true }
+      );
+      const doc = await collection.findOne({ _id: 'content' }) || {};
+      const { _id, ...data } = doc;
       return res.status(200).json(data);
     }
 

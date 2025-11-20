@@ -1,32 +1,27 @@
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import { useArticles } from '../../context/ArticlesContext';
-import { getArticleById, getArticles } from '../../lib/articlesDatabase';
 
 export default function Article() {
   const router = useRouter();
   const { id } = router.query;
-  const { articles, loading } = useArticles();
+  const { articles } = useArticles();
   const [post, setPost] = useState(null);
-  const article = useMemo(() => articles.find((a) => String(a.id) === id), [articles, id]);
+  const article = articles.find((a) => String(a.id) === id);
 
   useEffect(() => {
-    if (!article && id && !loading) {
+    if (!article && id) {
       fetch(`/api/articles?id=${id}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data) setPost(data);
         });
     }
-  }, [article, id, loading]);
+  }, [article, id]);
 
   const currentArticle = article || post;
-
-  if (!currentArticle && loading) {
-    return <p>Chargement de l’article...</p>;
-  }
 
   if (!currentArticle) {
     return <p>Article introuvable</p>;
@@ -92,48 +87,4 @@ export default function Article() {
       </div>
     </>
   );
-}
-
-export async function getStaticPaths() {
-  try {
-    const articles = await getArticles();
-    const paths = articles.map((article) => ({
-      params: { id: String(article.id || article._id) },
-    }));
-    return {
-      paths,
-      fallback: 'blocking',
-    };
-  } catch (err) {
-    console.error('Impossible de générer les chemins statiques pour les articles :', err);
-    return {
-      paths: [],
-      fallback: 'blocking',
-    };
-  }
-}
-
-export async function getStaticProps({ params }) {
-  try {
-    const article = await getArticleById(params?.id);
-    if (!article) {
-      return {
-        notFound: true,
-      };
-    }
-    return {
-      props: {
-        initialArticles: [article],
-      },
-      revalidate: 300,
-    };
-  } catch (err) {
-    console.error('Impossible de charger l\'article côté serveur :', err);
-    return {
-      props: {
-        initialArticles: [],
-      },
-      revalidate: 300,
-    };
-  }
 }

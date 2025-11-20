@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from 'react';
 import useEvents from '../hooks/useEvents';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
-import { getEvents } from '../lib/eventDatabase';
 
 const normalizeToMonthStart = (value) => {
   const fallback = new Date();
@@ -20,8 +19,8 @@ const normalizeToMonthStart = (value) => {
 const formatMonthKey = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
-export default function Evenements({ initialEvents = [] }) {
-  const { events, loading, addEvent, deleteEvent } = useEvents(initialEvents);
+export default function Evenements() {
+  const { events, loading, addEvent, deleteEvent } = useEvents();
   const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [bio, setBio] = useState('');
@@ -631,25 +630,4 @@ function EventsLayout({
       </div>
     </div>
   );
-}
-
-export async function getStaticProps() {
-  try {
-    const initialEvents = await getEvents();
-
-    return {
-      props: {
-        initialEvents,
-      },
-      revalidate: 300,
-    };
-  } catch (err) {
-    console.error('Impossible de précharger les événements :', err);
-    return {
-      props: {
-        initialEvents: [],
-      },
-      revalidate: 300,
-    };
-  }
 }

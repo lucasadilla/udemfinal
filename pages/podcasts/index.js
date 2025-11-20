@@ -5,7 +5,6 @@ import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
 import useAdminStatus from '../../hooks/useAdminStatus';
 import { formattedUploadLimit, isFileTooLarge } from '../../lib/podcastUploadLimits.js';
-import { getPodcasts } from '../../lib/podcastDatabase';
 
 function isValidHttpUrl(value) {
   if (typeof value !== 'string' || !value.trim()) {
@@ -20,8 +19,8 @@ function isValidHttpUrl(value) {
   }
 }
 
-export default function PodcastsPage({ initialPodcasts = [] }) {
-  const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts(initialPodcasts);
+export default function PodcastsPage() {
+  const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts();
   const isAdmin = useAdminStatus();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -257,26 +256,4 @@ export default function PodcastsPage({ initialPodcasts = [] }) {
       </main>
     </>
   );
-}
-
-export async function getStaticProps() {
-  try {
-    const initialPodcasts = await getPodcasts();
-    const sanitized = initialPodcasts.map(({ videoFileId, imageFileId, ...rest }) => rest);
-
-    return {
-      props: {
-        initialPodcasts: sanitized,
-      },
-      revalidate: 300,
-    };
-  } catch (err) {
-    console.error('Impossible de précharger les podcasts :', err);
-    return {
-      props: {
-        initialPodcasts: [],
-      },
-      revalidate: 300,
-    };
-  }
 }

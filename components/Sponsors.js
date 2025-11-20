@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import useHomeSponsors from '../hooks/useHomeSponsors';
 import useAdminStatus from '../hooks/useAdminStatus';
 
+/**
+ * Displays a horizontally scrolling list of sponsor logos on the home page.
+ * Admin users can upload and remove images which are stored via the
+ * `/api/sponsors` endpoint in the `home_sponsors` collection.
+ */
 export default function SponsorsBar() {
     const { sponsors, loading, addSponsor, deleteSponsor } = useHomeSponsors();
     const isAdmin = useAdminStatus();
-    const scrollerRef = useRef(null);
     const [image, setImage] = useState('');
 
     const handleFileChange = (e) => {
@@ -23,52 +27,22 @@ export default function SponsorsBar() {
         setImage('');
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer ce logo de commanditaire ?')) {
-            await deleteSponsor(id);
-        }
-    };
-
-    // Setup infinite scroll with proper duplication
+    // Duplicate scroller items for the infinite scroll effect once sponsors load
     useEffect(() => {
-        if (sponsors.length === 0 || !scrollerRef.current) return;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-        const scroller = scrollerRef.current;
-        const content = scroller.querySelector('.sponsor-scroll-content');
-        if (!content) return;
-
-        // Remove any existing duplicates
-        const duplicates = scroller.querySelectorAll('.sponsor-duplicate');
-        duplicates.forEach(el => el.remove());
-
-        // Get original items (non-duplicates)
-        const originalItems = Array.from(content.children).filter(
-            item => !item.classList.contains('sponsor-duplicate')
-        );
-        if (originalItems.length === 0) return;
-
-        // Clone the entire set multiple times to ensure continuous content
-        // We need enough content to fill the screen from the start and continue scrolling seamlessly
-        // Calculate how many clones we need to fill at least 2x viewport width
-        const itemWidth = 200; // width of each logo wrapper
-        const gap = 64; // 4rem gap
-        const itemTotalWidth = itemWidth + gap;
-        const viewportWidth = window.innerWidth;
-        const minClonesNeeded = Math.ceil((viewportWidth * 2) / (originalItems.length * itemTotalWidth)) + 1;
-        
-        // Clone enough times to ensure continuous scrolling
-        for (let i = 0; i < Math.max(3, minClonesNeeded); i++) {
-            originalItems.forEach((item) => {
-                const clone = item.cloneNode(true);
-                clone.classList.add('sponsor-duplicate');
-                clone.setAttribute('aria-hidden', 'true');
-                // Remove delete buttons from duplicates
-                const deleteBtn = clone.querySelector('.delete-button');
-                if (deleteBtn) deleteBtn.remove();
-                content.appendChild(clone);
-            });
-        }
+        if (sponsors.length === 0) return;
+        const scroller = document.querySelector('.scroller');
+        if (!scroller || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        scroller.setAttribute('data-animated', true);
+        const scrollerInner = scroller.querySelector('.scroller__inner');
+        // Remove existing duplicates
+        scrollerInner.querySelectorAll('[aria-hidden="true"]').forEach(el => el.remove());
+        const scrollerContent = Array.from(scrollerInner.children);
+        scrollerContent.forEach((item) => {
+            const duplicatedItem = item.cloneNode(true);
+            duplicatedItem.setAttribute('aria-hidden', true);
+            duplicatedItem.querySelector('.delete-button')?.remove();
+            scrollerInner.appendChild(duplicatedItem);
+        });
     }, [sponsors]);
 
     if (!isAdmin && sponsors.length === 0 && !loading) {
@@ -94,38 +68,29 @@ export default function SponsorsBar() {
                 </form>
             )}
             {sponsors.length > 0 && (
-                <div className={`sponsors-section ${isAdmin ? 'admin-mode' : ''}`}>
-                    <div className="sponsor-scroller" ref={scrollerRef}>
-                        <div className="sponsor-scroll-content">
-                            {sponsors.map((sponsor) => (
-                                <div key={sponsor.id} className="sponsor-item">
-                                    <div className="sponsor-logo-wrapper">
-                                        <img
-                                            src={sponsor.image}
-                                            alt="Logo de commanditaire"
-                                            className="sponsor-logo"
-                                            loading="lazy"
-                                        />
-                                        {isAdmin && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(sponsor.id);
-                                                }}
-                                                className="delete-button"
-                                                aria-label="Supprimer le logo"
-                                                title="Supprimer ce logo"
-                                            >
-                                                &times;
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                <div className="scroller" data-speed="slow">
+                    <div className="scroller__inner">
+                        {sponsors.map((sponsor) => (
+                            <div key={sponsor.id} className="relative inline-block">
+                                <img
+                                    src={sponsor.image}
+                                    alt="Logo de commanditaire"
+                                    className="scroller-item"
+                                />
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => deleteSponsor(sponsor.id)}
+                                        className="delete-button absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded"
+                                    >
+                                        &times;
+                                    </button>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
         </div>
     );
 }
+
