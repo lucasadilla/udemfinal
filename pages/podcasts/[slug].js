@@ -175,15 +175,35 @@ export default function PodcastDetail({ podcast }) {
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getStaticPaths() {
+  try {
+    const { getPodcasts } = await import('../../lib/podcastDatabase');
+    const podcasts = await getPodcasts();
+    const paths = podcasts
+      .filter((podcast) => podcast?.slug)
+      .map((podcast) => ({
+        params: { slug: podcast.slug },
+      }));
+    return {
+      paths,
+      fallback: 'blocking',
+    };
+  } catch (error) {
+    console.error('Impossible de générer les chemins statiques pour les podcasts :', error);
+    return {
+      paths: [],
+      fallback: 'blocking',
+    };
+  }
+}
+
+export async function getStaticProps({ params }) {
   try {
     const podcast = await getPodcastBySlug(params.slug);
 
     if (!podcast) {
       return {
-        props: {
-          podcast: null,
-        },
+        notFound: true,
       };
     }
 
@@ -191,6 +211,7 @@ export async function getServerSideProps({ params }) {
       props: {
         podcast,
       },
+      revalidate: 300,
     };
   } catch (error) {
     console.error('Impossible de récupérer le balado pour la page :', error);
@@ -198,6 +219,7 @@ export async function getServerSideProps({ params }) {
       props: {
         podcast: null,
       },
+      revalidate: 300,
     };
   }
 }
