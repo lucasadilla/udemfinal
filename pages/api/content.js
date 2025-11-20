@@ -3,6 +3,7 @@ import { fetchContentFromDb, updateContentField } from '../../lib/contentService
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900');
       const data = await fetchContentFromDb();
       return res.status(200).json(data);
     }
