@@ -27,7 +27,7 @@ export default function SponsorsBar() {
         setImage('');
     };
 
-    // Duplicate scroller items for the infinite scroll effect once sponsors load
+    // Duplicate scroller items multiple times for seamless infinite scroll
     useEffect(() => {
         if (sponsors.length === 0) return;
         const scroller = document.querySelector('.scroller');
@@ -37,12 +37,17 @@ export default function SponsorsBar() {
         // Remove existing duplicates
         scrollerInner.querySelectorAll('[aria-hidden="true"]').forEach(el => el.remove());
         const scrollerContent = Array.from(scrollerInner.children);
-        scrollerContent.forEach((item) => {
-            const duplicatedItem = item.cloneNode(true);
-            duplicatedItem.setAttribute('aria-hidden', true);
-            duplicatedItem.querySelector('.delete-button')?.remove();
-            scrollerInner.appendChild(duplicatedItem);
-        });
+        
+        // Duplicate items 2 full sets for seamless looping
+        // The animation moves by 50%, so 2 sets ensures seamless transition
+        for (let i = 0; i < 2; i++) {
+            scrollerContent.forEach((item) => {
+                const duplicatedItem = item.cloneNode(true);
+                duplicatedItem.setAttribute('aria-hidden', true);
+                duplicatedItem.querySelector('.delete-button')?.remove();
+                scrollerInner.appendChild(duplicatedItem);
+            });
+        }
     }, [sponsors]);
 
     if (!isAdmin && sponsors.length === 0 && !loading) {
@@ -68,25 +73,27 @@ export default function SponsorsBar() {
                 </form>
             )}
             {sponsors.length > 0 && (
-                <div className="scroller" data-speed="slow">
-                    <div className="scroller__inner">
-                        {sponsors.map((sponsor) => (
-                            <div key={sponsor.id} className="relative inline-block">
-                                <img
-                                    src={sponsor.image}
-                                    alt="Logo de commanditaire"
-                                    className="scroller-item"
-                                />
-                                {isAdmin && (
-                                    <button
-                                        onClick={() => deleteSponsor(sponsor.id)}
-                                        className="delete-button absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded"
-                                    >
-                                        &times;
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                <div className="sponsors-section">
+                    <div className="scroller" data-speed="slow" data-direction="left">
+                        <div className="scroller__inner">
+                            {sponsors.map((sponsor) => (
+                                <div key={sponsor.id} className="scroller-item-wrapper relative inline-block">
+                                    <img
+                                        src={sponsor.image}
+                                        alt="Logo de commanditaire"
+                                        className="scroller-item"
+                                    />
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => deleteSponsor(sponsor.id)}
+                                            className="delete-button absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity"
+                                        >
+                                            &times;
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
