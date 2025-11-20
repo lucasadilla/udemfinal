@@ -60,13 +60,21 @@ export default function Home({ initialContent }) {
                     )}
                     <section className="recent-articles">
                         <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
-                        {revalidating && (
-                            <p className="text-center text-sm text-gray-600">Mise à jour du contenu...</p>
-                        )}
+                        <div className="revalidating-message" style={{ minHeight: '1.5rem', height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {revalidating && (
+                                <p className="text-center text-sm text-gray-600">Mise à jour du contenu...</p>
+                            )}
+                        </div>
                         <div className="article-cards-container">
-                            {topThreeArticles.map((article) => (
-                                <ArticleCard key={article._id || article.id} article={article} />
-                            ))}
+                            {topThreeArticles.length > 0 ? (
+                                topThreeArticles.map((article) => (
+                                    <ArticleCard key={article._id || article.id} article={article} />
+                                ))
+                            ) : (
+                                <div style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', gridColumn: '1 / -1' }}>
+                                    <p className="text-center text-gray-500">Aucun article disponible pour le moment.</p>
+                                </div>
+                            )}
                         </div>
                     </section>
                     <ContactCard />
