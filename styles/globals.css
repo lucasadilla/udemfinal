@@ -1069,10 +1069,14 @@ button[type="submit"]:hover {
     gap: 0.5rem;
 }
 
-.committee-avatar {
+.committee-avatar-wrapper {
+    position: relative;
     width: 100%;
-    max-width: none;
+    max-width: 360px;
     aspect-ratio: 1 / 1;
+}
+
+.committee-avatar {
     object-fit: cover;
     border-radius: 50%;
 }
