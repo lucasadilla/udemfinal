@@ -1,6 +1,7 @@
 // pages/notre-comite.js
 import Navbar from "../components/Navbar";
 import Head from "next/head";
+import Image from "next/image";
 import React, { useRef, useState } from "react";
 import useUsers from "../hooks/useUsers";
 import LoadingSpinner from "../components/LoadingSpinner";
@@ -15,6 +16,10 @@ import {
 
 export default function NotreComite() {
     const PROFILE_IMAGE_COMPRESSION_THRESHOLD = 2.5 * 1024 * 1024; // 2.5 MB
+    const FALLBACK_PROFILE_DATA_URL =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjIwIiBmaWxsPSIjZWJlZWZlIi8+PHBhdGggZD0iTTY0IDk2Yy0xNC45IDAtMjctMTIuMS0yNy0yNyAwLTE0LjkgMTIuMS0yNyAyNy0yNyAxNC45IDAgMjcgMTIuMSAyNyAyNyAwIDE0LjktMTIuMSAyNy0yNyAyN3pNNjQgNTZjLTEwLjUgMC0xOSA4LjUtMTkgMTkgMCAxMC41IDguNSAxOSAxOSAxOSAxMC41IDAgMTktOC41IDE5LTE5IDAtMTAuNS04LjUtMTktMTktMTl6IiBmaWxsPSIjZDM0YzZhIi8+PC9zdmc+";
+    const BLUR_PLACEHOLDER_DATA_URL =
+        "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTAyNCcgaGVpZ2h0PScxMDI0JyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxyZWN0IHdpZHRoPScxMDI0JyBoZWlnaHQ9JzEwMjQnIGZpbGw9JyNlZWVmZjMnLz48L3N2Zz4=";
     const { users, loading, addUser, deleteUser } = useUsers();
     const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
@@ -148,13 +153,20 @@ export default function NotreComite() {
                         <LoadingSpinner />
                     ) : (
                         <div className="committee-grid">
-                            {users.map((member) => (
+                            {users.map((member, index) => (
                                 <div key={member.id} className="committee-card">
-                                    <img
-                                        src={member.profilePicture}
-                                        alt={member.name}
-                                        className="committee-avatar border-image mb-1"
-                                    />
+                                    <div className="committee-avatar-wrapper">
+                                        <Image
+                                            src={member.profilePicture || FALLBACK_PROFILE_DATA_URL}
+                                            alt={member.name}
+                                            fill
+                                            sizes="(min-width: 1024px) 320px, (min-width: 640px) 280px, 80vw"
+                                            className="committee-avatar border-image"
+                                            priority={index < 3}
+                                            placeholder="blur"
+                                            blurDataURL={BLUR_PLACEHOLDER_DATA_URL}
+                                        />
+                                    </div>
                                     <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
                                     <p className="text-gray-600 leading-snug">{member.title}</p>
                                     {isAdmin && (

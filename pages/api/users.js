@@ -104,6 +104,7 @@ export default async function handler(req, res) {
     }
 
     const docs = await collection.find({}).toArray();
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=150');
     const users = docs.map(doc => ({
       id: doc._id?.toString(),
       title: doc.title,
