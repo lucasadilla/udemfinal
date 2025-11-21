@@ -1,4 +1,4 @@
-import getMongoDb from '../../lib/mongoClient';
+import { getOptionalMongoCollection } from '../../lib/optionalMongoCollection';
 import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
 
 const FALLBACK_FILE = 'content.json';
@@ -45,16 +45,7 @@ function updateNestedContent(content, section, subsection, key, value) {
 }
 
 export default async function handler(req, res) {
-  let collection = null;
-  try {
-    const db = await getMongoDb();
-    collection = db.collection('content');
-  } catch (connectionError) {
-    console.warn(
-      'Connexion à MongoDB indisponible pour /api/content; basculement vers le stockage JSON.',
-      connectionError,
-    );
-  }
+  const collection = await getOptionalMongoCollection('content', { logPrefix: '/api/content' });
 
   try {
     if (req.method === 'GET') {
