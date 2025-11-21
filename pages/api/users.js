@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
-import getMongoDb from '../../lib/mongoClient';
 import { deleteMediaFileIfExists } from '../../lib/podcastUploadUtils';
 import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
+import { getOptionalMongoCollection } from '../../lib/optionalMongoCollection';
 
 const FALLBACK_FILE = 'users.json';
 
@@ -67,17 +67,7 @@ function parseRequestBody(req) {
 }
 
 export default async function handler(req, res) {
-  let collection = null;
-
-  try {
-    const db = await getMongoDb();
-    collection = db.collection('users');
-  } catch (connectionError) {
-    console.warn(
-      'Connexion à MongoDB indisponible pour /api/users; basculement vers le stockage JSON.',
-      connectionError,
-    );
-  }
+  const collection = await getOptionalMongoCollection('users', { logPrefix: '/api/users' });
 
   try {
     if (req.method === 'POST') {
