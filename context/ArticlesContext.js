@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { estimateBase64Size, MAX_FORM_BASE64_SIZE } from '../lib/clientImageUtils';
 
-const MAX_ARTICLE_PAYLOAD_SIZE = 6 * 1024 * 1024; // Allow larger payloads while staying under server-side 24 MB cap
+const MAX_ARTICLE_PAYLOAD_SIZE = 50 * 1024 * 1024; // Allow up to 50MB payloads
 
 function sanitizeArticleForSubmission(article) {
     if (!article || typeof article !== 'object') {
@@ -50,12 +50,16 @@ export function ArticlesProvider({ children }) {
             const res = await fetch('/api/articles');
             if (res.ok) {
                 const data = await res.json();
-                setArticles(data);
+                console.log(`[ArticlesContext] Fetched ${data.length} articles`);
+                setArticles(data || []);
             } else {
-                console.warn('Impossible de récupérer les articles :', res.status);
+                const errorText = await res.text().catch(() => '');
+                console.warn(`[ArticlesContext] Failed to fetch articles: ${res.status}`, errorText);
+                setArticles([]);
             }
         } catch (err) {
-            console.error('Impossible de récupérer les articles :', err);
+            console.error('[ArticlesContext] Error fetching articles:', err);
+            setArticles([]);
         } finally {
             setLoading(false);
         }
