@@ -117,7 +117,8 @@ export const config = {
   api: {
     bodyParser: {
       // Autorise des images encodées en base64 plus volumineuses lors de la création d’un article.
-      sizeLimit: '24mb',
+      sizeLimit: '50mb',
     },
+    responseLimit: false,
   },
 };
