@@ -1,60 +1,107 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { users as fallbackUsers } from '../lib/userDatabase';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || '';
 
 export default function useUsers() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(fallbackUsers);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const isMounted = useRef(true);
 
-  const fetchUsers = async () => {
+  useEffect(
+    () => () => {
+      isMounted.current = false;
+    },
+    [],
+  );
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch('/api/users');
-      if (res.ok) {
-        const data = await res.json();
+      const res = await fetch(`${API_BASE_URL}/api/users`);
+      if (!res.ok) {
+        throw new Error(`Réponse inattendue du serveur (${res.status})`);
+      }
+
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Format de données utilisateur invalide.');
+      }
+
+      if (isMounted.current) {
         setUsers(data);
-      } else {
-        console.warn('Impossible de récupérer les membres :', res.status);
       }
     } catch (err) {
       console.error('Impossible de récupérer les membres :', err);
+      if (isMounted.current) {
+        setError(err);
+        setUsers((existing) => (existing?.length ? existing : fallbackUsers));
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
-  const addUser = async (user) => {
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user),
-      });
-      if (res.ok) {
-        setLoading(true);
+  const addUser = useCallback(
+    async (user) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user),
+        });
+        if (!res.ok) {
+          throw new Error(`Impossible d’ajouter le membre : ${res.status}`);
+        }
         await fetchUsers();
-      } else {
-        console.warn('Impossible d’ajouter le membre :', res.status);
+      } catch (err) {
+        console.error('Impossible d’ajouter le membre :', err);
+        if (isMounted.current) {
+          setError(err);
+        }
+      } finally {
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      console.error('Impossible d’ajouter le membre :', err);
-    }
-  };
+    },
+    [fetchUsers],
+  );
 
-  const deleteUser = async (id) => {
-    try {
-      const res = await fetch(`/api/users?id=${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setLoading(true);
+  const deleteUser = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/users?id=${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          throw new Error(`Impossible de supprimer le membre : ${res.status}`);
+        }
         await fetchUsers();
-      } else {
-        console.warn('Impossible de supprimer le membre :', res.status);
+      } catch (err) {
+        console.error('Impossible de supprimer le membre :', err);
+        if (isMounted.current) {
+          setError(err);
+        }
+      } finally {
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      console.error('Impossible de supprimer le membre :', err);
-    }
-  };
+    },
+    [fetchUsers],
+  );
 
-  return { users, loading, addUser, deleteUser };
+  return { users, loading, error, refresh: fetchUsers, addUser, deleteUser };
 }

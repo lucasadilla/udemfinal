@@ -15,7 +15,7 @@ import {
 
 export default function NotreComite() {
     const PROFILE_IMAGE_COMPRESSION_THRESHOLD = 2.5 * 1024 * 1024; // 2.5 MB
-    const { users, loading, addUser, deleteUser } = useUsers();
+    const { users, loading, error, refresh, addUser, deleteUser } = useUsers();
     const isAdmin = useAdminStatus();
     const [name, setName] = useState("");
     const [title, setTitle] = useState("");
@@ -147,24 +147,44 @@ export default function NotreComite() {
                     {loading ? (
                         <LoadingSpinner />
                     ) : (
-                        <div className="committee-grid">
-                            {users.map((member) => (
-                                <div key={member.id} className="committee-card">
-                                    <img
-                                        src={member.profilePicture}
-                                        alt={member.name}
-                                        className="committee-avatar border-image mb-1"
-                                    />
-                                    <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
-                                    <p className="text-gray-600 leading-snug">{member.title}</p>
-                                    {isAdmin && (
-                                        <button onClick={() => deleteUser(member.id)} className="committee-delete">
-                                            Supprimer
-                                        </button>
-                                    )}
+                        <>
+                            {error && (
+                                <div className="mb-6 text-center text-red-700 bg-red-100 border border-red-300 p-4 rounded">
+                                    <p className="font-semibold">Impossible de charger les membres depuis la base de données.</p>
+                                    <p className="mt-1 text-sm">
+                                        Les données affichées proviennent du contenu de secours. Veuillez réessayer.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={refresh}
+                                        className="mt-3 inline-flex items-center px-3 py-2 bg-red-700 text-white rounded"
+                                    >
+                                        Réessayer la connexion
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                            <div className="committee-grid">
+                                {users.map((member, index) => (
+                                    <div key={member.id || index} className="committee-card">
+                                        <img
+                                            src={member.profilePicture || '/images/user-placeholder.svg'}
+                                            alt={member.name}
+                                            className="committee-avatar border-image mb-1"
+                                        />
+                                        <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
+                                        <p className="text-gray-600 leading-snug">{member.title}</p>
+                                        {isAdmin && member.id && (
+                                            <button onClick={() => deleteUser(member.id)} className="committee-delete">
+                                                Supprimer
+                                            </button>
+                                        )}
+                                        {isAdmin && !member.id && (
+                                            <p className="text-xs text-gray-500 mt-2">Membre de secours non modifiable.</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
 
                     {isAdmin && (

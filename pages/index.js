@@ -7,8 +7,8 @@ import React from "react";
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
 import HeroBannerEditor from '../components/HeroBannerEditor';
-import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
+import HeroBanner from '../components/HeroBanner';
 
 export default function Home() {
     const { articles } = useArticles();
@@ -29,20 +29,6 @@ export default function Home() {
 
     const topThreeArticles = articles ? articles.slice(0, 3) : [];
 
-    // Show loading only for a reasonable time, then show content with fallbacks
-    if (contentLoading && !contentError) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
-        );
-    }
-
-    // If there's an error, still show the page with fallback content
-    if (contentError) {
-        console.warn('Erreur lors du chargement du contenu, utilisation du contenu de secours :', contentError);
-    }
-
     return (
         <>
             <Head>
@@ -54,18 +40,13 @@ export default function Home() {
                 <Navbar/>
 
                 <main className="relative">
-                    <div
-                        className="banner"
-                        style={heroBanner
-                            ? { backgroundImage: `url(${heroBanner})` }
-                            : { background: 'linear-gradient(135deg, #1f2937, #4b5563)' }
-                        }
-                    >
-                        <div className="banner-text-box">
-                            <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
-                            <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
-                        </div>
-                    </div>
+                    <HeroBanner
+                        title={heroTitle}
+                        subtitle={heroSubtitle}
+                        imageUrl={heroBanner}
+                        loading={contentLoading}
+                        error={contentError}
+                    />
                     {isAdmin && (
                         <div className="max-w-6xl mx-auto px-4">
                             <HeroBannerEditor updateContent={updateContent} />

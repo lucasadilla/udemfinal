@@ -53,38 +53,86 @@ main {
     margin-top: 0.1rem;
 }
 
-.banner {
+.hero-banner {
     position: relative;
     width: 100%;
-    height: 700px; /* Adjust height as needed */
+    min-height: 520px;
     background-size: cover;
     background-position: center;
+    overflow: hidden;
 }
 
-.banner img {
-    width: 100%;
-    height: 100%;
+.hero-banner__overlay {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    align-items: center;
+    padding: 4rem 6vw;
+    color: #f8fafc;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.55));
+    min-height: inherit;
+    isolation: isolate;
+}
+
+.hero-banner__content {
+    position: relative;
+    z-index: 2;
+    max-width: 720px;
+}
+
+.hero-banner__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.hero-banner__title {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.hero-banner__subtitle {
+    margin-top: 1rem;
+    font-size: clamp(1.05rem, 2vw, 1.4rem);
+    line-height: 1.6;
+    color: #e2e8f0;
+}
+
+.hero-banner__status {
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+}
+
+.hero-banner__status--error {
+    color: #fecaca;
+}
+
+.hero-banner__status--muted {
+    color: #cbd5e1;
+}
+
+.hero-banner__preview {
+    position: relative;
+    min-height: 320px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    opacity: 0.9;
+}
+
+.hero-banner__image {
     object-fit: cover;
-}
-
-.banner-text-box {
-    position: absolute;
-    bottom: 15%; /* Adjust position as needed */
-    left: 0; /* Adjust position as needed */
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Dark background for text box */
-    color: #ffffff; /* White text */
-    padding: 1rem;
-    text-align: center;
-    border-radius: 0.25rem;
-}
-
-.banner-text-box h1 {
-    font-size: 3rem; /* Adjust this value to make the text smaller */
-}
-
-.banner-text-box h2 {
-    font-size: 1.3rem; /* Adjust this value to make the text smaller */
 }
 
 .overlay {
