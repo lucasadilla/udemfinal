@@ -53,9 +53,12 @@ export default async function handler(req, res) {
         return res.status(200).json(readFallbackContent());
       }
 
-      const doc = await collection.findOne({ _id: 'content' }) || {};
+      const doc =
+        (await collection.findOne({ _id: 'content' })) ||
+        (await collection.findOne({}, { sort: { _id: 1 } })) ||
+        {};
       const { _id, ...data } = doc;
-      return res.status(200).json(Object.keys(data).length ? data : DEFAULT_CONTENT);
+      return res.status(200).json(Object.keys(doc).length ? data : DEFAULT_CONTENT);
     }
 
     if (req.method === 'PUT') {
@@ -71,14 +74,22 @@ export default async function handler(req, res) {
       }
 
       const path = `${section}.${subsection}.${key}`;
+      const existingDoc =
+        (await collection.findOne({ _id: 'content' })) ||
+        (await collection.findOne({}, { sort: { _id: 1 } }));
+      const targetId = existingDoc?._id || 'content';
+
       await collection.updateOne(
-        { _id: 'content' },
-        { $set: { [path]: value } },
+        { _id: targetId },
+        { $set: { [path]: value }, $setOnInsert: { _id: 'content' } },
         { upsert: true }
       );
-      const doc = await collection.findOne({ _id: 'content' }) || {};
+      const doc =
+        (await collection.findOne({ _id: 'content' })) ||
+        (await collection.findOne({}, { sort: { _id: 1 } })) ||
+        {};
       const { _id, ...data } = doc;
-      return res.status(200).json(Object.keys(data).length ? data : DEFAULT_CONTENT);
+      return res.status(200).json(Object.keys(doc).length ? data : DEFAULT_CONTENT);
     }
 
     res.setHeader('Allow', ['GET', 'PUT']);
