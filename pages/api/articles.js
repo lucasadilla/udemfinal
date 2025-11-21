@@ -55,6 +55,11 @@ async function resolveAuthorMetadata({ authorId, author, authorImage }) {
  * Each article has { title, content, author, authorId, authorImage, image, date }.
  */
 export default async function handler(req, res) {
+  // Ajout d'en-têtes de cache pour les requêtes GET
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  }
+
   try {
     if (req.method === 'POST') {
       const { title, content, author, authorId, authorImage, image, date } = req.body || {};
@@ -100,6 +105,10 @@ export default async function handler(req, res) {
     }
 
     const articles = await getArticles();
+    
+    // Log pour debug - vérifier si des articles sont retournés
+    console.log(`[API Articles] Returning ${articles.length} articles`);
+    
     return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
