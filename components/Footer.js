@@ -29,13 +29,19 @@ export default function Footer() {
         }
     };
 
-    const handleSignOut = () => {
+    const handleSignOut = async () => {
         try {
             window.localStorage.removeItem('admin-auth');
         } catch (err) {
             console.warn("Impossible de réinitialiser l’état administrateur :", err);
         }
+        
+        // Call API to clear cookie with correct domain attributes
+        await fetch('/api/logout', { method: 'POST' });
+        
+        // Also try to clear client-side as a fallback
         document.cookie = 'admin-auth=; Path=/; Max-Age=0';
+        
         router.reload();
     };
 
