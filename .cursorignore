@@ -1,0 +1,3 @@
+# Allow .env.local to be accessible
+!.env.local
+

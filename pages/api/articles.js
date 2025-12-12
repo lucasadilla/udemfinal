@@ -14,6 +14,9 @@ async function resolveAuthorMetadata({ authorId, author, authorImage }) {
 
   try {
     const db = await getMongoDb();
+    if (!db) {
+      return { authorImage: '', authorId: authorId || null };
+    }
     const collection = db.collection('users');
 
     let authorObjectId = null;
@@ -57,7 +60,8 @@ async function resolveAuthorMetadata({ authorId, author, authorImage }) {
 export default async function handler(req, res) {
   // Ajout d'en-têtes de cache pour les requêtes GET
   if (req.method === 'GET') {
-    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    // Cache for 5 minutes, allow stale content for up to 1 hour while revalidating
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
   }
 
   try {

@@ -86,11 +86,11 @@ export default function GuidePage() {
                         </button>
                     </form>
                 )}
-                <div className="sponsor-gallery">
-                    {loading ? (
-                        <LoadingSpinner />
-                    ) : (
-                        sponsors.map((sponsor, index) => (
+                {loading ? (
+                    <LoadingSpinner />
+                ) : (
+                    <div className="sponsor-gallery">
+                        {sponsors.map((sponsor, index) => (
                             <div key={sponsor.id} className="relative inline-block">
                                 <img
                                     src={sponsor.image}
@@ -107,9 +107,9 @@ export default function GuidePage() {
                                     </button>
                                 )}
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
                 {selectedSponsor && (
                     <div className="modal">
                         <div className="modal-content">

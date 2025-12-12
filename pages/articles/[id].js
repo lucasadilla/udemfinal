@@ -54,11 +54,12 @@ export default function Article() {
     <>
       <div>
         <Navbar />
-        <main className="article-page article-box">
+        <div className="article-container">
           <button onClick={handleBack} className="back-button">
             ← Retour
           </button>
-        <h1 className="article-title font-bold mb-4">{currentArticle.title}</h1>
+          <main className="article-page article-box">
+            <h1 className="article-title font-bold mb-4">{currentArticle.title}</h1>
 
         <div className="flex items-center mb-4">
           <Image
@@ -80,10 +81,11 @@ export default function Article() {
             __html: currentArticle.content.replace(/\n/g, '<br />'),
           }}
         />
-        <button onClick={handleShare} className="share-button">
-          Partagez cet article
-        </button>
-      </main>
+            <button onClick={handleShare} className="share-button">
+              Partagez cet article
+            </button>
+          </main>
+        </div>
       </div>
     </>
   );
