@@ -27,22 +27,32 @@ export default function SponsorsBar() {
         setImage('');
     };
 
-    // Duplicate scroller items for the infinite scroll effect once sponsors load
+    // Duplicate scroller items multiple times for seamless infinite scroll effect
     useEffect(() => {
         if (sponsors.length === 0) return;
         const scroller = document.querySelector('.scroller');
         if (!scroller || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         scroller.setAttribute('data-animated', true);
         const scrollerInner = scroller.querySelector('.scroller__inner');
+        if (!scrollerInner) return;
+        
         // Remove existing duplicates
         scrollerInner.querySelectorAll('[aria-hidden="true"]').forEach(el => el.remove());
+        
+        // Get original content
         const scrollerContent = Array.from(scrollerInner.children);
-        scrollerContent.forEach((item) => {
-            const duplicatedItem = item.cloneNode(true);
-            duplicatedItem.setAttribute('aria-hidden', true);
-            duplicatedItem.querySelector('.delete-button')?.remove();
-            scrollerInner.appendChild(duplicatedItem);
-        });
+        if (scrollerContent.length === 0) return;
+        
+        // Duplicate the entire set multiple times for seamless infinite loop
+        // We need at least 2 sets, but 3-4 ensures smoothness even with varying widths
+        for (let i = 0; i < 3; i++) {
+            scrollerContent.forEach((item) => {
+                const duplicatedItem = item.cloneNode(true);
+                duplicatedItem.setAttribute('aria-hidden', true);
+                duplicatedItem.querySelector('.delete-button')?.remove();
+                scrollerInner.appendChild(duplicatedItem);
+            });
+        }
     }, [sponsors]);
 
     if (!isAdmin && sponsors.length === 0 && !loading) {

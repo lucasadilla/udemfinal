@@ -69,14 +69,14 @@ main {
 
 .banner-text-box {
     position: absolute;
-    bottom: 15%; /* Adjust position as needed */
-    left: 0; /* Adjust position as needed */
+    bottom: 0; /* Position at the bottom of the image */
+    left: 0;
     width: 100%;
     background-color: rgba(0, 0, 0, 0.5); /* Dark background for text box */
     color: #ffffff; /* White text */
     padding: 1rem;
     text-align: center;
-    border-radius: 0.25rem;
+    border-radius: 0.25rem 0.25rem 0 0; /* Rounded top corners only */
 }
 
 .banner-text-box h1 {
@@ -1084,14 +1084,8 @@ button[type="submit"]:hover {
 /* Scroller container */
 .scroller {
     overflow: hidden;
-    -webkit-mask: linear-gradient(
-            90deg,
-            transparent,
-            white 20%,
-            white 80%,
-            transparent
-    );
-    mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+    width: 100%;
+    position: relative;
 }
 
 /* Scrolling inner content */
@@ -1124,10 +1118,13 @@ button[type="submit"]:hover {
     object-fit: contain;
 }
 
-/* Keyframes for smooth scrolling */
+/* Keyframes for smooth infinite scrolling */
 @keyframes scroll {
+    from {
+        transform: translateX(0);
+    }
     to {
-        transform: translateX(calc(-50% - 0.5rem));
+        transform: translateX(calc(-50%));
     }
 }
 

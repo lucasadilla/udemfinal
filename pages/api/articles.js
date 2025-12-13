@@ -100,16 +100,44 @@ export default async function handler(req, res) {
     }
 
     const articles = await getArticles();
+    
+    // Log if we got articles or if the array is empty
+    if (articles.length === 0) {
+      console.warn('Aucun article trouvé dans la base de données. Vérifiez la connexion MongoDB.');
+    } else {
+      console.log(`Récupération de ${articles.length} article(s) depuis la base de données.`);
+    }
+    
     return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
+    console.error(`Détails de l'erreur :`, {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+    
     if (err?.code === 'FALLBACK_STORAGE_FAILED') {
       return res.status(503).json({
         error:
-          'Échec de l’enregistrement de l’article. Vérifiez la connexion à la base de données ou la configuration du stockage.',
+          `Échec de l'enregistrement de l'article. Vérifiez la connexion à la base de données ou la configuration du stockage.`,
       });
     }
-    return res.status(500).json({ error: 'Échec du traitement des articles.' });
+    
+    // Include more error details in development
+    const errorResponse = {
+      error: 'Échec du traitement des articles.',
+      message: err.message,
+    };
+    
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.details = {
+        name: err.name,
+        stack: err.stack,
+      };
+    }
+    
+    return res.status(500).json(errorResponse);
   }
 }
 

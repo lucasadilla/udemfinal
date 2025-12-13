@@ -11,11 +11,22 @@ export default function useContent() {
         const res = await fetch('/api/content');
         if (res.ok) {
           const data = await res.json();
-          setContent(data);
+          console.log('[useContent] Contenu récupéré:', Object.keys(data).length > 0 ? 'données présentes' : 'objet vide');
+          setContent(data || {});
         } else {
-          setError(new Error('Impossible de récupérer le contenu'));
+          const errorData = await res.json().catch(() => ({}));
+          console.error('[useContent] Erreur API:', {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorData,
+          });
+          setError(new Error(`Impossible de récupérer le contenu: ${res.status} ${res.statusText}`));
         }
       } catch (err) {
+        console.error('[useContent] Erreur réseau:', {
+          message: err.message,
+          name: err.name,
+        });
         setError(err);
       } finally {
         setLoading(false);

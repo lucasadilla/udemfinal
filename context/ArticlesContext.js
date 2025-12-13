@@ -50,12 +50,25 @@ export function ArticlesProvider({ children }) {
             const res = await fetch('/api/articles');
             if (res.ok) {
                 const data = await res.json();
-                setArticles(data);
+                console.log(`[ArticlesContext] Récupéré ${data?.length || 0} article(s) depuis l'API`);
+                if (Array.isArray(data) && data.length === 0) {
+                    console.warn('[ArticlesContext] Aucun article retourné. Vérifiez la connexion à la base de données.');
+                }
+                setArticles(data || []);
             } else {
-                console.warn('Impossible de récupérer les articles :', res.status);
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Impossible de récupérer les articles :', {
+                    status: res.status,
+                    statusText: res.statusText,
+                    error: errorData,
+                });
             }
         } catch (err) {
-            console.error('Impossible de récupérer les articles :', err);
+            console.error('Erreur lors de la récupération des articles :', {
+                message: err.message,
+                name: err.name,
+                stack: err.stack,
+            });
         } finally {
             setLoading(false);
         }

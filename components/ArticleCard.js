@@ -58,8 +58,8 @@ export default function ArticleCard({ article = {}, isAdmin = false, onDelete })
             <img src={a.image} alt={a.title} className="article-card-image" />
           </div>
           <div className="article-card-content">
-            <h3 className="article-card-title">{a.title}</h3>
             {a.date && <p className="article-card-date">{a.date}</p>}
+            <h3 className="article-card-title">{a.title}</h3>
             <p className="article-card-excerpt">{excerpt}</p>
           </div>
         </article>

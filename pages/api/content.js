@@ -31,7 +31,25 @@ export default async function handler(req, res) {
     return res.status(405).end(`Méthode ${req.method} non autorisée`);
   } catch (err) {
     console.error('Échec du traitement de la requête de contenu :', err);
-    return res.status(500).json({ error: 'Échec du traitement de la requête de contenu.' });
+    console.error(`Détails de l'erreur :`, {
+      message: err.message,
+      name: err.name,
+      code: err.code,
+    });
+    
+    const errorResponse = {
+      error: 'Échec du traitement de la requête de contenu.',
+      message: err.message,
+    };
+    
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.details = {
+        name: err.name,
+        stack: err.stack,
+      };
+    }
+    
+    return res.status(500).json(errorResponse);
   }
 }
 
