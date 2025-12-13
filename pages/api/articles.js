@@ -99,14 +99,20 @@ export default async function handler(req, res) {
       return res.status(200).json(article);
     }
 
+    const startTime = Date.now();
     const articles = await getArticles();
+    const queryTime = Date.now() - startTime;
     
     // Log if we got articles or if the array is empty
     if (articles.length === 0) {
       console.warn('Aucun article trouvé dans la base de données. Vérifiez la connexion MongoDB.');
     } else {
-      console.log(`Récupération de ${articles.length} article(s) depuis la base de données.`);
+      console.log(`Récupération de ${articles.length} article(s) depuis la base de données en ${queryTime}ms.`);
     }
+    
+    // Set cache headers for better performance
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    res.setHeader('X-Query-Time', `${queryTime}ms`);
     
     return res.status(200).json(articles);
   } catch (err) {

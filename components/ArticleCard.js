@@ -26,8 +26,8 @@ function formatArticle(raw = {}) {
 // Article preview card
 export default function ArticleCard({ article = {}, isAdmin = false, onDelete }) {
   const a = formatArticle(article);
-  const plainBody = a.body ? a.body.replace(/<[^>]+>/g, '') : '';
-  const excerpt = plainBody.length > 160 ? `${plainBody.slice(0, 160)}...` : plainBody;
+  // Use server-generated excerpt if available, otherwise generate client-side
+  const excerpt = a.excerpt || (a.body ? a.body.replace(/<[^>]+>/g, '').slice(0, 160) + (a.body.length > 160 ? '...' : '') : '');
 
   const handleDelete = (event) => {
     event.preventDefault();
