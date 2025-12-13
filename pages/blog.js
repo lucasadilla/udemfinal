@@ -8,6 +8,7 @@ import Navbar from '../components/Navbar';
 import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 import useAdminStatus from '../hooks/useAdminStatus';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 function mergeArticles(primary = [], secondary = []) {
     const map = new Map();
@@ -20,7 +21,7 @@ function mergeArticles(primary = [], secondary = []) {
 }
 
 export default function Blog() {
-    const { articles, addArticle, deleteArticle } = useArticles();
+    const { articles, loading: articlesLoading, addArticle, deleteArticle } = useArticles();
     const [posts, setPosts] = useState([]);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
@@ -62,7 +63,11 @@ export default function Blog() {
                 <main>
                 <section className="recent-articles">
                     <div className="article-cards-container">
-                        {posts.length === 0 ? (
+                        {articlesLoading ? (
+                            <div className="flex justify-center items-center w-full py-8">
+                                <LoadingSpinner />
+                            </div>
+                        ) : posts.length === 0 ? (
                             <p>Aucun article trouvé</p>
                         ) : (
                             posts.map((article) => (

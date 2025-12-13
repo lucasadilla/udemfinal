@@ -11,7 +11,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
 
 export default function Home() {
-    const { articles } = useArticles();
+    const { articles, loading: articlesLoading } = useArticles();
     const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
     const isAdmin = useAdminStatus();
     
@@ -69,9 +69,15 @@ export default function Home() {
                     <section className="recent-articles">
                         <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
                         <div className="article-cards-container">
-                            {topThreeArticles.map((article) => (
-                                <ArticleCard key={article._id || article.id} article={article} />
-                            ))}
+                            {articlesLoading ? (
+                                <div className="flex justify-center items-center w-full py-8">
+                                    <LoadingSpinner />
+                                </div>
+                            ) : topThreeArticles.length > 0 ? (
+                                topThreeArticles.map((article) => (
+                                    <ArticleCard key={article._id || article.id} article={article} />
+                                ))
+                            ) : null}
                         </div>
                     </section>
                     <ContactCard />
