@@ -19,14 +19,6 @@ import path from 'node:path';
 export const runtime = 'nodejs';
 export const maxBodySize = '1024mb';
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1024mb',
-    },
-  },
-};
-
 class HttpError extends Error {
   constructor(status, message) {
     super(message);
