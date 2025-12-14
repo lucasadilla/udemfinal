@@ -1016,10 +1016,18 @@ button[type="submit"]:hover {
     font-size: 1rem;
 }
 
+/* Container for article page with back button */
+.article-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
 .back-button {
     position: absolute;
-    top: 10rem;
-    left: 14rem;
+    top: 2rem;
+    left: 0;
     padding: 0.5rem 1rem;
     background-color: #000;
     color: #fff;
@@ -1338,11 +1346,17 @@ button[type="submit"]:hover {
         height: auto;
     }
 
+    .article-container {
+        padding: 0 1rem;
+    }
+    
     .back-button {
-        top: 8rem; /* Adjust the top position for better visibility on smaller screens */
-        left: 1rem; /* Adjust the left position for better visibility on smaller screens */
-        padding: 0.5rem 1rem; /* Ensure padding is appropriate for touch interaction */
-        font-size: 1rem; /* Adjust font size for readability */
+        position: static; /* Switch to static positioning on mobile */
+        display: block;
+        margin-bottom: 1rem;
+        width: fit-content;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
     }
 
     .modal-content {

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { estimateBase64Size, MAX_FORM_BASE64_SIZE } from '../lib/clientImageUtils';
 
-const MAX_ARTICLE_PAYLOAD_SIZE = 6 * 1024 * 1024; // Allow larger payloads while staying under server-side 24 MB cap
+const MAX_ARTICLE_PAYLOAD_SIZE = 50 * 1024 * 1024; // Allow up to 50MB payloads
 
 function sanitizeArticleForSubmission(article) {
     if (!article || typeof article !== 'object') {
@@ -41,12 +41,62 @@ function getPayloadSize(article) {
 
 const ArticlesContext = createContext({ articles: [], loading: true, addArticle: async () => {}, deleteArticle: async () => {} });
 
+const CACHE_KEY = 'articles_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function getCachedArticles() {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+        
+        const { data, timestamp } = JSON.parse(cached);
+        const age = Date.now() - timestamp;
+        
+        if (age < CACHE_DURATION) {
+            console.log(`[ArticlesContext] Using cached articles (${Math.floor(age / 1000)}s old)`);
+            return data;
+        }
+        
+        console.log('[ArticlesContext] Cache expired, fetching fresh data');
+        return null;
+    } catch (error) {
+        console.warn('[ArticlesContext] Error reading cache:', error);
+        return null;
+    }
+}
+
+function setCachedArticles(data) {
+    if (typeof window === 'undefined') return;
+    
+    try {
+        const cacheData = {
+            data,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+        console.warn('[ArticlesContext] Error writing cache:', error);
+    }
+}
+
 export function ArticlesProvider({ children }) {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchArticles = async () => {
+    const fetchArticles = async (skipCache = false) => {
         try {
+            // Try to use cached data first
+            if (!skipCache) {
+                const cached = getCachedArticles();
+                if (cached) {
+                    setArticles(cached);
+                    setLoading(false);
+                    return;
+                }
+            }
+            
             const res = await fetch('/api/articles');
             if (res.ok) {
                 const data = await res.json();
@@ -69,6 +119,17 @@ export function ArticlesProvider({ children }) {
                 name: err.name,
                 stack: err.stack,
             });
+                console.log(`[ArticlesContext] Fetched ${data.length} articles from API`);
+                setArticles(data || []);
+                setCachedArticles(data || []);
+            } else {
+                const errorText = await res.text().catch(() => '');
+                console.warn(`[ArticlesContext] Failed to fetch articles: ${res.status}`, errorText);
+                setArticles([]);
+            }
+        } catch (err) {
+            console.error('[ArticlesContext] Error fetching articles:', err);
+            setArticles([]);
         } finally {
             setLoading(false);
         }
@@ -107,16 +168,16 @@ export function ArticlesProvider({ children }) {
                 const payload = await res.json().catch(() => ({}));
                 if (res.status === 413) {
                     throw new Error(
-                        "Le serveur a rejeté l’article car il dépasse la taille maximale autorisée. Réduisez la taille des images ou du contenu avant de réessayer."
+                        "Le serveur a rejeté l'article car il dépasse la taille maximale autorisée. Réduisez la taille des images ou du contenu avant de réessayer."
                     );
                 }
-                const message = payload?.error || `Impossible d’ajouter un article : ${res.status}`;
+                const message = payload?.error || `Impossible d'ajouter un article : ${res.status}`;
                 throw new Error(message);
             }
-            await fetchArticles();
+            await fetchArticles(true); // Skip cache after adding new article
             return true;
         } catch (err) {
-            console.error('Impossible d’ajouter un article :', err);
+            console.error('Impossible d\'ajouter un article :', err);
             throw err;
         }
     };
@@ -125,12 +186,12 @@ export function ArticlesProvider({ children }) {
         try {
             const res = await fetch(`/api/articles?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
-                await fetchArticles();
+                await fetchArticles(true); // Skip cache after deleting article
             } else {
-                console.warn('Impossible de supprimer l’article :', res.status);
+                console.warn('Impossible de supprimer l\'article :', res.status);
             }
         } catch (err) {
-            console.error('Impossible de supprimer l’article :', err);
+            console.error('Impossible de supprimer l\'article :', err);
         }
     };
 

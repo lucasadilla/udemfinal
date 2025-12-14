@@ -14,6 +14,9 @@ async function resolveAuthorMetadata({ authorId, author, authorImage }) {
 
   try {
     const db = await getMongoDb();
+    if (!db) {
+      return { authorImage: '', authorId: authorId || null };
+    }
     const collection = db.collection('users');
 
     let authorObjectId = null;
@@ -55,6 +58,12 @@ async function resolveAuthorMetadata({ authorId, author, authorImage }) {
  * Each article has { title, content, author, authorId, authorImage, image, date }.
  */
 export default async function handler(req, res) {
+  // Ajout d'en-têtes de cache pour les requêtes GET
+  if (req.method === 'GET') {
+    // Cache for 5 minutes, allow stale content for up to 1 hour while revalidating
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+  }
+
   try {
     if (req.method === 'POST') {
       const { title, content, author, authorId, authorImage, image, date } = req.body || {};
@@ -133,6 +142,9 @@ export default async function handler(req, res) {
     res.setHeader('X-Database-Name', dbName);
     res.setHeader('X-Document-Count', documentCount.toString());
     
+    // Log pour debug - vérifier si des articles sont retournés
+    console.log(`[API Articles] Returning ${articles.length} articles`);
+    
     return res.status(200).json(articles);
   } catch (err) {
     console.error('Échec du traitement des articles :', err);
@@ -170,7 +182,8 @@ export const config = {
   api: {
     bodyParser: {
       // Autorise des images encodées en base64 plus volumineuses lors de la création d’un article.
-      sizeLimit: '24mb',
+      sizeLimit: '50mb',
     },
+    responseLimit: false,
   },
 };

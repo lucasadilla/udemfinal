@@ -1,6 +1,18 @@
+import crypto from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import getMongoDb from '../../lib/mongoClient';
 import { deleteMediaFileIfExists } from '../../lib/podcastUploadUtils';
+import { readJsonFile, writeJsonFile } from '../../lib/jsonStorage';
+
+const FALLBACK_FILE = 'users.json';
+
+function getFallbackUsers() {
+  return readJsonFile(FALLBACK_FILE, []);
+}
+
+function setFallbackUsers(users) {
+  return writeJsonFile(FALLBACK_FILE, users);
+}
 
 /**
  * Retrieve or create users from the `users` collection.
@@ -57,61 +69,120 @@ function parseRequestBody(req) {
 export default async function handler(req, res) {
   try {
     const db = await getMongoDb();
-    const collection = db.collection('users');
+    
+    if (db) {
+      const collection = db.collection('users');
 
-    if (req.method === 'POST') {
-      let body;
-      try {
-        body = parseRequestBody(req);
-      } catch (parseErr) {
-        console.warn('Corps de requête JSON invalide reçu pour /api/users :', parseErr);
-        return res.status(400).json({ error: 'Corps de requête invalide.' });
+      if (req.method === 'POST') {
+        let body;
+        try {
+          body = parseRequestBody(req);
+        } catch (parseErr) {
+          console.warn('Corps de requête JSON invalide reçu pour /api/users :', parseErr);
+          return res.status(400).json({ error: 'Corps de requête invalide.' });
+        }
+
+        const title = typeof body?.title === 'string' ? body.title.trim() : '';
+        const name = typeof body?.name === 'string' ? body.name.trim() : '';
+        const profilePicture = typeof body?.profilePicture === 'string' ? body.profilePicture : '';
+
+        if (!title || !name) {
+          return res.status(400).json({ error: 'Les champs title et name sont requis.' });
+        }
+        const result = await collection.insertOne({
+          title,
+          name,
+          profilePicture,
+        });
+        return res.status(201).json({ id: result.insertedId.toString() });
       }
 
-      const title = typeof body?.title === 'string' ? body.title.trim() : '';
-      const name = typeof body?.name === 'string' ? body.name.trim() : '';
-      const profilePicture = typeof body?.profilePicture === 'string' ? body.profilePicture : '';
+      if (req.method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) {
+          return res.status(400).json({ error: "L'identifiant est requis." });
+        }
 
-      if (!title || !name) {
-        return res.status(400).json({ error: 'Les champs title et name sont requis.' });
+        const objectId = new ObjectId(id);
+        const result = await collection.findOneAndDelete({ _id: objectId });
+
+        if (!result.value) {
+          return res.status(404).json({ error: 'Membre introuvable.' });
+        }
+
+        if (result.value.profilePicture) {
+          await deleteMediaFileIfExists(result.value.profilePicture);
+        }
+
+        return res.status(200).json({ ok: true });
       }
-      const result = await collection.insertOne({
-        title,
-        name,
-        profilePicture,
-      });
-      return res.status(201).json({ id: result.insertedId.toString() });
+
+      const docs = await collection.find({}).toArray();
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=150');
+      const users = docs.map(doc => ({
+        id: doc._id?.toString(),
+        title: doc.title,
+        name: doc.name,
+        profilePicture: doc.profilePicture,
+      }));
+
+      return res.status(200).json(users);
+    } else {
+      // Fallback to JSON storage
+      if (req.method === 'POST') {
+        let body;
+        try {
+          body = parseRequestBody(req);
+        } catch (parseErr) {
+          console.warn('Corps de requête JSON invalide reçu pour /api/users :', parseErr);
+          return res.status(400).json({ error: 'Corps de requête invalide.' });
+        }
+
+        const title = typeof body?.title === 'string' ? body.title.trim() : '';
+        const name = typeof body?.name === 'string' ? body.name.trim() : '';
+        const profilePicture = typeof body?.profilePicture === 'string' ? body.profilePicture : '';
+
+        if (!title || !name) {
+          return res.status(400).json({ error: 'Les champs title et name sont requis.' });
+        }
+        const users = getFallbackUsers();
+        const newUser = {
+          id: crypto.randomUUID(),
+          title,
+          name,
+          profilePicture,
+        };
+        users.push(newUser);
+        setFallbackUsers(users);
+        return res.status(201).json({ id: newUser.id });
+      }
+
+      if (req.method === 'DELETE') {
+        const { id } = req.query;
+        if (!id) {
+          return res.status(400).json({ error: "L'identifiant est requis." });
+        }
+
+        const users = getFallbackUsers();
+        const index = users.findIndex(u => u.id === id);
+        if (index === -1) {
+          return res.status(404).json({ error: 'Membre introuvable.' });
+        }
+
+        const deletedUser = users[index];
+        if (deletedUser.profilePicture) {
+          await deleteMediaFileIfExists(deletedUser.profilePicture);
+        }
+
+        users.splice(index, 1);
+        setFallbackUsers(users);
+        return res.status(200).json({ ok: true });
+      }
+
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=150');
+      const users = getFallbackUsers();
+      return res.status(200).json(users);
     }
-
-    if (req.method === 'DELETE') {
-      const { id } = req.query;
-      if (!id) {
-        return res.status(400).json({ error: "L’identifiant est requis." });
-      }
-
-      const objectId = new ObjectId(id);
-      const result = await collection.findOneAndDelete({ _id: objectId });
-
-      if (!result.value) {
-        return res.status(404).json({ error: 'Membre introuvable.' });
-      }
-
-      if (result.value.profilePicture) {
-        await deleteMediaFileIfExists(result.value.profilePicture);
-      }
-
-      return res.status(200).json({ ok: true });
-    }
-
-    const docs = await collection.find({}).toArray();
-    const users = docs.map(doc => ({
-      id: doc._id?.toString(),
-      title: doc.title,
-      name: doc.name,
-      profilePicture: doc.profilePicture,
-    }));
-
-    res.status(200).json(users);
   } catch (err) {
     console.error('Échec du traitement des membres :', err);
     res.status(500).json({ error: 'Échec du traitement des membres.' });
