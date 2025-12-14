@@ -100,7 +100,7 @@ export default function DebugPage() {
               <span className={`text-sm px-2 py-1 rounded ${
                 healthStatus?.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {healthStatus?.ok ? '✓ OK' : '✗ FAILED'}
+                {healthStatus?.ok ? 'OK' : 'FAILED'}
               </span>
             </h2>
             {healthStatus?.error ? (
@@ -110,12 +110,12 @@ export default function DebugPage() {
             ) : (
               <div className="space-y-2">
                 <p><strong>Status:</strong> {healthStatus?.data?.status || 'unknown'}</p>
-                <p><strong>Database Connected:</strong> {healthStatus?.data?.database?.connected ? 'Yes ✓' : 'No ✗'}</p>
+                <p><strong>Database Connected:</strong> {healthStatus?.data?.database?.connected ? 'Yes' : 'No'}</p>
                 {healthStatus?.data?.database?.databaseName && (
                   <p><strong>Database Name:</strong> <code className="bg-gray-100 px-1 rounded">{healthStatus.data.database.databaseName}</code></p>
                 )}
-                <p><strong>MongoDB URI Configured:</strong> {healthStatus?.data?.mongodbUri?.configured ? 'Yes ✓' : 'No ✗'}</p>
-                <p><strong>MongoDB DB Name Configured:</strong> {healthStatus?.data?.mongodbDbName?.configured ? 'Yes ✓' : 'No ✗'}</p>
+                <p><strong>MongoDB URI Configured:</strong> {healthStatus?.data?.mongodbUri?.configured ? 'Yes' : 'No'}</p>
+                <p><strong>MongoDB DB Name Configured:</strong> {healthStatus?.data?.mongodbDbName?.configured ? 'Yes' : 'No'}</p>
                 <p><strong>Article Count in DB:</strong> {healthStatus?.data?.database?.articleCount ?? 'N/A'}</p>
                 {healthStatus?.data?.database?.sampleArticleFields && (
                   <details className="mt-2">
@@ -139,7 +139,7 @@ export default function DebugPage() {
               <span className={`text-sm px-2 py-1 rounded ${
                 contentStatus?.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {contentStatus?.ok ? '✓ OK' : '✗ FAILED'}
+                {contentStatus?.ok ? 'OK' : 'FAILED'}
               </span>
             </h2>
             {contentStatus?.error ? (
@@ -149,7 +149,7 @@ export default function DebugPage() {
             ) : (
               <div className="space-y-2">
                 <p><strong>Status Code:</strong> {contentStatus?.status}</p>
-                <p><strong>Content Empty:</strong> {contentStatus?.isEmpty ? 'Yes ⚠️ (This might be why content isn't showing)' : 'No ✓'}</p>
+                <p><strong>Content Empty:</strong> {contentStatus?.isEmpty ? 'Yes (Warning: This might be why content isn\'t showing)' : 'No'}</p>
                 {contentStatus?.data?.error && (
                   <div className="bg-red-50 border border-red-200 rounded p-4 mt-2">
                     <p className="text-red-800"><strong>Error:</strong> {contentStatus.data.error}</p>
@@ -175,7 +175,7 @@ export default function DebugPage() {
               <span className={`text-sm px-2 py-1 rounded ${
                 articlesStatus?.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {articlesStatus?.ok ? '✓ OK' : '✗ FAILED'}
+                {articlesStatus?.ok ? 'OK' : 'FAILED'}
               </span>
             </h2>
             {articlesStatus?.error ? (
@@ -194,7 +194,7 @@ export default function DebugPage() {
                 )}
                 {articlesStatus?.documentCount > 0 && articlesStatus?.count === 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mt-2">
-                    <p className="text-yellow-800 font-semibold">⚠️ Warning: Documents exist but none are being returned!</p>
+                    <p className="text-yellow-800 font-semibold">Warning: Documents exist but none are being returned!</p>
                     <p className="text-yellow-700 text-sm mt-1">This usually means the document structure doesn't match what the code expects, or they're in a different database.</p>
                   </div>
                 )}
