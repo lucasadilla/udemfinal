@@ -15,7 +15,7 @@ import { getUserImageBucket } from '../../../lib/userImageStorage.js';
 const userImageUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes for large file uploads
+export const maxDuration = 60; // 60 seconds (max for Vercel hobby plan)
 
 function createHttpError(status, message) {
   const error = new Error(message);
