@@ -105,6 +105,7 @@ export function ArticlesProvider({ children }) {
                     console.warn('[ArticlesContext] Aucun article retourné. Vérifiez la connexion à la base de données.');
                 }
                 setArticles(data || []);
+                setCachedArticles(data || []);
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 console.error('Impossible de récupérer les articles :', {
@@ -112,6 +113,7 @@ export function ArticlesProvider({ children }) {
                     statusText: res.statusText,
                     error: errorData,
                 });
+                setArticles([]);
             }
         } catch (err) {
             console.error('Erreur lors de la récupération des articles :', {
@@ -119,16 +121,6 @@ export function ArticlesProvider({ children }) {
                 name: err.name,
                 stack: err.stack,
             });
-                console.log(`[ArticlesContext] Fetched ${data.length} articles from API`);
-                setArticles(data || []);
-                setCachedArticles(data || []);
-            } else {
-                const errorText = await res.text().catch(() => '');
-                console.warn(`[ArticlesContext] Failed to fetch articles: ${res.status}`, errorText);
-                setArticles([]);
-            }
-        } catch (err) {
-            console.error('[ArticlesContext] Error fetching articles:', err);
             setArticles([]);
         } finally {
             setLoading(false);

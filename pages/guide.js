@@ -90,7 +90,6 @@ export default function GuidePage() {
                     <div className="flex justify-center items-center w-full">
                         <LoadingSpinner />
                     </div>
-                    <LoadingSpinner />
                 ) : (
                     <div className="sponsor-gallery">
                         {sponsors.map((sponsor, index) => (
