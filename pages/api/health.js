@@ -39,6 +39,13 @@ export default async function handler(req, res) {
     const articlesCollection = db.collection('articles');
     const articleCount = await articlesCollection.countDocuments();
     diagnostics.database.articleCount = articleCount;
+    diagnostics.database.databaseName = db.databaseName;
+    
+    // Get a sample article to verify structure
+    if (articleCount > 0) {
+      const sampleArticle = await articlesCollection.findOne({});
+      diagnostics.database.sampleArticleFields = sampleArticle ? Object.keys(sampleArticle) : [];
+    }
 
     const contentCollection = db.collection('content');
     const contentExists = await contentCollection.findOne({ _id: 'content' });

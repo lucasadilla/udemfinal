@@ -40,13 +40,24 @@ export default async function handler(req, res) {
     const errorResponse = {
       error: 'Échec du traitement de la requête de contenu.',
       message: err.message,
+      // Always include error name and code for better debugging
+      errorName: err.name,
+      errorCode: err.code,
     };
     
+    // Include stack trace in development, but also include helpful info in production
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = {
         name: err.name,
         stack: err.stack,
       };
+    } else {
+      // In production, provide helpful hints without exposing stack
+      if (err.message?.includes('MONGODB_URI')) {
+        errorResponse.hint = 'MongoDB connection string not configured. Check environment variables.';
+      } else if (err.message?.includes('connection') || err.message?.includes('timeout')) {
+        errorResponse.hint = 'Database connection failed. Check MongoDB Atlas IP whitelist and connection string.';
+      }
     }
     
     return res.status(500).json(errorResponse);
