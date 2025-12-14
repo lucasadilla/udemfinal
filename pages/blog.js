@@ -9,6 +9,7 @@ import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 import useAdminStatus from '../hooks/useAdminStatus';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Pagination from '../components/Pagination';
 
 function mergeArticles(primary = [], secondary = []) {
     const map = new Map();
@@ -20,25 +21,39 @@ function mergeArticles(primary = [], secondary = []) {
     return Array.from(map.values());
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function Blog() {
     const { articles, loading: articlesLoading, addArticle, deleteArticle } = useArticles();
     const [posts, setPosts] = useState([]);
+    const [postsLoading, setPostsLoading] = useState(true);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
     const [formError, setFormError] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         async function load() {
-            const res = await fetch('/api/articles');
-            if (res.ok) {
-                const data = await res.json();
-                setPosts(mergeArticles(articles, data));
-            } else {
+            setPostsLoading(true);
+            try {
+                const res = await fetch('/api/articles');
+                if (res.ok) {
+                    const data = await res.json();
+                    setPosts(mergeArticles(articles, data));
+                } else {
+                    setPosts(articles);
+                }
+            } catch (error) {
+                console.error('Error loading articles:', error);
                 setPosts(articles);
+            } finally {
+                setPostsLoading(false);
             }
         }
-        load();
-    }, [articles]);
+        if (!articlesLoading) {
+            load();
+        }
+    }, [articles, articlesLoading]);
 
     const handleDelete = async (id) => {
         if (!id) {
@@ -50,6 +65,17 @@ export default function Blog() {
             return articleId !== id;
         }));
     };
+
+    // Calculate pagination
+    const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedPosts = posts.slice(startIndex, endIndex);
+
+    // Reset to page 1 when posts change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [posts.length]);
 
     return (
         <>
@@ -63,14 +89,14 @@ export default function Blog() {
                 <main>
                 <section className="recent-articles">
                     <div className="article-cards-container">
-                        {articlesLoading ? (
+                        {articlesLoading || postsLoading ? (
                             <div className="flex justify-center items-center w-full py-8">
                                 <LoadingSpinner />
                             </div>
                         ) : posts.length === 0 ? (
                             <p>Aucun article trouvé</p>
                         ) : (
-                            posts.map((article) => (
+                            paginatedPosts.map((article) => (
                                 <ArticleCard
                                     key={article.id || article._id}
                                     article={article}
@@ -80,6 +106,13 @@ export default function Blog() {
                             ))
                         )}
                     </div>
+                    {!articlesLoading && !postsLoading && posts.length > 0 && (
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    )}
                 </section>
                 {isAdmin ? (
                     <section className="my-16 px-4 flex justify-center">

@@ -5,18 +5,22 @@ import { getUserImageBucket, isGridFsUnavailable, toObjectId } from '../../../..
 export const runtime = 'nodejs';
 
 export async function GET(request, { params }) {
-  const { id } = params || {};
-
-  if (!id) {
-    return NextResponse.json({ error: 'Identifiant de fichier manquant.' }, { status: 400 });
-  }
-
-  const objectId = toObjectId(id);
-  if (!objectId) {
-    return NextResponse.json({ error: 'Identifiant de fichier invalide.' }, { status: 400 });
-  }
-
   try {
+    // In Next.js 15+, params is a Promise and must be awaited
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
+
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return NextResponse.json({ error: 'Identifiant de fichier manquant.' }, { status: 400 });
+    }
+
+    const objectId = toObjectId(id.trim());
+    if (!objectId) {
+      // Log for debugging but return 404 instead of 400 for better UX
+      console.warn(`[User Image GET] Invalid ObjectId format: ${id}`);
+      return NextResponse.json({ error: 'Fichier introuvable.' }, { status: 404 });
+    }
+
     const bucket = await getUserImageBucket();
     const file = await bucket.find({ _id: objectId }).next();
 
@@ -45,7 +49,21 @@ export async function GET(request, { params }) {
       );
     }
 
-    console.error('Erreur lors de la lecture du fichier GridFS :', error);
+    // Try to get id from params for logging (handle both sync and async params)
+    let idForLogging = 'unknown';
+    try {
+      const resolvedParams = await params;
+      idForLogging = resolvedParams?.id || 'unknown';
+    } catch {
+      // If params is not a promise, it's already resolved
+      idForLogging = params?.id || 'unknown';
+    }
+    
+    console.error('[User Image GET] Erreur lors de la lecture du fichier GridFS :', {
+      error: error.message,
+      stack: error.stack,
+      id: idForLogging,
+    });
     return NextResponse.json({ error: 'Erreur interne du serveur.' }, { status: 500 });
   }
 }

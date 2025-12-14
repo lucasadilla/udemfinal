@@ -3,28 +3,56 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import { useArticles } from '../../context/ArticlesContext';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function Article() {
   const router = useRouter();
   const { id } = router.query;
-  const { articles } = useArticles();
+  const { articles, loading: articlesLoading } = useArticles();
   const [post, setPost] = useState(null);
+  const [postLoading, setPostLoading] = useState(false);
   const article = articles.find((a) => String(a.id) === id);
 
   useEffect(() => {
-    if (!article && id) {
+    if (!article && id && !articlesLoading) {
+      setPostLoading(true);
       fetch(`/api/articles?id=${id}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data) setPost(data);
+        })
+        .catch((error) => {
+          console.error('Error loading article:', error);
+        })
+        .finally(() => {
+          setPostLoading(false);
         });
     }
-  }, [article, id]);
+  }, [article, id, articlesLoading]);
 
   const currentArticle = article || post;
+  const isLoading = articlesLoading || (postLoading && !currentArticle);
+
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex justify-center items-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      </>
+    );
+  }
 
   if (!currentArticle) {
-    return <p>Article introuvable</p>;
+    return (
+      <>
+        <Navbar />
+        <div className="flex justify-center items-center min-h-screen">
+          <p>Article introuvable</p>
+        </div>
+      </>
+    );
   }
 
   const handleBack = () => {

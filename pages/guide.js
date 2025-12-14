@@ -99,6 +99,8 @@ export default function GuidePage() {
                                     alt="Logo de commanditaire"
                                     className="sponsor-image rounded-lg cursor-pointer hover:shadow-lg"
                                     onClick={() => openModal(index)}
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                                 {isAdmin && (
                                     <button

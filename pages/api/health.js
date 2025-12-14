@@ -31,6 +31,17 @@ export default async function handler(req, res) {
 
   try {
     const db = await getMongoDb();
+    if (!db) {
+      diagnostics.database.error = {
+        message: 'getMongoDb() returned null - connection failed',
+        name: 'ConnectionError',
+      };
+      return res.status(503).json({
+        status: 'unhealthy',
+        ...diagnostics,
+      });
+    }
+    
     const collections = await db.listCollections().toArray();
     diagnostics.database.connected = true;
     diagnostics.database.collections = collections.map((c) => c.name);

@@ -112,6 +112,15 @@ export default async function handler(req, res) {
     
     // Get database info for debugging
     const db = await getMongoDb();
+    if (!db) {
+      console.error('[Articles API] Database connection failed - getMongoDb returned null');
+      return res.status(503).json({ 
+        error: 'Database connection failed',
+        message: 'Unable to connect to MongoDB. Please check your environment variables and MongoDB Atlas configuration.',
+        hint: 'Verify MONGODB_URI and MONGODB_DB_NAME are set correctly in your deployment environment.'
+      });
+    }
+    
     const dbName = db.databaseName;
     const collection = db.collection('articles');
     const documentCount = await collection.countDocuments();

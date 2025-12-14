@@ -27,7 +27,7 @@ export default function SponsorsBar() {
         setImage('');
     };
 
-    // Duplicate scroller items multiple times for seamless infinite scroll effect
+    // Duplicate scroller items for seamless infinite scroll effect
     useEffect(() => {
         if (sponsors.length === 0) return;
         const scroller = document.querySelector('.scroller');
@@ -43,9 +43,12 @@ export default function SponsorsBar() {
         const scrollerContent = Array.from(scrollerInner.children);
         if (scrollerContent.length === 0) return;
         
-        // Duplicate the entire set multiple times for seamless infinite loop
-        // We need at least 2 sets, but 3-4 ensures smoothness even with varying widths
-        for (let i = 0; i < 3; i++) {
+        // Duplicate the entire set multiple times for seamless infinite scrolling
+        // The animation moves -50% of the total width
+        // With 4+ duplicates, we ensure there's always content visible during the reset
+        // This eliminates any visible gap when the animation loops
+        const numberOfDuplicates = 4;
+        for (let i = 0; i < numberOfDuplicates; i++) {
             scrollerContent.forEach((item) => {
                 const duplicatedItem = item.cloneNode(true);
                 duplicatedItem.setAttribute('aria-hidden', true);

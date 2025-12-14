@@ -45,7 +45,14 @@ export default async function handler(req, res) {
                 return res.status(200).json({ ok: true });
             }
 
-            const sponsorDocs = await collection.find({}).toArray();
+            // Add cache headers for better performance
+            res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+            
+            // Optimize query - only fetch necessary fields and limit results if needed
+            const sponsorDocs = await collection
+                .find({}, { projection: { image: 1 } }) // Only fetch image field
+                .toArray();
+            
             const sponsors = sponsorDocs.map(doc => ({
                 id: doc._id?.toString() || doc.id,
                 image: doc.image,
@@ -84,6 +91,9 @@ export default async function handler(req, res) {
                 return res.status(200).json({ ok: true });
             }
 
+            // Add cache headers for better performance
+            res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+            
             const sponsors = getFallbackSponsors();
             return res.status(200).json(sponsors);
         }

@@ -15,6 +15,7 @@ import { getUserImageBucket } from '../../../lib/userImageStorage.js';
 const userImageUploadsDirectory = path.join(process.cwd(), 'public', 'uploads', 'users');
 
 export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes for large file uploads
 
 function createHttpError(status, message) {
   const error = new Error(message);
@@ -47,8 +48,14 @@ export async function POST(request) {
     }
 
     const fileSize = Number(uploadedFile.size);
+    // Allow any file size - no limits for user images
     if (!Number.isFinite(fileSize) || fileSize <= 0) {
       throw createHttpError(400, 'Le fichier téléversé est vide.');
+    }
+    
+    // Log file size for debugging (but don't reject)
+    if (fileSize > 50 * 1024 * 1024) {
+      console.log(`[User Image Upload] Large file detected: ${(fileSize / (1024 * 1024)).toFixed(2)} MB`);
     }
 
     const fileName = buildFileName(uploadedFile.name, uploadedFile.type, 'user-image');

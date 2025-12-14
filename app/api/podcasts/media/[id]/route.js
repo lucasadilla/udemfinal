@@ -5,7 +5,9 @@ import { getPodcastMediaBucket, isGridFsUnavailable, toObjectId } from '../../..
 export const runtime = 'nodejs';
 
 export async function GET(request, { params }) {
-  const { id } = params || {};
+  // In Next.js 15+, params is a Promise and must be awaited
+  const resolvedParams = await params;
+  const { id } = resolvedParams || {};
 
   if (!id) {
     return NextResponse.json({ error: 'Identifiant de fichier manquant.' }, { status: 400 });

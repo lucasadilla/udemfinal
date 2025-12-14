@@ -1,10 +1,13 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
 import useAdminStatus from '../../hooks/useAdminStatus';
 import { formattedUploadLimit, isFileTooLarge } from '../../lib/podcastUploadLimits.js';
+import Pagination from '../../components/Pagination';
+
+const ITEMS_PER_PAGE = 20;
 
 function isValidHttpUrl(value) {
   if (typeof value !== 'string' || !value.trim()) {
@@ -22,6 +25,7 @@ function isValidHttpUrl(value) {
 export default function PodcastsPage() {
   const { podcasts, loading, addPodcast, deletePodcast } = usePodcasts();
   const isAdmin = useAdminStatus();
+  const [currentPage, setCurrentPage] = useState(1);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [mediaMode, setMediaMode] = useState('upload');
@@ -108,6 +112,17 @@ export default function PodcastsPage() {
         '',
     }))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedPodcasts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedPodcasts = sortedPodcasts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when podcasts change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [podcasts.length]);
 
   const handleDeletePodcast = async (id) => {
     const confirmation = window.confirm(
@@ -392,16 +407,23 @@ export default function PodcastsPage() {
           ) : sortedPodcasts.length === 0 ? (
             <p className="text-center text-gray-600">Aucun podcast n'est disponible pour le moment.</p>
           ) : (
-            <div className="article-cards-container">
-              {sortedPodcasts.map((podcast) => (
-                <PodcastCard
-                  key={podcast.id}
-                  podcast={podcast}
-                  isAdmin={isAdmin}
-                  onDelete={handleDeletePodcast}
-                />
-              ))}
-            </div>
+            <>
+              <div className="article-cards-container">
+                {paginatedPodcasts.map((podcast) => (
+                  <PodcastCard
+                    key={podcast.id}
+                    podcast={podcast}
+                    isAdmin={isAdmin}
+                    onDelete={handleDeletePodcast}
+                  />
+                ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           )}
         </section>
       </main>
