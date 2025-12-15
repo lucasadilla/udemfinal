@@ -14,7 +14,9 @@ export default function Article() {
   const article = articles.find((a) => String(a.id) === id);
 
   useEffect(() => {
-    if (!article && id && !articlesLoading) {
+    // Always fetch full article when on detail page, even if we have it in the list
+    // because list articles don't include full content
+    if (id && !articlesLoading) {
       setPostLoading(true);
       fetch(`/api/articles?id=${id}`)
         .then((res) => (res.ok ? res.json() : null))
@@ -28,10 +30,11 @@ export default function Article() {
           setPostLoading(false);
         });
     }
-  }, [article, id, articlesLoading]);
+  }, [id, articlesLoading]);
 
-  const currentArticle = article || post;
-  const isLoading = articlesLoading || (postLoading && !currentArticle);
+  // Prefer the fetched post (has full content) over cached article (list view only)
+  const currentArticle = post || article;
+  const isLoading = postLoading || (articlesLoading && !currentArticle);
 
   if (isLoading) {
     return (
@@ -106,7 +109,7 @@ export default function Article() {
         <div
           className="article-content"
           dangerouslySetInnerHTML={{
-            __html: currentArticle.content.replace(/\n/g, '<br />'),
+            __html: (currentArticle.content || currentArticle.body || '').replace(/\n/g, '<br />'),
           }}
         />
             <button onClick={handleShare} className="share-button">
