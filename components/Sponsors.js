@@ -25,6 +25,8 @@ export default function SponsorsBar() {
         if (!image) return;
         await addSponsor({ image });
         setImage('');
+        // Reset file input
+        e.target.reset();
     };
 
     // Duplicate scroller items for seamless infinite scroll effect
@@ -44,15 +46,11 @@ export default function SponsorsBar() {
         if (scrollerContent.length === 0) return;
         
         // Duplicate the entire set multiple times for seamless infinite scrolling
-        // The animation moves -50% of the total width
-        // With 4+ duplicates, we ensure there's always content visible during the reset
-        // This eliminates any visible gap when the animation loops
         const numberOfDuplicates = 4;
         for (let i = 0; i < numberOfDuplicates; i++) {
             scrollerContent.forEach((item) => {
                 const duplicatedItem = item.cloneNode(true);
                 duplicatedItem.setAttribute('aria-hidden', true);
-                duplicatedItem.querySelector('.delete-button')?.remove();
                 scrollerInner.appendChild(duplicatedItem);
             });
         }
@@ -65,21 +63,57 @@ export default function SponsorsBar() {
     return (
         <div>
             {isAdmin && (
-                <form onSubmit={handleAdd} className="mb-4 space-y-2">
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="border p-2 w-full"
-                        onChange={handleFileChange}
-                    />
-                    <button
-                        type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                    >
-                        Ajouter
-                    </button>
-                </form>
+                <div className="max-w-6xl mx-auto px-4 py-6 bg-gray-50 rounded-lg mb-6">
+                    <h3 className="text-xl font-bold mb-4">Gestion des Commanditaires</h3>
+                    
+                    {/* Add Sponsor Form */}
+                    <form onSubmit={handleAdd} className="mb-6 space-y-2">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="border p-2 w-full rounded"
+                            onChange={handleFileChange}
+                        />
+                        <button
+                            type="submit"
+                            disabled={!image}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                            Ajouter un Commanditaire
+                        </button>
+                    </form>
+
+                    {/* Sponsor Management Grid */}
+                    {sponsors.length > 0 && (
+                        <div>
+                            <h4 className="text-lg font-semibold mb-3">Commanditaires actuels ({sponsors.length})</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {sponsors.map((sponsor) => (
+                                    <div key={sponsor.id} className="relative border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                                        <img
+                                            src={sponsor.image}
+                                            alt="Logo de commanditaire"
+                                            className="w-full h-24 object-contain mb-2"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                if (window.confirm('Êtes-vous sûr de vouloir supprimer ce commanditaire ?')) {
+                                                    deleteSponsor(sponsor.id);
+                                                }
+                                            }}
+                                            className="w-full bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                                        >
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             )}
+
+            {/* Public Scrolling Carousel */}
             {sponsors.length > 0 && (
                 <div className="scroller" data-speed="slow">
                     <div className="scroller__inner">
@@ -90,14 +124,6 @@ export default function SponsorsBar() {
                                     alt="Logo de commanditaire"
                                     className="scroller-item"
                                 />
-                                {isAdmin && (
-                                    <button
-                                        onClick={() => deleteSponsor(sponsor.id)}
-                                        className="delete-button absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded"
-                                    >
-                                        &times;
-                                    </button>
-                                )}
                             </div>
                         ))}
                     </div>
