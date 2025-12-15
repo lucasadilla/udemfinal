@@ -108,48 +108,10 @@ export default async function handler(req, res) {
       return res.status(200).json(article);
     }
 
-    const startTime = Date.now();
-    
-    // Get database info for debugging
-    const db = await getMongoDb();
-    if (!db) {
-      console.error('[Articles API] Database connection failed - getMongoDb returned null');
-      return res.status(503).json({ 
-        error: 'Database connection failed',
-        message: 'Unable to connect to MongoDB. Please check your environment variables and MongoDB Atlas configuration.',
-        hint: 'Verify MONGODB_URI and MONGODB_DB_NAME are set correctly in your deployment environment.'
-      });
-    }
-    
-    const dbName = db.databaseName;
-    const collection = db.collection('articles');
-    const documentCount = await collection.countDocuments();
-    
     const articles = await getArticles();
-    const queryTime = Date.now() - startTime;
-    
-    // Log detailed information
-    console.log(`[Articles API] Database: ${dbName}, Collection: articles, Documents: ${documentCount}, Articles returned: ${articles.length}`);
-    
-    if (articles.length === 0) {
-      console.warn(`[Articles API] Aucun article trouvé. Base de données: ${dbName}, Documents dans collection: ${documentCount}`);
-      if (documentCount > 0) {
-        console.warn('[Articles API] Des documents existent mais ne sont pas retournés. Vérifiez la structure des documents.');
-        // Log a sample document for debugging
-        const sampleDoc = await collection.findOne({});
-        if (sampleDoc) {
-          console.log('[Articles API] Exemple de document:', JSON.stringify(sampleDoc, null, 2).substring(0, 500));
-        }
-      }
-    } else {
-      console.log(`[Articles API] Récupération de ${articles.length} article(s) depuis la base de données ${dbName} en ${queryTime}ms.`);
-    }
     
     // Set cache headers for better performance
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-    res.setHeader('X-Query-Time', `${queryTime}ms`);
-    res.setHeader('X-Database-Name', dbName);
-    res.setHeader('X-Document-Count', documentCount.toString());
     
     // Log pour debug - vérifier si des articles sont retournés
     console.log(`[API Articles] Returning ${articles.length} articles`);
