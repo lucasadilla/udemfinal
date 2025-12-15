@@ -8,6 +8,7 @@ function formatArticle(raw = {}) {
     title = 'Sans titre',
     body,
     content,
+    excerpt,
     image,
     imageUrl,
     coverImage,
@@ -18,6 +19,7 @@ function formatArticle(raw = {}) {
     id: _id || id,
     title,
     body: body || content || '',
+    excerpt: excerpt || '',
     image: image || imageUrl || coverImage || 'https://placehold.co/600x400',
     date,
   };
@@ -27,7 +29,7 @@ function formatArticle(raw = {}) {
 export default function ArticleCard({ article = {}, isAdmin = false, onDelete }) {
   const a = formatArticle(article);
   // Use server-generated excerpt if available, otherwise generate client-side
-  const excerpt = a.excerpt || (a.body ? a.body.replace(/<[^>]+>/g, '').slice(0, 160) + (a.body.length > 160 ? '...' : '') : '');
+  const excerpt = a.excerpt || (a.body ? a.body.replace(/<[^>]+>/g, '').slice(0, 200) + (a.body.length > 200 ? '...' : '') : '');
 
   const handleDelete = (event) => {
     event.preventDefault();
