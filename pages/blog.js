@@ -81,6 +81,7 @@ export default function Blog() {
             <div>
                 <Navbar/>
                 <main>
+                <h1 className="page-title text-center mb-8">Blog</h1>
                 <section className="recent-articles">
                     <div className="article-cards-container">
                         {posts.length === 0 ? (

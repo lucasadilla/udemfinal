@@ -29,6 +29,7 @@ export default function MyApp({ Component, pageProps }) {
         <ArticlesProvider>
             <Head>
               <link rel="icon" href="/images/favicon.PNG" sizes="any" type="image/png" />
+              <link rel="shortcut icon" href="/images/favicon.PNG" />
               <link rel="apple-touch-icon" href="/images/favicon.PNG" sizes="180x180" />
             </Head>
             <Analytics />

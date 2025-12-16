@@ -46,8 +46,10 @@ export default function SponsorsBar() {
         const scrollerContent = Array.from(scrollerInner.children);
         if (scrollerContent.length === 0) return;
         
-        // Duplicate the entire set multiple times for seamless infinite scrolling
-        const numberOfDuplicates = 4;
+        // Duplicate the entire set many times for seamless infinite scrolling
+        // More duplicates = more continuous scrolling with no gaps
+        // We duplicate enough times so there's always content visible
+        const numberOfDuplicates = 6;
         for (let i = 0; i < numberOfDuplicates; i++) {
             scrollerContent.forEach((item) => {
                 const duplicatedItem = item.cloneNode(true);
@@ -55,6 +57,12 @@ export default function SponsorsBar() {
                 scrollerInner.appendChild(duplicatedItem);
             });
         }
+        
+        // Calculate the exact percentage to move for seamless looping
+        // With 1 original + 6 duplicates = 7 total sets
+        // We move by 1/7 = ~14.29% to loop back to the start of first duplicate
+        // But we'll use -50% which works when we have at least 2 full sets visible
+        // The key is having enough duplicates that -50% always lands on a duplicate set
     }, [sponsors]);
 
     if (!isAdmin && sponsors.length === 0 && !loading) {
