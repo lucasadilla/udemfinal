@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import useGuideSponsors from '../hooks/useGuideSponsors';
@@ -94,13 +95,15 @@ export default function GuidePage() {
                     <div className="sponsor-gallery">
                         {sponsors.map((sponsor, index) => (
                             <div key={sponsor.id} className="relative inline-block">
-                                <img
+                                <Image
                                     src={sponsor.image}
                                     alt="Logo de commanditaire"
                                     className="sponsor-image rounded-lg cursor-pointer hover:shadow-lg"
                                     onClick={() => openModal(index)}
+                                    width={300}
+                                    height={300}
+                                    style={{ objectFit: 'contain', cursor: 'pointer' }}
                                     loading="lazy"
-                                    decoding="async"
                                 />
                                 {isAdmin && (
                                     <button

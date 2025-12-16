@@ -9,63 +9,50 @@ export default function DebugPage() {
 
   useEffect(() => {
     async function runDiagnostics() {
+      // Fetch all endpoints in parallel to avoid waterfall
+      const [healthResult, contentResult, articlesResult] = await Promise.allSettled([
+        fetch('/api/health').then(async (res) => {
+          const data = await res.json();
+          return {
+            status: res.status,
+            ok: res.ok,
+            data,
+          };
+        }),
+        fetch('/api/content').then(async (res) => {
+          const data = await res.json();
+          return {
+            status: res.status,
+            ok: res.ok,
+            data,
+            isEmpty: Object.keys(data || {}).length === 0,
+          };
+        }),
+        fetch('/api/articles').then(async (res) => {
+          const data = await res.json();
+          return {
+            status: res.status,
+            ok: res.ok,
+            data,
+            count: Array.isArray(data) ? data.length : 0,
+            dbName: res.headers.get('X-Database-Name'),
+            documentCount: res.headers.get('X-Document-Count'),
+          };
+        }),
+      ]);
+
+      // Process results
       const results = {
-        health: null,
-        content: null,
-        articles: null,
+        health: healthResult.status === 'fulfilled' 
+          ? healthResult.value 
+          : { status: 'error', error: healthResult.reason?.message || 'Unknown error' },
+        content: contentResult.status === 'fulfilled'
+          ? contentResult.value
+          : { status: 'error', error: contentResult.reason?.message || 'Unknown error' },
+        articles: articlesResult.status === 'fulfilled'
+          ? articlesResult.value
+          : { status: 'error', error: articlesResult.reason?.message || 'Unknown error' },
       };
-
-      // Test health endpoint
-      try {
-        const healthRes = await fetch('/api/health');
-        const healthData = await healthRes.json();
-        results.health = {
-          status: healthRes.status,
-          ok: healthRes.ok,
-          data: healthData,
-        };
-      } catch (err) {
-        results.health = {
-          status: 'error',
-          error: err.message,
-        };
-      }
-
-      // Test content endpoint
-      try {
-        const contentRes = await fetch('/api/content');
-        const contentData = await contentRes.json();
-        results.content = {
-          status: contentRes.status,
-          ok: contentRes.ok,
-          data: contentData,
-          isEmpty: Object.keys(contentData || {}).length === 0,
-        };
-      } catch (err) {
-        results.content = {
-          status: 'error',
-          error: err.message,
-        };
-      }
-
-      // Test articles endpoint
-      try {
-        const articlesRes = await fetch('/api/articles');
-        const articlesData = await articlesRes.json();
-        results.articles = {
-          status: articlesRes.status,
-          ok: articlesRes.ok,
-          data: articlesData,
-          count: Array.isArray(articlesData) ? articlesData.length : 0,
-          dbName: articlesRes.headers.get('X-Database-Name'),
-          documentCount: articlesRes.headers.get('X-Document-Count'),
-        };
-      } catch (err) {
-        results.articles = {
-          status: 'error',
-          error: err.message,
-        };
-      }
 
       setHealthStatus(results.health);
       setContentStatus(results.content);

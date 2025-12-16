@@ -2,6 +2,7 @@
 import Navbar from "../components/Navbar";
 import Head from "next/head";
 import React, { useRef, useState } from "react";
+import Image from "next/image";
 import useUsers from "../hooks/useUsers";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useAdminStatus from "../hooks/useAdminStatus";
@@ -104,11 +105,17 @@ export default function NotreComite() {
                         <div className="committee-grid">
                             {users.map((member) => (
                                 <div key={member.id} className="committee-card">
-                                    <img
-                                        src={member.profilePicture}
-                                        alt={member.name}
-                                        className="committee-avatar border-image mb-1"
-                                    />
+                                    <div className="border-image mb-1">
+                                        <Image
+                                            src={member.profilePicture}
+                                            alt={member.name}
+                                            className="committee-avatar"
+                                            width={350}
+                                            height={350}
+                                            style={{ objectFit: 'cover', borderRadius: '50%' }}
+                                            loading="lazy"
+                                        />
+                                    </div>
                                     <h2 className="text-xl font-semibold leading-tight">{member.name}</h2>
                                     <p className="text-gray-600 leading-snug">{member.title}</p>
                                     {isAdmin && (

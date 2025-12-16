@@ -1,10 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
+
+    // Aggressively prefetch Blog and Accueil pages for instant navigation
+    useEffect(() => {
+        // Prefetch immediately
+        router.prefetch('/');
+        router.prefetch('/blog');
+        
+        // Also prefetch on hover for even faster navigation
+        const handleMouseEnter = (path) => {
+            router.prefetch(path);
+        };
+        
+        // Store prefetch handlers for link hover events
+        if (typeof window !== 'undefined') {
+            const homeLink = document.querySelector('a[href="/"]');
+            const blogLink = document.querySelector('a[href="/blog"]');
+            
+            if (homeLink) {
+                homeLink.addEventListener('mouseenter', () => router.prefetch('/'), { once: true });
+            }
+            if (blogLink) {
+                blogLink.addEventListener('mouseenter', () => router.prefetch('/blog'), { once: true });
+            }
+        }
+    }, [router]);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
@@ -31,17 +57,24 @@ export default function Navbar() {
         <nav className={`bg-[#f0efe9] p-4 w-full ${isOpen ? 'menu-open' : ''}`}>
             <div className="logo-container">
                 <a href="/">
-                    <img src="/images/logo femme et droit-Photoroom.png" alt="Logo de Femmes et Droit" className="logo w-10 h-10" />
+                    <Image 
+                      src="/images/logo femme et droit-Photoroom.png" 
+                      alt="Logo de Femmes et Droit" 
+                      className="logo w-10 h-10" 
+                      width={40}
+                      height={40}
+                      priority
+                    />
                 </a>
             </div>
             <ul className={`nav-links ${isOpen ? 'open' : ''} md:flex-row md:flex space-x-4 w-full md:w-auto`}>
                 <li>
-                    <Link href="/">
+                    <Link href="/" prefetch={true}>
                         <span className={`nav-link text-black ${isActive('/') ? 'font-bold' : ''}`}>Accueil</span>
                     </Link>
                 </li>
                 <li>
-                    <Link href="/blog">
+                    <Link href="/blog" prefetch={true}>
                         <span className={`nav-link text-black ${isActive('/blog') ? 'font-bold' : ''}`}>Blog</span>
                     </Link>
                 </li>
@@ -77,10 +110,12 @@ export default function Navbar() {
                 rel="noopener noreferrer"
                 className="instagram-link"
             >
-                <img
+                <Image
                     src="/images/insta.png"
                     alt="Instagram de Femmes et Droit"
                     className="instagram-icon w-8 h-8"
+                    width={32}
+                    height={32}
                 />
             </a>
             <button

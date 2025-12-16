@@ -113,7 +113,7 @@ main {
 
 
 body {
-    font-family: 'Corbel', serif;
+    font-family: var(--font-inter, 'Corbel', Georgia, serif);
     margin: 0;
     padding: 0;
     display: block;
@@ -1137,6 +1137,16 @@ button[type="submit"]:hover {
     border: 2px solid #000; /* Adjust the border size and color as needed */
     padding: 5px; /* Optional: Add padding inside the border */
     border-radius: 50%; /* Ensure the border is circular */
+    display: inline-block; /* Ensure proper sizing */
+    width: fit-content; /* Fit to content */
+    overflow: hidden; /* Ensure image doesn't overflow border */
+}
+
+/* Ensure next/image wrapper respects the border */
+.border-image > span {
+    display: block !important;
+    border-radius: 50%;
+    overflow: hidden;
 }
 
 .committee-grid {
@@ -1169,11 +1179,13 @@ button[type="submit"]:hover {
 }
 
 .committee-avatar {
-    width: 100%;
+    width: 350px !important;
+    height: 350px !important;
     max-width: none;
     aspect-ratio: 1 / 1;
     object-fit: cover;
     border-radius: 50%;
+    display: block; /* Ensure proper display */
 }
 
 .committee-delete {

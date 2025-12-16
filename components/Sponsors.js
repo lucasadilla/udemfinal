@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import useHomeSponsors from '../hooks/useHomeSponsors';
 import useAdminStatus from '../hooks/useAdminStatus';
 
@@ -90,10 +91,14 @@ export default function SponsorsBar() {
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {sponsors.map((sponsor) => (
                                     <div key={sponsor.id} className="relative border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
-                                        <img
+                                        <Image
                                             src={sponsor.image}
                                             alt="Logo de commanditaire"
                                             className="w-full h-24 object-contain mb-2"
+                                            width={200}
+                                            height={96}
+                                            style={{ objectFit: 'contain' }}
+                                            loading="lazy"
                                         />
                                         <button
                                             onClick={() => {
@@ -119,10 +124,14 @@ export default function SponsorsBar() {
                     <div className="scroller__inner">
                         {sponsors.map((sponsor) => (
                             <div key={sponsor.id} className="relative inline-block">
-                                <img
+                                <Image
                                     src={sponsor.image}
                                     alt="Logo de commanditaire"
                                     className="scroller-item"
+                                    width={150}
+                                    height={150}
+                                    style={{ objectFit: 'contain' }}
+                                    loading="lazy"
                                 />
                             </div>
                         ))}

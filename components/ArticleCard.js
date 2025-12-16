@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Normalize raw article data
 function formatArticle(raw = {}) {
@@ -57,7 +58,15 @@ export default function ArticleCard({ article = {}, isAdmin = false, onDelete })
       >
         <article className="article-card">
           <div className="article-card-media">
-            <img src={a.image} alt={a.title} className="article-card-image" />
+            <Image 
+              src={a.image} 
+              alt={a.title} 
+              className="article-card-image"
+              width={380}
+              height={200}
+              style={{ objectFit: 'cover' }}
+              loading="lazy"
+            />
           </div>
           <div className="article-card-content">
             {a.date && <p className="article-card-date">{a.date}</p>}

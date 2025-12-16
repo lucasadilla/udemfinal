@@ -1,19 +1,41 @@
 // pages/index.js
 import Navbar from '../components/Navbar';
-import ContactCard from '../components/ContactCard';
 import ArticleCard from '../components/ArticleCard';
 import Head from 'next/head';
-import React from "react";
+import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useArticles } from '../context/ArticlesContext';
 import useContent from '../hooks/useContent';
-import HeroBannerEditor from '../components/HeroBannerEditor';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useAdminStatus from '../hooks/useAdminStatus';
+// Lazy load ContactCard since it's below the fold and uses client-side hooks
+const ContactCard = dynamic(() => import('../components/ContactCard'), {
+  ssr: false, // Prevent SSR to avoid hydration issues with client-side hooks
+  loading: () => <div className="min-h-[200px]" />, // Reserve space to prevent layout shift
+});
+
+const HeroBannerEditor = dynamic(() => import('../components/HeroBannerEditor'), {
+  ssr: false, // Only load on client side since it's admin-only
+});
 
 export default function Home() {
-    const { articles, loading: articlesLoading } = useArticles();
-    const { getTextContent, getImageContent, loading: contentLoading, error: contentError, updateContent } = useContent();
+    // Client-side only: Fetch data via hooks for instant page load
+    const { articles: contextArticles, loading: articlesLoading } = useArticles();
+    const { getTextContent: swrGetTextContent, getImageContent: swrGetImageContent, error: contentError, updateContent } = useContent();
     const isAdmin = useAdminStatus();
+    
+    // Use articles from context
+    const articles = contextArticles || [];
+    
+    // Use SWR content directly
+    const getTextContent = (section, subsection, key, fallback = '') => {
+        return swrGetTextContent(section, subsection, key, fallback);
+    };
+    
+    const getImageContent = (section, subsection, key, fallback = '') => {
+        return swrGetImageContent(section, subsection, key, fallback);
+    };
     
     // Get dynamic content with fallbacks
     const heroTitle = getTextContent('home', 'hero', 'hero_title', 'FEMMES & DROIT');
@@ -29,14 +51,8 @@ export default function Home() {
 
     const topThreeArticles = articles ? articles.slice(0, 3) : [];
 
-    // Show loading only for a reasonable time, then show content with fallbacks
-    if (contentLoading && !contentError) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
-        );
-    }
+    // Show minimal loading state - page renders immediately
+    const isLoading = articlesLoading;
 
     // If there's an error, still show the page with fallback content
     if (contentError) {
@@ -54,8 +70,15 @@ export default function Home() {
                 <Navbar/>
 
                 <main className="relative">
-                    <div className="banner">
-                        <img src={heroBanner} alt="Bannière" className="w-full h-auto"/>
+                    <div className="banner" style={{ position: 'relative', width: '100%', height: '700px' }}>
+                        <Image 
+                          src={heroBanner} 
+                          alt="Bannière" 
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          priority
+                          sizes="100vw"
+                        />
                         <div className="banner-text-box">
                             <h1 className="text-4xl text-center text-white">{heroTitle}</h1>
                             <h2 className="text-4xl text-center text-white mt-4">{heroSubtitle}</h2>
@@ -69,11 +92,7 @@ export default function Home() {
                     <section className="recent-articles">
                         <h2 className="text-2xl text-center mt-8 mb-4">{recentArticlesTitle}</h2>
                         <div className="article-cards-container">
-                            {articlesLoading ? (
-                                <div className="flex justify-center items-center w-full py-8">
-                                    <LoadingSpinner />
-                                </div>
-                            ) : topThreeArticles.length > 0 ? (
+                            {topThreeArticles.length > 0 ? (
                                 topThreeArticles.map((article) => (
                                     <ArticleCard key={article._id || article.id} article={article} />
                                 ))
@@ -87,3 +106,5 @@ export default function Home() {
     );
 }
 
+// Client-side only: No getStaticProps for instant navigation
+// Data will be fetched client-side via hooks

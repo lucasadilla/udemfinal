@@ -2,14 +2,23 @@
 // directly via the `ArticleForm`; removing the obsolete `AdminLoginForm`
 // resolves prior build errors.
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useArticles } from '../context/ArticlesContext';
 import ArticleCard from '../components/ArticleCard';
 import Navbar from '../components/Navbar';
-import ArticleForm from '../components/ArticleForm';
 import Head from 'next/head';
 import useAdminStatus from '../hooks/useAdminStatus';
 import LoadingSpinner from '../components/LoadingSpinner';
-import Pagination from '../components/Pagination';
+
+// Lazy load components that aren't immediately needed
+const ArticleForm = dynamic(() => import('../components/ArticleForm'), {
+  ssr: false, // Only load on client side since it's admin-only and contains heavy TipTap editor
+  loading: () => <LoadingSpinner />,
+});
+
+const Pagination = dynamic(() => import('../components/Pagination'), {
+  loading: () => <div className="h-12" />, // Reserve space to prevent layout shift
+});
 
 function mergeArticles(primary = [], secondary = []) {
     const map = new Map();
@@ -24,36 +33,21 @@ function mergeArticles(primary = [], secondary = []) {
 const ITEMS_PER_PAGE = 20;
 
 export default function Blog() {
-    const { articles, loading: articlesLoading, addArticle, deleteArticle } = useArticles();
+    // Client-side only: Fetch data via hooks for instant page load
+    const { articles: contextArticles, loading: articlesLoading, addArticle, deleteArticle } = useArticles();
     const [posts, setPosts] = useState([]);
-    const [postsLoading, setPostsLoading] = useState(true);
+    const [postsLoading, setPostsLoading] = useState(false);
     const isAdmin = useAdminStatus();
     const [showForm, setShowForm] = useState(false);
     const [formError, setFormError] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
+    // Update posts when articles load
     useEffect(() => {
-        async function load() {
-            setPostsLoading(true);
-            try {
-                const res = await fetch('/api/articles');
-                if (res.ok) {
-                    const data = await res.json();
-                    setPosts(mergeArticles(articles, data));
-                } else {
-                    setPosts(articles);
-                }
-            } catch (error) {
-                console.error('Error loading articles:', error);
-                setPosts(articles);
-            } finally {
-                setPostsLoading(false);
-            }
+        if (!articlesLoading && contextArticles.length > 0) {
+            setPosts(contextArticles);
         }
-        if (!articlesLoading) {
-            load();
-        }
-    }, [articles, articlesLoading]);
+    }, [contextArticles, articlesLoading]);
 
     const handleDelete = async (id) => {
         if (!id) {
@@ -89,11 +83,7 @@ export default function Blog() {
                 <main>
                 <section className="recent-articles">
                     <div className="article-cards-container">
-                        {articlesLoading || postsLoading ? (
-                            <div className="flex justify-center items-center w-full py-8">
-                                <LoadingSpinner />
-                            </div>
-                        ) : posts.length === 0 ? (
+                        {posts.length === 0 ? (
                             <p>Aucun article trouvé</p>
                         ) : (
                             paginatedPosts.map((article) => (
@@ -106,7 +96,7 @@ export default function Blog() {
                             ))
                         )}
                     </div>
-                    {!articlesLoading && !postsLoading && posts.length > 0 && (
+                    {posts.length > 0 && (
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -162,3 +152,5 @@ export default function Blog() {
     );
 }
 
+// Client-side only: No getStaticProps for instant navigation
+// Data will be fetched client-side via hooks

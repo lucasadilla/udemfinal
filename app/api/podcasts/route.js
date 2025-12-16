@@ -253,7 +253,12 @@ export async function GET() {
   try {
     const podcasts = await getPodcasts();
     const sanitized = podcasts.map(({ videoFileId, imageFileId, ...rest }) => rest);
-    return NextResponse.json(sanitized, { status: 200 });
+    
+    // Add cache headers for better performance
+    const headers = new Headers();
+    headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    
+    return NextResponse.json(sanitized, { status: 200, headers });
   } catch (error) {
     console.error('Échec du traitement de la requête GET /api/podcasts :', error);
     return NextResponse.json({ error: 'Échec du traitement de la requête de balado.' }, { status: 500 });

@@ -1,28 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useSWRData } from './useSWR';
 
 export default function useEvents() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchEvents = async () => {
-    try {
-      const res = await fetch('/api/events');
-      if (res.ok) {
-        const data = await res.json();
-        setEvents(data);
-      } else {
-        console.warn('Impossible de récupérer les événements :', res.status);
-      }
-    } catch (err) {
-      console.error('Impossible de récupérer les événements :', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const { data: events = [], error, isLoading: loading, mutate } = useSWRData('/api/events', {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 2000, // Cache for 2 seconds
+  });
 
   const addEvent = async (event) => {
     try {
@@ -32,12 +15,13 @@ export default function useEvents() {
         body: JSON.stringify(event),
       });
       if (res.ok) {
-        await fetchEvents();
+        // Revalidate to get fresh data
+        await mutate();
       } else {
-        console.warn('Impossible d’ajouter un événement :', res.status);
+        console.warn('Impossible d\'ajouter un événement :', res.status);
       }
     } catch (err) {
-      console.error('Impossible d’ajouter un événement :', err);
+      console.error('Impossible d\'ajouter un événement :', err);
     }
   };
 
@@ -48,12 +32,13 @@ export default function useEvents() {
         method: 'DELETE',
       });
       if (res.ok) {
-        await fetchEvents();
+        // Revalidate to get fresh data
+        await mutate();
       } else {
-        console.warn('Impossible de supprimer l’événement :', res.status);
+        console.warn('Impossible de supprimer l\'événement :', res.status);
       }
     } catch (err) {
-      console.error('Impossible de supprimer l’événement :', err);
+      console.error('Impossible de supprimer l\'événement :', err);
     }
   };
 

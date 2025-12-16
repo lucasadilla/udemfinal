@@ -31,6 +31,8 @@ export default async function handler(req, res) {
       const collection = db.collection('content');
 
       if (req.method === 'GET') {
+        // Cache for 5 minutes, revalidate in background
+        res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
         const doc = await collection.findOne({ _id: 'content' }) || {};
         const { _id, ...data } = doc;
         return res.status(200).json(data);
@@ -57,6 +59,8 @@ export default async function handler(req, res) {
     } else {
       // Fallback to JSON storage
       if (req.method === 'GET') {
+        // Cache for 5 minutes, revalidate in background
+        res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
         const data = getFallbackContent();
         return res.status(200).json(data);
       }

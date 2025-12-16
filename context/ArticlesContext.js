@@ -82,8 +82,10 @@ function setCachedArticles(data) {
 }
 
 export function ArticlesProvider({ children }) {
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Start with cached data if available to avoid blocking initial render
+    const cachedData = typeof window !== 'undefined' ? getCachedArticles() : null;
+    const [articles, setArticles] = useState(cachedData || []);
+    const [loading, setLoading] = useState(cachedData === null);
 
     const fetchArticles = async (skipCache = false) => {
         try {
@@ -97,6 +99,7 @@ export function ArticlesProvider({ children }) {
                 }
             }
             
+            // Fetch articles - caching is handled by API route Cache-Control headers
             const res = await fetch('/api/articles');
             if (res.ok) {
                 const data = await res.json();
@@ -128,7 +131,16 @@ export function ArticlesProvider({ children }) {
     };
 
     useEffect(() => {
-        fetchArticles();
+        // Defer fetching to avoid blocking page navigation
+        // Use requestIdleCallback for non-critical data fetching
+        if (typeof window !== 'undefined') {
+            const fetch = () => fetchArticles();
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(fetch, { timeout: 2000 });
+            } else {
+                setTimeout(fetch, 100);
+            }
+        }
     }, []);
 
     const addArticle = async (article) => {

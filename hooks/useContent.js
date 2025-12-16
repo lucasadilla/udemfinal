@@ -1,40 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useSWRData } from './useSWR';
 
 export default function useContent() {
-  const [content, setContent] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    async function fetchContent() {
-      try {
-        const res = await fetch('/api/content');
-        if (res.ok) {
-          const data = await res.json();
-          console.log('[useContent] Contenu récupéré:', Object.keys(data).length > 0 ? 'données présentes' : 'objet vide');
-          setContent(data || {});
-        } else {
-          const errorData = await res.json().catch(() => ({}));
-          console.error('[useContent] Erreur API:', {
-            status: res.status,
-            statusText: res.statusText,
-            error: errorData,
-          });
-          setError(new Error(`Impossible de récupérer le contenu: ${res.status} ${res.statusText}`));
-        }
-      } catch (err) {
-        console.error('[useContent] Erreur réseau:', {
-          message: err.message,
-          name: err.name,
-        });
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchContent();
-  }, []);
+  const { data: content = {}, error, isLoading: loading, mutate } = useSWRData('/api/content', {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 5000, // Cache for 5 seconds
+  });
 
   const getNested = (keys, fallback) => {
     let result = content;
@@ -65,7 +36,8 @@ export default function useContent() {
       });
       if (res.ok) {
         const data = await res.json();
-        setContent(data);
+        // Update SWR cache with new data
+        await mutate(data, false); // false = don't revalidate, we already have the data
       } else {
         console.warn('Impossible de mettre à jour le contenu :', res.status);
       }

@@ -1,11 +1,16 @@
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from '../../components/Navbar';
 import usePodcasts from '../../hooks/usePodcasts';
 import PodcastCard from '../../components/PodcastCard';
 import useAdminStatus from '../../hooks/useAdminStatus';
 import { formattedUploadLimit, isFileTooLarge } from '../../lib/podcastUploadLimits.js';
-import Pagination from '../../components/Pagination';
+
+// Lazy load Pagination component
+const Pagination = dynamic(() => import('../../components/Pagination'), {
+  loading: () => <div className="h-12" />, // Reserve space to prevent layout shift
+});
 
 const ITEMS_PER_PAGE = 20;
 

@@ -175,15 +175,15 @@ export default function PodcastDetail({ podcast }) {
   );
 }
 
-export async function getServerSideProps({ params }) {
+// ISR: Generate static pages at build time and revalidate every 60 seconds
+export async function getStaticProps({ params }) {
   try {
     const podcast = await getPodcastBySlug(params.slug);
 
     if (!podcast) {
       return {
-        props: {
-          podcast: null,
-        },
+        notFound: true,
+        revalidate: 60, // Revalidate every 60 seconds
       };
     }
 
@@ -191,13 +191,37 @@ export async function getServerSideProps({ params }) {
       props: {
         podcast,
       },
+      revalidate: 60, // Revalidate every 60 seconds
     };
   } catch (error) {
     console.error('Impossible de récupérer le balado pour la page :', error);
     return {
-      props: {
-        podcast: null,
-      },
+      notFound: true,
+      revalidate: 60,
+    };
+  }
+}
+
+// Generate static paths for all podcasts at build time
+export async function getStaticPaths() {
+  try {
+    const { getPodcasts } = await import('../../lib/podcastDatabase');
+    const podcasts = await getPodcasts();
+    const paths = podcasts
+      .filter((podcast) => podcast?.slug)
+      .map((podcast) => ({
+        params: { slug: podcast.slug },
+      }));
+
+    return {
+      paths,
+      fallback: 'blocking', // Generate new pages on-demand if not found at build time
+    };
+  } catch (error) {
+    console.error('Impossible de récupérer les slugs de balados :', error);
+    return {
+      paths: [],
+      fallback: 'blocking',
     };
   }
 }

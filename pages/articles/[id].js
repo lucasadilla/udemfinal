@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Navbar from '../../components/Navbar';
 import { useArticles } from '../../context/ArticlesContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useSWRData } from '../../hooks/useSWR';
 
 export default function Article() {
   const router = useRouter();
@@ -13,28 +14,33 @@ export default function Article() {
   const [postLoading, setPostLoading] = useState(false);
   const article = articles.find((a) => String(a.id) === id);
 
+  // Prefetch blog page for faster back navigation
+  useEffect(() => {
+    router.prefetch('/blog');
+    router.prefetch('/');
+  }, [router]);
+
+  // Use SWR for better caching of individual articles
+  // Fetch immediately without waiting for articlesLoading to avoid waterfall
+  const { data: fetchedPost, isLoading: postLoadingSWR } = useSWRData(
+    id ? `/api/articles?id=${id}` : null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000, // Cache for 5 seconds
+    }
+  );
+
   useEffect(() => {
     // Always fetch full article when on detail page, even if we have it in the list
     // because list articles don't include full content
-    if (id && !articlesLoading) {
-      setPostLoading(true);
-      fetch(`/api/articles?id=${id}`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data) setPost(data);
-        })
-        .catch((error) => {
-          console.error('Error loading article:', error);
-        })
-        .finally(() => {
-          setPostLoading(false);
-        });
+    if (id && fetchedPost) {
+      setPost(fetchedPost);
     }
-  }, [id, articlesLoading]);
+  }, [id, fetchedPost]);
 
   // Prefer the fetched post (has full content) over cached article (list view only)
-  const currentArticle = post || article;
-  const isLoading = postLoading || (articlesLoading && !currentArticle);
+  const currentArticle = post || fetchedPost || article;
+  const isLoading = postLoading || postLoadingSWR || (articlesLoading && !currentArticle);
 
   if (isLoading) {
     return (
@@ -58,8 +64,15 @@ export default function Article() {
     );
   }
 
-  const handleBack = () => {
-    router.back();
+  const handleBack = (e) => {
+    e.preventDefault();
+    // Use window.history.back() for instant navigation, or fallback to blog page
+    // This is faster than router.back() which may wait for page revalidation
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      router.push('/blog');
+    }
   };
 
   const handleShare = () => {

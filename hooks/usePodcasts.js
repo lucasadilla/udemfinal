@@ -1,29 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useSWRData } from './useSWR';
 
 export default function usePodcasts() {
-  const [podcasts, setPodcasts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchPodcasts = async () => {
-    try {
-      const res = await fetch('/api/podcasts');
-      if (res.ok) {
-        const data = await res.json();
-        setPodcasts(data);
-      } else {
-        console.warn('Impossible de récupérer les balados :', res.status);
-      }
-    } catch (err) {
-      console.error('Impossible de récupérer les balados :', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPodcasts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { data: podcasts = [], error, isLoading: loading, mutate } = useSWRData('/api/podcasts', {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 2000, // Cache for 2 seconds
+  });
 
   const addPodcast = async ({
     title,
@@ -69,7 +51,8 @@ export default function usePodcasts() {
       });
 
       if (res.ok) {
-        await fetchPodcasts();
+        // Revalidate to get fresh data
+        await mutate();
         return { success: true };
       }
 
@@ -99,7 +82,8 @@ export default function usePodcasts() {
       });
 
       if (res.ok) {
-        await fetchPodcasts();
+        // Revalidate to get fresh data
+        await mutate();
       } else {
         console.warn('Impossible de supprimer le balado :', res.status);
       }

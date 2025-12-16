@@ -25,6 +25,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
+      // Cache for 2 minutes, revalidate in background
+      res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
       const events = await getEvents();
       return res.status(200).json(events);
     } catch (err) {

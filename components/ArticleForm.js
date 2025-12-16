@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import useUsers from '@/hooks/useUsers';
-import RichTextEditor from '@/components/RichTextEditor';
 import {
   createCoverImageDataUrl,
   IMAGE_ERRORS,
   MAX_FORM_BASE64_SIZE,
 } from '@/lib/clientImageUtils';
+
+// Lazy load RichTextEditor since it includes heavy TipTap library
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), {
+  loading: () => <div className="min-h-[300px] border border-gray-300 rounded p-4">Chargement de l'éditeur...</div>,
+  ssr: false, // TipTap editor only works on client side
+});
 
 export default function ArticleForm({ article, onSubmit, onCancel, errorMessage = '' }) {
   const [formData, setFormData] = useState({

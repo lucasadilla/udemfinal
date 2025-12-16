@@ -45,6 +45,9 @@ export default async function handler(req, res) {
                 return res.status(200).json({ ok: true });
             }
 
+            // Cache for 5 minutes, revalidate in background
+            res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+            
             const sponsorDocs = await collection.find({}).toArray();
             const sponsors = sponsorDocs.map(doc => ({
                 id: doc._id?.toString() || doc.id,
@@ -84,6 +87,9 @@ export default async function handler(req, res) {
                 return res.status(200).json({ ok: true });
             }
 
+            // Cache for 5 minutes, revalidate in background
+            res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+            
             const sponsors = getFallbackSponsors();
             return res.status(200).json(sponsors);
         }
