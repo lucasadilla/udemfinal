@@ -1210,8 +1210,8 @@ button[type="submit"]:hover {
     /* Ensure smooth animation without jank */
     backface-visibility: hidden;
     perspective: 1000px;
-    /* Ensure continuous scrolling with no gaps */
-    min-width: 200%;
+    /* Ensure continuous scrolling with no gaps - enough content for seamless loop */
+    min-width: 300%;
 }
 
 /* Scrolling direction and speed */
@@ -1238,13 +1238,13 @@ button[type="submit"]:hover {
 
 /* Keyframes for smooth infinite scrolling */
 /* The animation moves exactly -50% so when it resets, the duplicated content is in the exact same position */
-/* With enough duplicates (6+ sets), this creates a seamless infinite loop with no gaps */
+/* With 10+ duplicates, this creates a truly seamless infinite loop with no visible jump */
 @keyframes scroll {
-    from {
+    0% {
         transform: translateX(0);
     }
-    to {
-        transform: translateX(calc(-50% - 4rem));
+    100% {
+        transform: translateX(-50%);
     }
 }
 
